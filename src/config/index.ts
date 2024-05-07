@@ -1,4 +1,9 @@
-// src/config/index.ts
-export const DEFAULT_AVALANCHE_NODE_API_URL = 'http://127.0.0.1:34575'
-export const DEFAULT_NUKLAIVM_BLOCKCHAINID =
-  'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN'
+// Default configuration values are maintained here for easy reference and management.
+import { SDKConfig } from '../types/SDKConfig'
+
+export const defaultSDKConfig: SDKConfig = {
+  baseApiUrl: 'http://127.0.0.1:34575',
+  blockchainId: 'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN',
+  maxRetries: 3,
+  initialRetryDelay: 500
+}

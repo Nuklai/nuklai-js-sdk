@@ -9,7 +9,7 @@ npm install
 ## Build the sdk
 
 ```bash
-npx tsc
+npm run build
 ```
 
 ## Run the test.mjs file
