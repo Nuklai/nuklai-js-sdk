@@ -1,21 +1,23 @@
 import { SDKConfig } from '../types/SDKConfig'
 
-export class ApiService {
+export abstract class ApiService {
+  protected abstract apiPath: string // Define this in the derived classes
+  protected abstract methodPrefix: string // Define this in the derived classes
+
   constructor(protected config: SDKConfig) {}
 
   protected async makeRequest(
-    apiUrl: string,
     method: string,
     params?: any,
     retries?: number,
     retryDelay?: number
   ): Promise<any> {
+    const apiUrl = `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/${this.apiPath}`
     console.log('Request URL:', apiUrl) // Debugging line to see the constructed URL
-
     const requestBody = {
       jsonrpc: '2.0',
       id: 1,
-      method,
+      method: `${this.methodPrefix}${method}`,
       params
     }
 
@@ -31,13 +33,7 @@ export class ApiService {
           `Rate limit hit, retrying request... Retries left: ${retries}`
         )
         await new Promise((resolve) => setTimeout(resolve, retryDelay))
-        return this.makeRequest(
-          apiUrl,
-          method,
-          params,
-          retries! - 1,
-          retryDelay! * 2
-        )
+        return this.makeRequest(method, params, retries! - 1, retryDelay! * 2)
       } else if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -47,13 +43,7 @@ export class ApiService {
       if (retries! > 0) {
         console.log(`Request failed, retrying... Retries left: ${retries}`)
         await new Promise((resolve) => setTimeout(resolve, retryDelay))
-        return this.makeRequest(
-          apiUrl,
-          method,
-          params,
-          retries! - 1,
-          retryDelay! * 2
-        )
+        return this.makeRequest(method, params, retries! - 1, retryDelay! * 2)
       }
       console.error(`Error fetching ${method}:`, error)
       throw error

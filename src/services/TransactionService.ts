@@ -1,11 +1,7 @@
-import { ApiService } from './ApiService'
+import { NuklaiApiService } from './NuklaiApiService'
 
-export class TransactionService extends ApiService {
-  getTransaction(txId: string): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.tx',
-      { txId }
-    )
+export class TransactionService extends NuklaiApiService {
+  getTransactionInfo(txId: string): Promise<any> {
+    return this.makeRequest('tx', { txId })
   }
 }

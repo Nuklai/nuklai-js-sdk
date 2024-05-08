@@ -2,8 +2,8 @@
 import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:34575',
-  blockchainId: 'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN'
+  baseApiUrl: 'http://127.0.0.1:33477',
+  blockchainId: '2FYCHk5Vs43Jz1fMsaUba2F4fPjWwcS7ftj8ncNZ8JRgNi9BE3'
 })
 
 async function testSDK() {
@@ -12,8 +12,8 @@ async function testSDK() {
   // Testing Health Status
   try {
     console.log('Fetching Health Status...')
-    const healthStatus = await sdk.healthService.getHealthStatus()
-    console.log('Health Status:', JSON.stringify(healthStatus, null, 2))
+    const healthStatus = await sdk.healthService.ping()
+    console.log('Node Ping:', JSON.stringify(healthStatus, null, 2))
   } catch (error) {
     console.error('Failed to fetch Health Status:', error)
   }
@@ -21,7 +21,7 @@ async function testSDK() {
   // Testing Genesis Information
   try {
     console.log('Fetching Genesis...')
-    const genesisInfo = await sdk.genesisService.getGenesis()
+    const genesisInfo = await sdk.genesisService.getGenesisInfo()
     console.log('Genesis Info:', JSON.stringify(genesisInfo, null, 2))
   } catch (error) {
     console.error('Failed to fetch Genesis:', error)
@@ -32,7 +32,7 @@ async function testSDK() {
   // Testing Transaction Information
   try {
     console.log('Fetching Transaction Info...');
-    const transactionInfo = await sdk.transactionService.getTransaction('transaction_id_placeholder');
+    const transactionInfo = await sdk.transactionService.getTransactionInfo('transaction_id_placeholder');
     console.log('Transaction Info:', JSON.stringify(transactionInfo, null, 2));
   } catch (error) {
     console.error('Failed to fetch Transaction Info:', error);
@@ -41,7 +41,7 @@ async function testSDK() {
   // Testing Asset Information
   try {
     console.log('Fetching Asset Info...');
-    const assetInfo = await sdk.assetService.getAsset('asset_id_placeholder');
+    const assetInfo = await sdk.assetService.getAssetInfo('asset_id_placeholder');
     console.log('Asset Info:', JSON.stringify(assetInfo, null, 2));
   } catch (error) {
     console.error('Failed to fetch Asset Info:', error);
@@ -64,7 +64,7 @@ async function testSDK() {
   // Testing Loan Creation
   try {
     console.log('Creating Loan...');
-    const loan = await sdk.loanService.createLoan('asset_id_placeholder', 'destination_id_placeholder');
+    const loan = await sdk.loanService.getLoanInfo('asset_id_placeholder', 'destination_id_placeholder');
     console.log('Loan:', JSON.stringify(loan, null, 2));
   } catch (error) {
     console.error('Failed to create Loan:', error);

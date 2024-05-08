@@ -1,40 +1,23 @@
-import { ApiService } from './ApiService'
+import { NuklaiApiService } from './NuklaiApiService'
 
-export class EmissionService extends ApiService {
+export class EmissionService extends NuklaiApiService {
   getEmissionInfo(): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.emissionInfo'
-    )
+    return this.makeRequest('emissionInfo')
   }
 
   getAllValidators(): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.allValidators'
-    )
+    return this.makeRequest('allValidators')
   }
 
   getStakedValidators(): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.stakedValidators'
-    )
+    return this.makeRequest('stakedValidators')
   }
 
   getValidatorStake(nodeId: string): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.validatorStake',
-      { nodeId }
-    )
+    return this.makeRequest('validatorStake', { nodeId })
   }
 
   getUserStake(ownerAddress: string, nodeId: string): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/bc/${this.config.blockchainId}/nuklaiapi`,
-      'nuklaivm.userStake',
-      { owner: ownerAddress, nodeId }
-    )
+    return this.makeRequest('userStake', { owner: ownerAddress, nodeId })
   }
 }

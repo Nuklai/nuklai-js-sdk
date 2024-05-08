@@ -1,10 +1,7 @@
-import { ApiService } from './ApiService'
+import { CoreApiService } from './CoreApiService'
 
-export class HealthService extends ApiService {
-  getHealthStatus(): Promise<any> {
-    return this.makeRequest(
-      `${this.config.baseApiUrl}/ext/health`,
-      'health.liveness'
-    )
+export class HealthService extends CoreApiService {
+  ping(): Promise<any> {
+    return this.makeRequest('ping')
   }
 }
