@@ -18,6 +18,15 @@ async function testSDK() {
     console.error('Failed to fetch Health Status:', error)
   }
 
+  // Testing Network Information
+  try {
+    console.log('Fetching Network Info...')
+    const networkInfo = await sdk.networkService.getNetworkInfo()
+    console.log('Network Info:', JSON.stringify(networkInfo, null, 2))
+  } catch (error) {
+    console.error('Failed to fetch Network Info:', error)
+  }
+
   // Testing Genesis Information
   try {
     console.log('Fetching Genesis...')
@@ -32,7 +41,7 @@ async function testSDK() {
   // Testing Transaction Information
   try {
     console.log('Fetching Transaction Info...');
-    const transactionInfo = await sdk.transactionService.getTransactionInfo('transaction_id_placeholder');
+    const transactionInfo = await sdk.nuklaiTransactionService.getTransactionInfo('transaction_id_placeholder');
     console.log('Transaction Info:', JSON.stringify(transactionInfo, null, 2));
   } catch (error) {
     console.error('Failed to fetch Transaction Info:', error);
