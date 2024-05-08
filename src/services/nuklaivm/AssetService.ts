@@ -1,4 +1,4 @@
-import { NuklaiApiService } from '.'
+import { NuklaiApiService } from '../NuklaiApiService'
 
 export class AssetService extends NuklaiApiService {
   getBalance(address: string, assetId: string): Promise<any> {

@@ -1,6 +1,6 @@
-import { ApiService } from '../ApiService'
+import { ApiService } from './ApiService'
 
-export class CoreApiService extends ApiService {
+export class HyperApiService extends ApiService {
   protected apiPath = 'coreapi'
   protected methodPrefix = 'hypersdk.'
 

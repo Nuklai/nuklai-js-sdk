@@ -1,6 +1,6 @@
-import { CoreApiService } from '.'
+import { HyperApiService } from '../HyperApiService'
 
-export class NetworkService extends CoreApiService {
+export class NetworkService extends HyperApiService {
   // Retrieve network IDs
   getNetworkInfo(): Promise<any> {
     return this.makeRequest('network')

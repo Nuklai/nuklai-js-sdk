@@ -1,4 +1,4 @@
-import { ApiService } from '../ApiService'
+import { ApiService } from './ApiService'
 
 export class NuklaiApiService extends ApiService {
   protected apiPath = 'nuklaiapi'
