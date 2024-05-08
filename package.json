@@ -1,18 +1,37 @@
 {
-  "name": "nuklai-js-sdk",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@nuklai/nuklai-sdk",
+  "version": "0.1.0",
+  "description": "A JavaScript SDK for interacting with the Nuklai blockchain, providing modular services for HyperVM and NuklaiVM.",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nuklai/nuklai-js-sdk.git"
+  },
+  "keywords": [
+    "blockchain",
+    "Nuklai",
+    "HyperVM",
+    "NuklaiVM",
+    "cryptocurrency",
+    "API",
+    "Avalanche"
+  ],
+  "author": "Kiran Pachhai <kiran.pachhai@nukl.ai>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Nuklai/nuklai-js-sdk/issues"
+  },
+  "homepage": "https://github.com/Nuklai/nuklai-js-sdk#readme",
   "devDependencies": {
     "@types/node": "^20.12.10",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
   },
   "dependencies": {
     "@avalabs/avalanchejs": "^4.0.5"

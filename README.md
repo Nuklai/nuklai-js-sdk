@@ -1,31 +1,32 @@
 # Nuklai SDK
 
-The Nuklai SDK provides a simplified and modular interface for interacting with the Nuklai blockchain services. It includes methods for fetching health status, blockchain genesis information, transactions, asset details, and managing loans and emissions.
+The Nuklai SDK provides a modular and comprehensive interface for interacting with both the HyperVM and NuklaiVM on the Nuklai blockchain. It is designed to facilitate developers with functions ranging from network configurations to transaction management and complex warp operations.
 
 ## Features
 
-- **Health Check**: Determine the liveness of the blockchain service.
-- **Genesis Information**: Retrieve the genesis block data.
-- **Transaction Details**: Fetch information about specific transactions.
-- **Asset Information**: Get details about assets on the blockchain and query balance details for a specific account and asset.
-- **Loan Management**: Initiate loans between accounts.
-- **Emission Information**: Access details about emissions, validators, and stakes.
+- **Core and Nuklai API Services**: Separate interfaces for HyperVM (`coreapi`) and NuklaiVM (`nuklaivm`) functionalities.
+- **Network Services**: Fetch network settings and last accepted blocks.
+- **Health Checks**: Monitor the liveness and connectivity of the blockchain network.
+- **Transaction Management**: Submit and fetch details about transactions.
+- **Asset Management**: Query and manage blockchain assets.
+- **Loan Services**: Handle creation and management of loans.
+- **Emission Details**: Access emission information, validator details, and staking functionalities.
+- **Warp Protocol Services**: Manage and fetch warp signatures and related operations.
 
 ## Installation
 
-You can install the Nuklai SDK via npm:
+Install the Nuklai SDK via npm(NOTE: Currently does not work so need to build locally):
 
-```bash
-npm install @nuklai/nuklai-js-sdk
-```
+````bash
+npm install @nuklai/nuklai-sdk
 
 Or, if you are using Yarn:
 
 ```bash
-yarn add @nuklai/nuklai-js-sdk
-```
+yarn add @nuklai/nuklai-sdk
+````
 
-## You can also build it locally
+## Build from source
 
 ```bash
 npm install
@@ -42,64 +43,63 @@ node test.mjs
 
 ## Usage
 
-First, import and configure the SDK:
+Import and initialize the SDK in your project:
 
 ```javascript
 import { NuklaiSDK } from 'nuklai-sdk'
 
 const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:34575',
-  blockchainId: 'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN'
+  baseApiUrl: 'http://127.0.0.1:34575', // Node API URL
+  blockchainId: 'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN' // Blockchain ID
 })
 ```
 
-### Fetching Health Status
+## Example Usage
+
+### Check Health Status
 
 ```javascript
 async function checkHealth() {
-  try {
-    const healthStatus = await sdk.healthService.getHealthStatus()
-    console.log('Health Status:', healthStatus)
-  } catch (error) {
-    console.error('Failed to fetch health status:', error)
-  }
+  const healthStatus = await sdk.healthService.ping()
+  console.log('Health Status:', healthStatus)
 }
 ```
 
-### Getting Genesis Information
+### Get Network Information
 
 ```javascript
-async function fetchGenesis() {
-  try {
-    const genesisInfo = await sdk.genesisService.getGenesis()
-    console.log('Genesis Info:', genesisInfo)
-  } catch (error) {
-    console.error('Failed to fetch genesis:', error)
-  }
+async function fetchNetworkInfo() {
+  const networkInfo = await sdk.networkService.getNetworkInfo()
+  console.log('Network Info:', networkInfo)
 }
 ```
 
-### Example of Fetching a Balance
+### Fetch a Balance
 
 ```javascript
 async function getBalance(address, assetId) {
-  try {
-    const balance = await sdk.assetService.getBalance(address, assetId)
-    console.log('Balance:', balance)
-  } catch (error) {
-    console.error('Failed to fetch balance:', error)
-  }
+  const balance = await sdk.assetService.getBalance(address, assetId)
+  console.log('Balance:', balance)
 }
 ```
 
-## Development
+### Fetch Emission Information
 
-For local development, you can clone the repository and install dependencies:
+```javascript
+async function fetchEmissionDetails() {
+  const emissionInfo = await sdk.emissionService.getEmissionInfo()
+  console.log('Emission Details:', emissionInfo)
+}
+```
 
-```bash
-git clone https://github.com/Nuklai/nuklai-js-sdk.git
-cd nuklai-sdk
-npm install
+### Submit a Transaction
+
+```javascript
+async function submitTransaction(txData) {
+  const transactionReceipt =
+    await sdk.hyperTransactionService.submitTransaction(txData)
+  console.log('Transaction Receipt:', transactionReceipt)
+}
 ```
 
 ## Contributing
