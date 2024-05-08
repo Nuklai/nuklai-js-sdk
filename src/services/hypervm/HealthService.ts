@@ -1,4 +1,4 @@
-import { CoreApiService } from './CoreApiService'
+import { CoreApiService } from '.'
 
 export class HealthService extends CoreApiService {
   ping(): Promise<any> {

@@ -1,4 +1,4 @@
-import { NuklaiApiService } from './NuklaiApiService'
+import { NuklaiApiService } from '.'
 
 export class TransactionService extends NuklaiApiService {
   getTransactionInfo(txId: string): Promise<any> {

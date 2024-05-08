@@ -1,4 +1,4 @@
-import { CoreApiService } from './CoreApiService'
+import { CoreApiService } from '.'
 
 export class TransactionService extends CoreApiService {
   // Submit a transaction to the network

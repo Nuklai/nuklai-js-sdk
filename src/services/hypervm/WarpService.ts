@@ -1,4 +1,4 @@
-import { CoreApiService } from './CoreApiService'
+import { CoreApiService } from '.'
 
 export class WarpService extends CoreApiService {
   // Fetch warp signatures associated with a transaction

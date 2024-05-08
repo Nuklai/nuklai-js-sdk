@@ -1,4 +1,4 @@
-import { CoreApiService } from './CoreApiService'
+import { CoreApiService } from '.'
 
 export class NetworkService extends CoreApiService {
   // Retrieve network IDs

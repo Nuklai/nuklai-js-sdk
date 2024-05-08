@@ -1,4 +1,4 @@
-import { NuklaiApiService } from './NuklaiApiService'
+import { NuklaiApiService } from '.'
 
 export class EmissionService extends NuklaiApiService {
   getEmissionInfo(): Promise<any> {
