@@ -2,7 +2,7 @@ import {
   GetTransactionInfoParams,
   GetTransactionInfoResponse
 } from '../../common/nuklaiApiModels'
-import { NuklaiApiService } from '../NuklaiApiService'
+import { NuklaiApiService } from '../nuklaiApiService'
 
 export class TransactionService extends NuklaiApiService {
   getTransactionInfo(

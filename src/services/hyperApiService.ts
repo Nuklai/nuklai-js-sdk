@@ -1,3 +1,4 @@
+import { Api } from '../common/baseApi'
 import {
   GetLastAcceptedResponse,
   GetNetworkInfoResponse,
@@ -6,12 +7,11 @@ import {
   PingResponse,
   SubmitTransactionResponse
 } from '../common/hyperApiModels'
-import { Api } from '../common/baseApi'
+import { SDKConfig } from '../config/sdkConfig'
 import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
 } from '../constants/endpoints'
-import { SDKConfig } from '../types/SDKConfig'
 
 export class HyperApiService extends Api {
   constructor(protected config: SDKConfig) {

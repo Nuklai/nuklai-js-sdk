@@ -1,11 +1,14 @@
-import { defaultSDKConfig } from './config'
-import { HyperApiService } from './services/HyperApiService'
-import { AssetService } from './services/nuklaivm/AssetService'
-import { EmissionService } from './services/nuklaivm/EmissionService'
-import { GenesisService } from './services/nuklaivm/GenesisService'
-import { LoanService } from './services/nuklaivm/LoanService'
-import { TransactionService as NuklaiTransactionService } from './services/nuklaivm/TransactionService'
-import { SDKConfig } from './types/SDKConfig'
+import { SDKConfig } from './config/sdkConfig'
+import {
+  MAINNET_PUBLIC_API_BASE_URL,
+  NUKLAI_CHAIN_ID
+} from './constants/endpoints'
+import { HyperApiService } from './services/hyperApiService'
+import { AssetService } from './services/nuklaivm/assetService'
+import { EmissionService } from './services/nuklaivm/emissionService'
+import { GenesisService } from './services/nuklaivm/genesisService'
+import { LoanService } from './services/nuklaivm/loanService'
+import { TransactionService as NuklaiTransactionService } from './services/nuklaivm/transactionService'
 
 export class NuklaiSDK {
   config: SDKConfig
@@ -21,6 +24,10 @@ export class NuklaiSDK {
   emissionService: EmissionService
 
   constructor(configOverrides?: Partial<SDKConfig>) {
+    const defaultSDKConfig: SDKConfig = {
+      baseApiUrl: MAINNET_PUBLIC_API_BASE_URL,
+      blockchainId: NUKLAI_CHAIN_ID
+    }
     this.config = { ...defaultSDKConfig, ...configOverrides }
 
     // Hypervm services

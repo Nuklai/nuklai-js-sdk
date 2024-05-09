@@ -1,9 +1,9 @@
 import { Api } from '../common/baseApi'
+import { SDKConfig } from '../config/sdkConfig'
 import {
   NUKLAI_VMAPI_METHOD_PREFIX,
   NUKLAI_VMAPI_PATH
 } from '../constants/endpoints'
-import { SDKConfig } from '../types/SDKConfig'
 
 export class NuklaiApiService extends Api {
   constructor(protected config: SDKConfig) {

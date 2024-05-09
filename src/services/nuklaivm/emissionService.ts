@@ -6,7 +6,7 @@ import {
   GetValidatorStakeResponse,
   GetValidatorsResponse
 } from '../../common/nuklaiApiModels'
-import { NuklaiApiService } from '../NuklaiApiService'
+import { NuklaiApiService } from '../nuklaiApiService'
 
 export class EmissionService extends NuklaiApiService {
   getEmissionInfo(): Promise<GetEmissionInfoResponse> {
