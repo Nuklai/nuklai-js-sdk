@@ -1,23 +1,38 @@
+import {
+  GetEmissionInfoResponse,
+  GetUserStakeParams,
+  GetUserStakeResponse,
+  GetValidatorStakeParams,
+  GetValidatorStakeResponse,
+  GetValidatorsResponse
+} from '../../common/nuklaiApiModels'
 import { NuklaiApiService } from '../NuklaiApiService'
 
 export class EmissionService extends NuklaiApiService {
-  getEmissionInfo(): Promise<any> {
-    return this.makeRequest('emissionInfo')
+  getEmissionInfo(): Promise<GetEmissionInfoResponse> {
+    return this.callRpc<GetEmissionInfoResponse>('emissionInfo')
   }
 
-  getAllValidators(): Promise<any> {
-    return this.makeRequest('allValidators')
+  getAllValidators(): Promise<GetValidatorsResponse> {
+    return this.callRpc<GetValidatorsResponse>('allValidators')
   }
 
-  getStakedValidators(): Promise<any> {
-    return this.makeRequest('stakedValidators')
+  getStakedValidators(): Promise<GetValidatorsResponse> {
+    return this.callRpc<GetValidatorsResponse>('stakedValidators')
   }
 
-  getValidatorStake(nodeId: string): Promise<any> {
-    return this.makeRequest('validatorStake', { nodeId })
+  getValidatorStake(
+    getValidatorStakeParams: GetValidatorStakeParams
+  ): Promise<GetValidatorStakeResponse> {
+    return this.callRpc<GetValidatorStakeResponse>(
+      'validatorStake',
+      getValidatorStakeParams
+    )
   }
 
-  getUserStake(ownerAddress: string, nodeId: string): Promise<any> {
-    return this.makeRequest('userStake', { owner: ownerAddress, nodeId })
+  getUserStake(
+    getUserStakeParams: GetUserStakeParams
+  ): Promise<GetUserStakeResponse> {
+    return this.callRpc<GetUserStakeResponse>('userStake', getUserStakeParams)
   }
 }

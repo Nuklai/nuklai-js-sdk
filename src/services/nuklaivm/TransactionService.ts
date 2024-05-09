@@ -1,7 +1,16 @@
+import {
+  GetTransactionInfoParams,
+  GetTransactionInfoResponse
+} from '../../common/nuklaiApiModels'
 import { NuklaiApiService } from '../NuklaiApiService'
 
 export class TransactionService extends NuklaiApiService {
-  getTransactionInfo(txId: string): Promise<any> {
-    return this.makeRequest('tx', { txId })
+  getTransactionInfo(
+    getTransactionInfoParams: GetTransactionInfoParams
+  ): Promise<GetTransactionInfoResponse> {
+    return this.callRpc<GetTransactionInfoResponse>(
+      'tx',
+      getTransactionInfoParams
+    )
   }
 }
