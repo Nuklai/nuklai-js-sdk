@@ -1,8 +1,10 @@
-export const MAINNET_PUBLIC_API_BASE_URL = 'https://api.nukl.ai'
-export const TESTNET_PUBLIC_API_BASE_URL = 'https://api.nukl-test.ai'
+export const MAINNET_PUBLIC_API_BASE_URL =
+  'http://api-mainnet.nuklaivm-dev.net:9650'
+export const TESTNET_PUBLIC_API_BASE_URL =
+  'http://api-devnet.nuklaivm-dev.net:9650'
 
 export const NUKLAI_CHAIN_ID =
-  'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN'
+  'w4Q3Cu6D3gxB3K2rjLDF64jJaisexo5BoHVJAdadwqvME4RkQ'
 export const NUKLAI_CHAIN_ENDPOINT = `/ext/bc/${NUKLAI_CHAIN_ID}`
 
 export const NUKLAI_COREAPI_PATH = 'coreapi'

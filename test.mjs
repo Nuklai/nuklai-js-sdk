@@ -2,8 +2,8 @@
 import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:39195',
-  blockchainId: '2jiBU3txCCmSgY7bt4dt26jxidZJgpLTWc8cKvujDT6Swcr8hS'
+  baseApiUrl: 'http://api-devnet.nuklaivm-dev.net:9650',
+  blockchainId: 'w4Q3Cu6D3gxB3K2rjLDF64jJaisexo5BoHVJAdadwqvME4RkQ'
 })
 
 async function testSDK() {
