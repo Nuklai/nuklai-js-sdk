@@ -4,7 +4,7 @@ export const TESTNET_PUBLIC_API_BASE_URL =
   'http://api-devnet.nuklaivm-dev.net:9650'
 
 export const NUKLAI_CHAIN_ID =
-  'w4Q3Cu6D3gxB3K2rjLDF64jJaisexo5BoHVJAdadwqvME4RkQ'
+  '2Q9X329mxcNdcxUeKzHUfcqR4aG9G4v6Suuo1u1FysAZSTLEKU'
 export const NUKLAI_CHAIN_ENDPOINT = `/ext/bc/${NUKLAI_CHAIN_ID}`
 
 export const NUKLAI_COREAPI_PATH = 'coreapi'

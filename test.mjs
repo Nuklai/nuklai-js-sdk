@@ -3,7 +3,7 @@ import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://api-devnet.nuklaivm-dev.net:9650',
-  blockchainId: 'w4Q3Cu6D3gxB3K2rjLDF64jJaisexo5BoHVJAdadwqvME4RkQ'
+  blockchainId: '2Q9X329mxcNdcxUeKzHUfcqR4aG9G4v6Suuo1u1FysAZSTLEKU'
 })
 
 async function testSDK() {
@@ -36,27 +36,12 @@ async function testSDK() {
     console.error('Failed to fetch Genesis:', error)
   }
 
-  // Uncomment these as needed when you have valid IDs to use:
-  /*
-  // Testing Transaction Information
-  try {
-    console.log('Fetching Transaction Info...');
-    const params = {
-      txId: 'transaction_id_placeholder'
-    }
-    const transactionInfo = await sdk.nuklaiTransactionService.getTransactionInfo();
-    console.log('Transaction Info:', JSON.stringify(transactionInfo, null, 2));
-  } catch (error) {
-    console.error('Failed to fetch Transaction Info:', error);
-  }
-  */
-
   // Testing Balance
   try {
     console.log('Fetching Balance...')
     const params = {
       address:
-        'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+        'nuklai1qpg4ecapjymddcde8sfq06dshzpxltqnl47tvfz0hnkesjz7t0p35d5fnr3',
       asset: '11111111111111111111111111111111LpoYY'
     }
     const balance = await sdk.assetService.getBalance(params)
@@ -64,34 +49,6 @@ async function testSDK() {
   } catch (error) {
     console.error('Failed to fetch Balance:', error)
   }
-  /*
-  // Testing Asset Information
-  try {
-    console.log('Fetching Asset Info...');
-    const params = {
-      asset: 'asset_id_placeholder'
-    }
-    const assetInfo = await sdk.assetService.getAssetInfo(params);
-    console.log('Asset Info:', JSON.stringify(assetInfo, null, 2));
-  } catch (error) {
-    console.error('Failed to fetch Asset Info:', error);
-  }
-  */
-
-  /*
-  // Testing Loan Creation
-  try {
-    console.log('Creating Loan...');
-    const params = {
-      destination: 'destination_id_placeholder',
-      asset: 'asset_id_placeholder',
-    }
-    const loan = await sdk.loanService.getLoanInfo(params);
-    console.log('Loan:', JSON.stringify(loan, null, 2));
-  } catch (error) {
-    console.error('Failed to create Loan:', error);
-  }
-  */
 
   // Testing Emission Information
   try {
@@ -102,50 +59,31 @@ async function testSDK() {
     console.error('Failed to fetch Emission Info:', error)
   }
 
-  // Testing All Validators
+  // Testing BLS Key Generation
   try {
-    console.log('Fetching All Validators...')
-    const validators = await sdk.emissionService.getAllValidators()
-    console.log('All Validators:', JSON.stringify(validators, null, 2))
-  } catch (error) {
-    console.error('Failed to fetch All Validators:', error)
-  }
+    console.log('Generating BLS Key Pair...')
+    const { privateKey, publicKey } = await sdk.blsService.generateKeyPair()
+    console.log(
+      'Generated BLS Private Key:',
+      sdk.blsService.secretKeyToHex(privateKey)
+    )
+    console.log(
+      'Generated BLS Public Key:',
+      sdk.blsService.publicKeyToHex(publicKey)
+    )
 
-  // Testing Staked Validators
-  try {
-    console.log('Fetching Staked Validators...')
-    const stakedValidators = await sdk.emissionService.getStakedValidators()
-    console.log('Staked Validators:', JSON.stringify(stakedValidators, null, 2))
-  } catch (error) {
-    console.error('Failed to fetch Staked Validators:', error)
-  }
+    const message = new TextEncoder().encode('Test message')
+    const signature = sdk.blsService.sign(message, privateKey)
+    console.log('Signature:', sdk.blsService.publicKeyToHex(signature))
 
-  /*
-  // Testing Validator Stake
-  try {
-    console.log('Fetching Validator Stake...');
-    const params = {
-      nodeID: 'node_id_placeholder'
-    }
-    const validatorStake = await sdk.emissionService.getValidatorStake(params);
-    console.log('Validator Stake:', JSON.stringify(validatorStake, null, 2));
-  } catch (error) {
-    console.error('Failed to fetch Validator Stake:', error);
-  }
+    const isValid = sdk.blsService.verify(message, publicKey, signature)
+    console.log('Signature valid:', isValid)
 
-  // Testing User Stake
-  try {
-    console.log('Fetching User Stake...');
-    const params = {
-      owner: 'owner_address_placeholder',
-      nodeID: 'node_id_placeholder'
-    }
-    const userStake = await sdk.emissionService.getUserStake(params);
-    console.log('User Stake:', JSON.stringify(userStake, null, 2));
+    const address = sdk.blsService.generateAddress(publicKey, 0x01) // Using 0x01 as an example typeID
+    console.log('Generated Address:', address)
   } catch (error) {
-    console.error('Failed to fetch User Stake:', error);
+    console.error('Failed to generate BLS Key Pair:', error)
   }
-  */
 }
 
 testSDK()

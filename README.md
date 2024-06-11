@@ -17,14 +17,9 @@ The Nuklai SDK provides a modular and comprehensive interface for interacting wi
 
 Install the Nuklai SDK via npm(NOTE: Currently does not work so need to build locally):
 
-````bash
-npm install @nuklai/nuklai-sdk
-
-Or, if you are using Yarn:
-
 ```bash
-yarn add @nuklai/nuklai-sdk
-````
+npm install @nuklai/nuklai-sdk
+```
 
 ## Build from source
 

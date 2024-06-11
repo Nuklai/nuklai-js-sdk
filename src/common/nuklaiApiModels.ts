@@ -22,7 +22,7 @@ export type GetAssetInfoResponse = {
 
 export type EmissionAccount = {
   address: Uint8Array
-  unclaimedBalance: number
+  accumulatedReward: number
 }
 
 export type EpochTracker = {
@@ -46,10 +46,10 @@ export type Validator = {
   nodeID: string
   publicKey: Uint8Array
   stakedAmount: number
-  unclaimedStakedReward: number
+  accumulatedStakedReward: number
   delegationFeeRate: number
   delegatedAmount: number
-  unclaimedDelegatedReward: number // End block of the stake
+  accumulatedDelegatedReward: number
 }
 
 export type GetValidatorsResponse = {
