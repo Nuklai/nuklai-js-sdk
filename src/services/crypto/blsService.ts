@@ -1,11 +1,8 @@
-// src/services/crypto/blsService.ts
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import { bech32 } from 'bech32'
 
-const BLS_ID = 2
-const ADDRESS_LEN = 33
-const hrp = 'nuklai'
+import { ADDRESS_LEN, BLS_ID, HRP } from '../../constants/nuklaivm'
 
 export class BLSService {
   static async generatePrivateKey(): Promise<Uint8Array> {
@@ -59,6 +56,6 @@ export class BLSService {
     address.set(publicKey.slice(1, ADDRESS_LEN), 1)
 
     const words = bech32.toWords(address)
-    return bech32.encode(hrp, words)
+    return bech32.encode(HRP, words)
   }
 }
