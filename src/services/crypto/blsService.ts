@@ -1,61 +1,65 @@
-import { bls12_381 } from '@noble/curves/bls12-381'
-import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
-import { bech32 } from 'bech32'
-
-import { ADDRESS_LEN, BLS_ID, HRP } from '../../constants/nuklaivm'
+import { randomBytes } from "@noble/hashes/utils";
+import { bls12_381 } from "@noble/curves/bls12-381";
+import { bls, utils } from "@avalabs/avalanchejs";
+import { ADDRESS_LEN, BLS_ID, HRP } from "../../constants/nuklaivm";
 
 export class BLSService {
-  static async generatePrivateKey(): Promise<Uint8Array> {
-    return randomBytes(32) // 32 bytes for a private key
+  static async generatePrivateKey(): Promise<bls.SecretKey> {
+    return bls.secretKeyFromBytes(randomBytes(32)); // 32 bytes for a private key
   }
 
-  static getPublicKey(secretKey: Uint8Array): Uint8Array {
-    return bls12_381.getPublicKey(secretKey)
+  static getPublicKey(secretKey: bls.SecretKey): bls.PublicKey {
+    const publicKeyBytes = bls12_381.getPublicKey(secretKey);
+    return bls.publicKeyFromBytes(publicKeyBytes);
   }
 
   static async generateKeyPair(): Promise<{
-    privateKey: Uint8Array
-    publicKey: Uint8Array
+    privateKey: bls.SecretKey;
+    publicKey: bls.PublicKey;
   }> {
-    const privateKey = await BLSService.generatePrivateKey()
-    const publicKey = BLSService.getPublicKey(privateKey)
-    return { privateKey, publicKey }
+    const privateKey = await BLSService.generatePrivateKey();
+    const publicKey = BLSService.getPublicKey(privateKey);
+    return { privateKey, publicKey };
   }
 
-  static secretKeyToHex(secretKey: Uint8Array): string {
-    return bytesToHex(secretKey)
+  static secretKeyToHex(secretKey: bls.SecretKey): string {
+    return Buffer.from(bls.secretKeyToBytes(secretKey)).toString("hex");
   }
 
-  static hexToSecretKey(hex: string): Uint8Array {
-    return hexToBytes(hex)
+  static hexToSecretKey(hex: string): bls.SecretKey {
+    return bls.secretKeyFromBytes(Buffer.from(hex, "hex"));
   }
 
-  static publicKeyToHex(publicKey: Uint8Array): string {
-    return bytesToHex(publicKey)
+  static publicKeyToHex(publicKey: bls.PublicKey): string {
+    return Buffer.from(bls.publicKeyToBytes(publicKey)).toString("hex");
   }
 
-  static hexToPublicKey(hex: string): Uint8Array {
-    return hexToBytes(hex)
+  static hexToPublicKey(hex: string): bls.PublicKey {
+    return bls.publicKeyFromBytes(Buffer.from(hex, "hex"));
   }
 
-  static sign(message: Uint8Array, privateKey: Uint8Array): Uint8Array {
-    return bls12_381.sign(message, privateKey)
+  static sign(message: Uint8Array, privateKey: bls.SecretKey): Uint8Array {
+    return bls.sign(message, privateKey);
   }
 
   static verify(
     message: Uint8Array,
-    publicKey: Uint8Array,
+    publicKey: bls.PublicKey,
     signature: Uint8Array
   ): boolean {
-    return bls12_381.verify(signature, message, publicKey)
+    const sig = bls.signatureFromBytes(signature);
+    return bls.verify(publicKey, sig, message);
   }
 
-  static generateAddress(publicKey: Uint8Array): string {
-    const address = new Uint8Array(ADDRESS_LEN)
-    address[0] = BLS_ID
-    address.set(publicKey.slice(1, ADDRESS_LEN), 1)
+  static generateAddress(publicKey: bls.PublicKey): string {
+    const address = new Uint8Array(ADDRESS_LEN);
+    address[0] = BLS_ID;
+    address.set(bls.publicKeyToBytes(publicKey).slice(1, ADDRESS_LEN), 1);
 
-    const words = bech32.toWords(address)
-    return bech32.encode(HRP, words)
+    return utils.formatBech32(HRP, address);
+  }
+
+  static parseAddress(address: string): Uint8Array {
+    return utils.parseBech32(address)[1];
   }
 }
