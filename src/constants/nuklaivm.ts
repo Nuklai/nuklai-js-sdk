@@ -1,6 +1,7 @@
 export const ADDRESS_LEN = 33
 export const HRP = 'nuklai'
 export const SYMBOL = 'NAI'
+export const DECIMALS = 9
 
 // Auth TypeIDs
 export const ED25519_ID = 0
