@@ -1,4 +1,4 @@
-// src/services/nuklaivm/transactionService.ts
+import { BLS } from '../../auth/bls'
 import {
   GetBalanceParams,
   GetBalanceResponse,
@@ -6,10 +6,9 @@ import {
   GetTransactionInfoResponse
 } from '../../common/nuklaiApiModels'
 import { DECIMALS } from '../../constants/nuklaivm'
-import { BLS } from '../../auth/bls'
+import { Transfer } from '../../transactions/transfer'
 import { HyperApiService } from '../hyperApiService'
 import { NuklaiApiService } from '../nuklaiApiService'
-import { Transfer } from '../../types/actions' // Import the necessary types
 
 export class TransactionService extends NuklaiApiService {
   private hyperApiService: HyperApiService
@@ -57,20 +56,18 @@ export class TransactionService extends NuklaiApiService {
       throw new Error('Insufficient balance')
     }
 
-    const actions: Transfer[] = [
-      {
-        to: toAddress,
-        asset: assetID,
-        value: amountInUnits,
-        memo: new TextEncoder().encode(memo)
-      }
-    ]
-
-    // Generate and submit the transaction
-    const { submit, tx, maxFee } =
-      await this.hyperApiService.generateTransaction(actions, bls)
+    const transfer: Transfer = new Transfer(
+      toAddress,
+      assetID,
+      amountInUnits,
+      new TextEncoder().encode(memo)
+    )
+    const { submit, tx } = await this.hyperApiService.generateTransaction(
+      transfer,
+      bls
+    )
     await submit({})
-    return tx.ID // Return the transaction ID
+    return tx.base.chainId // Return transaction ID or some identifier
   }
 
   private async getBalance(

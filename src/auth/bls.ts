@@ -3,6 +3,7 @@ import { bls12_381 } from '@noble/curves/bls12-381'
 import { randomBytes } from '@noble/hashes/utils'
 import { ADDRESS_LEN, BLS_ID, HRP } from '../constants/nuklaivm'
 import { Auth } from '../types/auth'
+import { Codec } from '../utils/codec'
 
 export class BLS implements Auth {
   private privateKey: bls.SecretKey
@@ -83,5 +84,26 @@ export class BLS implements Auth {
 
   getAddress(): string {
     return this.address
+  }
+
+  toBytes(): Uint8Array {
+    // Implement method to convert BLS instance to bytes
+    const codec = new Codec()
+    codec.addBytes(bls.secretKeyToBytes(this.privateKey))
+    codec.addBytes(bls.publicKeyToBytes(this.publicKey))
+    codec.addString(this.address)
+    return codec.toBytes()
+  }
+
+  static fromBytes(bytes: Uint8Array): BLS {
+    // Implement method to create BLS instance from bytes
+    const codec = new Codec(bytes)
+    const privateKey = bls.secretKeyFromBytes(codec.getBytes())
+    const publicKey = bls.publicKeyFromBytes(codec.getBytes())
+    const address = codec.getString()
+    const blsInstance = new BLS(privateKey)
+    blsInstance.publicKey = publicKey
+    blsInstance.address = address
+    return blsInstance
   }
 }

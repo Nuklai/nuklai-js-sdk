@@ -2,7 +2,7 @@ import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'wo4pL2mzuBSuFGUhrGy3uAgbWU7aDhGth9VM3kf9qmiStdKUn'
+  blockchainId: '2roEcvXxuB2Y95zS2wK5iXrEgE8FXdHEkDgSWUB8LUj7y3deAA'
 })
 
 async function testSDK() {
@@ -26,7 +26,7 @@ async function testSDK() {
         'NAI', // asset ID (defaulted to NAI)
         '0.0001', // amount
         'Test Memo', // memo
-        '5262814baaa103b3b6fe0f0e0aacdd3a0dffd271dcd5255f737815c1207a59d2' // private key (as hex string)
+        '5262814baaa103b3b6fe0f0e0aacdd3a0dffd271dcd5255f737815c1207a59d2' // private key (as hex string) for nuklai1qfgc2st57mmtzet7ajq4lh6d6rp3ev277ejxpandlzzy35v5fnhf6ccx39e
       )
     console.log('Transaction:', transaction)
 

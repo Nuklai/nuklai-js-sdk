@@ -1,4 +1,6 @@
 // src/services/hyperApiService.ts
+import { Transfer } from 'transactions/transfer'
+import { BLS } from '../auth/bls'
 import { Api } from '../common/baseApi'
 import {
   GetLastAcceptedResponse,
@@ -13,7 +15,6 @@ import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
 } from '../constants/endpoints'
-import { Auth } from '../types/auth' // Import the necessary types
 
 export class HyperApiService extends Api {
   constructor(protected config: SDKConfig) {
@@ -55,59 +56,40 @@ export class HyperApiService extends Api {
     return this.callRpc<SubmitTransactionResponse>('submitTx', { tx })
   }
 
-  // Generate a transaction
   async generateTransaction(
-    actions: any[], // Define the specific type for your actions
-    authFactory: Auth // Define the specific type for your authFactory
-  ): Promise<{ submit: (ctx: any) => Promise<void>; tx: any; maxFee: number }> {
-    const unitPrices = await this.getUnitPrices()
-    const now = Date.now()
-    const maxFee = this.calculateMaxFee(unitPrices, actions, authFactory)
-
+    action: Transfer,
+    auth: BLS
+  ): Promise<{
+    submit: (ctx: any) => Promise<void>
+    tx: any
+    signature: Uint8Array
+  }> {
     // Construct the transaction
     const tx = {
-      actions,
-      authFactory,
-      maxFee,
-      timestamp: now
+      base: {
+        timestamp: Date.now(),
+        chainId: this.config.blockchainId
+      },
+      action,
+      auth
     }
 
     // Sign the transaction
-    const signedTx = await this.signTransaction(tx, authFactory)
+    const signature = await this.signTransaction(tx)
 
     return {
-      submit: async (ctx: any) => {
-        await this.submitTransaction(signedTx)
+      submit: async () => {
+        const txBytes = tx.action.toBytes()
+        await this.submitTransaction(txBytes)
       },
-      tx: signedTx,
-      maxFee
+      tx,
+      signature
     }
   }
 
-  private calculateMaxFee(
-    unitPrices: any,
-    actions: any[],
-    authFactory: Auth
-  ): number {
-    // Implement the logic to calculate the maximum fee based on unit prices, actions, and authFactory
-    return 0 // Placeholder
-  }
-
-  private async signTransaction(
-    tx: any,
-    authFactory: Auth
-  ): Promise<Uint8Array> {
-    const msg = new TextEncoder().encode(
-      JSON.stringify(tx, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
-    ) // Example encoding
-    const auth = await authFactory.sign(msg)
-    tx.auth = auth
-    return new TextEncoder().encode(
-      JSON.stringify(tx, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
-    ) // Example encoding
+  async signTransaction(tx: any): Promise<Uint8Array> {
+    const msg = (tx.action as Transfer).toBytes()
+    const signature = await tx.auth.sign(msg)
+    return signature
   }
 }
