@@ -1,88 +1,91 @@
-import {
-  GetTransactionInfoParams,
-  GetTransactionInfoResponse
-} from "../../common/nuklaiApiModels";
-import { NuklaiApiService } from "../nuklaiApiService";
-import { BLSService } from "../crypto/blsService";
+// src/services/nuklaivm/transactionService.ts
 import {
   GetBalanceParams,
-  GetBalanceResponse
-} from "../../common/nuklaiApiModels";
-import { DECIMALS } from "../../constants/nuklaivm";
+  GetBalanceResponse,
+  GetTransactionInfoParams,
+  GetTransactionInfoResponse
+} from '../../common/nuklaiApiModels'
+import { DECIMALS } from '../../constants/nuklaivm'
+import { BLS } from '../../auth/bls'
+import { HyperApiService } from '../hyperApiService'
+import { NuklaiApiService } from '../nuklaiApiService'
+import { Transfer } from '../../types/actions' // Import the necessary types
 
 export class TransactionService extends NuklaiApiService {
+  private hyperApiService: HyperApiService
+
+  constructor(config: any) {
+    super(config)
+    this.hyperApiService = new HyperApiService(config)
+  }
+
   getTransactionInfo(
     getTransactionInfoParams: GetTransactionInfoParams
   ): Promise<GetTransactionInfoResponse> {
     return this.callRpc<GetTransactionInfoResponse>(
-      "tx",
+      'tx',
       getTransactionInfoParams
-    );
+    )
   }
 
-  async createTransferTransaction(
-    from: string,
+  async createAndSubmitTransferTransaction(
     to: string,
     asset: string,
     amount: string,
-    memo: string
-  ): Promise<Uint8Array> {
-    const assetID = asset;
-    const decimals = DECIMALS;
-    const amountInUnits = this.parseBalance(amount, decimals);
-    const toAddress = BLSService.parseAddress(to);
+    memo: string,
+    privateKeyHex: string
+  ): Promise<string> {
+    // Convert the private key from hex string to bls.SecretKey
+    const privateKey = BLS.hexToSecretKey(privateKeyHex)
+    const bls = new BLS(privateKey)
+
+    // Generate the from address using the private key
+    const publicKey = BLS.getPublicKey(privateKey)
+    const fromAddress = BLS.generateAddress(publicKey)
+
+    // Default asset to NAI if asset is "NAI"
+    const assetID =
+      asset === 'NAI' ? '11111111111111111111111111111111LpoYY' : asset
+
+    const decimals = DECIMALS
+    const amountInUnits = this.parseBalance(amount, decimals)
+    const toAddress = this.parseAddress(to)
 
     // Fetch the balance to ensure sufficient funds
-    const balanceResponse = await this.getBalance(from, asset);
-    if (balanceResponse.amount < amountInUnits) {
-      throw new Error("Insufficient balance");
+    const balanceResponse = await this.getBalance(fromAddress, assetID)
+    if (BigInt(balanceResponse.amount) < amountInUnits) {
+      throw new Error('Insufficient balance')
     }
 
-    // Create the transaction
-    const tx = {
-      from,
-      to: toAddress,
-      asset: assetID,
-      amount: amountInUnits,
-      memo: memo
-    };
+    const actions: Transfer[] = [
+      {
+        to: toAddress,
+        asset: assetID,
+        value: amountInUnits,
+        memo: new TextEncoder().encode(memo)
+      }
+    ]
 
-    // Return the transaction bytes
-    return this.serializeTransaction(tx);
-  }
-
-  async signAndSendTransaction(
-    privateKey: string,
-    transaction: Uint8Array
-  ): Promise<string> {
-    // Convert privateKey to bls.SecretKey
-    const secretKey = BLSService.hexToSecretKey(privateKey);
-
-    // Sign the transaction
-    const signature = BLSService.sign(transaction, secretKey);
-
-    // Submit the transaction
-    const response = await this.callRpc<{ txId: string }>("submitTx", {
-      transaction,
-      signature
-    });
-    return response.txId;
+    // Generate and submit the transaction
+    const { submit, tx, maxFee } =
+      await this.hyperApiService.generateTransaction(actions, bls)
+    await submit({})
+    return tx.ID // Return the transaction ID
   }
 
   private async getBalance(
     address: string,
     asset: string
   ): Promise<GetBalanceResponse> {
-    const params: GetBalanceParams = { address, asset };
-    return this.callRpc<GetBalanceResponse>("balance", params);
+    const params: GetBalanceParams = { address, asset }
+    return this.callRpc<GetBalanceResponse>('balance', params)
   }
 
-  private parseBalance(amount: string, decimals: number): number {
-    return parseFloat(amount) * Math.pow(10, decimals);
+  private parseBalance(amount: string, decimals: number): bigint {
+    return BigInt(parseFloat(amount) * Math.pow(10, decimals))
   }
 
-  private serializeTransaction(tx: any): Uint8Array {
-    // Implement serialization logic for the transaction
-    return new Uint8Array(); // Placeholder
+  private parseAddress(address: string): Uint8Array {
+    return BLS.parseAddress(address)
   }
 }

@@ -1,14 +1,15 @@
+// src/index.ts
+import { BLS } from './auth/bls'
 import { SDKConfig } from './config/sdkConfig'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
 } from './constants/endpoints'
-import { BLSService } from './services/crypto/blsService'
 import { HyperApiService } from './services/hyperApiService'
 import { AssetService } from './services/nuklaivm/assetService'
 import { EmissionService } from './services/nuklaivm/emissionService'
 import { GenesisService } from './services/nuklaivm/genesisService'
-import { TransactionService as NuklaiTransactionService } from './services/nuklaivm/transactionService'
+import { TransactionService } from './services/nuklaivm/transactionService'
 
 export class NuklaiSDK {
   config: SDKConfig
@@ -19,11 +20,11 @@ export class NuklaiSDK {
   // Nuklaivm services
   genesisService: GenesisService
   assetService: AssetService
-  nuklaiTransactionService: NuklaiTransactionService
+  transactionService: TransactionService
   emissionService: EmissionService
 
-  // Crypto services
-  blsService: typeof BLSService
+  // Auth
+  blsAuth: typeof BLS
 
   constructor(configOverrides?: Partial<SDKConfig>) {
     const defaultSDKConfig: SDKConfig = {
@@ -37,11 +38,11 @@ export class NuklaiSDK {
 
     // Nuklaivm services
     this.genesisService = new GenesisService(this.config)
-    this.nuklaiTransactionService = new NuklaiTransactionService(this.config)
+    this.transactionService = new TransactionService(this.config)
     this.assetService = new AssetService(this.config)
     this.emissionService = new EmissionService(this.config)
 
-    // Crypto services
-    this.blsService = BLSService
+    // Auth
+    this.blsAuth = BLS
   }
 }
