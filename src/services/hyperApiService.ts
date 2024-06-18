@@ -15,6 +15,7 @@ import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
 } from '../constants/endpoints'
+import { Auth } from '../types/auth'
 
 export class HyperApiService extends Api {
   constructor(protected config: SDKConfig) {
@@ -58,7 +59,7 @@ export class HyperApiService extends Api {
 
   async generateTransaction(
     action: Transfer,
-    auth: BLS
+    auth: Auth
   ): Promise<{
     submit: (ctx: any) => Promise<void>
     tx: any
