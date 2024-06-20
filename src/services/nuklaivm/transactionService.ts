@@ -16,6 +16,7 @@ import { DECIMALS } from "../../constants/nuklaivm";
 import { Transfer } from "../../actions/transfer";
 import { HyperApiService } from "../hyperApiService";
 import { NuklaiApiService } from "../nuklaiApiService";
+import { Id } from "@avalabs/avalanchejs";
 
 export class TransactionService extends NuklaiApiService {
   private hyperApiService: HyperApiService;
@@ -64,7 +65,7 @@ export class TransactionService extends NuklaiApiService {
 
     const transfer: Transfer = new Transfer(
       toAddress,
-      assetID,
+      Id.fromString(asset),
       amountInUnits,
       new TextEncoder().encode(memo)
     );
@@ -73,7 +74,7 @@ export class TransactionService extends NuklaiApiService {
       blsFactory
     );
     await submit({});
-    return tx.base.chainId; // Return transaction ID or some identifier
+    return tx.getId();
   }
 
   private async getBalance(

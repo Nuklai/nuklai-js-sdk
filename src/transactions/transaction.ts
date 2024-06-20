@@ -144,25 +144,12 @@ export class Transaction {
     return transaction;
   }
 
-  static unmarshalActions(
-    codec: Codec,
-    actionRegistry: Map<number, (codec: Codec) => Action>
-  ): Action[] {
-    const numActions = codec.getNumber();
-    const actions: Action[] = [];
-    for (let i = 0; i < numActions; i++) {
-      const actionType = codec.getNumber();
-      const unmarshalAction = actionRegistry.get(actionType);
-      if (!unmarshalAction) {
-        throw new Error(`Invalid action type: ${actionType}`);
-      }
-      actions.push(unmarshalAction(codec));
-    }
-    return actions;
-  }
-
   generateId(bytes: Uint8Array): Id {
     const [id, _] = Id.fromBytes(bytes);
     return id;
+  }
+
+  getId(): string {
+    return this.id?.toString() || "";
   }
 }
