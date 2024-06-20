@@ -1,4 +1,4 @@
-import { INT64_LEN, INT_LEN, UINT32_LEN, BYTE_LEN } from "constants/consts";
+import { INT64_LEN, INT_LEN, BYTE_LEN } from "../constants/consts";
 
 export class Codec {
   private buffer: Uint8Array[];

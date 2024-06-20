@@ -1,10 +1,10 @@
-import { Action } from "actions/action";
-import { AuthFactory } from "auth/auth";
+import { Action } from "../actions/action";
+import { AuthFactory } from "../auth/auth";
 import bigInt from "big-integer";
 import { BaseTxSize } from "./baseTx";
-import { BYTE_LEN, UINT8_LEN } from "constants/consts";
-import { STORAGE_BALANCE_CHUNKS } from "constants/nuklaivm";
-import { Genesis } from "common/nuklaiApiModels";
+import { BYTE_LEN, UINT8_LEN } from "../constants/consts";
+import { STORAGE_BALANCE_CHUNKS } from "../constants/nuklaivm";
+import { Genesis } from "../common/nuklaiApiModels";
 
 type Dimension = number[];
 const FeeDimensions: number = 5;

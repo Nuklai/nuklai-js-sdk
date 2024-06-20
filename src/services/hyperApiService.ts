@@ -1,6 +1,6 @@
 import { Id } from "@avalabs/avalanchejs";
 
-import { Transfer } from "actions/transfer";
+import { Transfer } from "../actions/transfer";
 import { Api } from "../common/baseApi";
 import { estimateUnits, mulSum } from "../transactions/fees";
 import {
@@ -16,11 +16,11 @@ import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
 } from "../constants/endpoints";
-import { Transaction } from "transactions/transaction";
-import { AuthFactory } from "auth/auth";
-import { BaseTx } from "transactions/baseTx";
+import { Transaction } from "../transactions/transaction";
+import { AuthFactory } from "../auth/auth";
+import { BaseTx } from "../transactions/baseTx";
 import { GenesisService } from "./nuklaivm/genesisService";
-import { GetGenesisInfoResponse } from "common/nuklaiApiModels";
+import { GetGenesisInfoResponse } from "../common/nuklaiApiModels";
 
 export class HyperApiService extends Api {
   private genesisApiService: GenesisService;

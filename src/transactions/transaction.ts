@@ -1,23 +1,18 @@
 import { Id } from "@avalabs/avalanchejs";
 import { Codec } from "../utils/codec";
-import { BLS, BLSFactory } from "../auth/bls";
-import { Auth, AuthFactory } from "auth/auth";
+import { BLS } from "../auth/bls";
+import { Auth, AuthFactory } from "../auth/auth";
 import { BaseTx } from "./baseTx";
-import { Action } from "actions/action";
+import { Action } from "../actions/action";
 import {
   BYTE_LEN,
   MaxInt,
   MaxUint,
   NETWORK_SIZE_LIMIT,
   UINT8_LEN
-} from "constants/consts";
-import {
-  BLS_ID,
-  CREATEASSET_ID,
-  MINTASSET_ID,
-  TRANSFER_ID
-} from "constants/nuklaivm";
-import { Transfer } from "actions/transfer";
+} from "../constants/consts";
+import { BLS_ID, TRANSFER_ID } from "../constants/nuklaivm";
+import { Transfer } from "../actions/transfer";
 
 export class Transaction {
   public base: BaseTx;
