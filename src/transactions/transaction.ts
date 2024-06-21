@@ -49,10 +49,12 @@ export class Transaction {
 
     // Pack the base transaction
     const baseBytes = this.base.toBytes()
+    console.log('BaseTx toBytes:', baseBytes, 'Length:', baseBytes.length)
     codec.packFixedBytes(baseBytes)
 
     // Pack the number of actions
     const numActions = this.actions.length
+    console.log('Number of actions:', numActions)
     codec.packByte(numActions)
 
     // Pack each action
@@ -60,6 +62,7 @@ export class Transaction {
       const actionTypeId = action.getTypeId()
       codec.packByte(actionTypeId)
       const actionBytes = action.toBytes()
+      console.log('Action toBytes:', actionBytes, 'Length:', actionBytes.length)
       codec.packFixedBytes(actionBytes)
     })
 
@@ -68,11 +71,18 @@ export class Transaction {
       const authTypeId = this.auth.getTypeId()
       codec.packByte(authTypeId)
       const authBytes = this.auth.toBytes()
+      console.log('Auth toBytes:', authBytes, 'Length:', authBytes.length)
       codec.packFixedBytes(authBytes)
     }
 
     // Get the final byte array
     const finalBytes = codec.toBytes()
+    console.log(
+      'Transaction toBytes:',
+      finalBytes,
+      'Length:',
+      finalBytes.length
+    )
     return finalBytes
   }
 
@@ -135,11 +145,11 @@ export class Transaction {
   size(): number {
     let size = BaseTxSize + BYTE_LEN // BaseTx size + number of actions byte
     this.actions.forEach((action) => {
-      const actionSize = BYTE_LEN + action.toBytes().length // Action type byte + action size
+      const actionSize = BYTE_LEN + action.size() // Action type byte + action size
       size += actionSize
     })
     if (this.auth) {
-      const authSize = BYTE_LEN + this.auth.toBytes().length // Auth type byte + auth size
+      const authSize = BYTE_LEN + this.auth.size() // Auth type byte + auth size
       size += authSize
     }
     console.log('Calculated size:', size)

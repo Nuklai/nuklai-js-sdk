@@ -37,13 +37,14 @@ export class Transfer implements Action {
   }
 
   toBytes(): Uint8Array {
-    const size = this.size()
-    const codec = Codec.newWriter(size, size)
+    const codec = Codec.newWriter(this.size(), this.size())
     codec.packFixedBytes(this.to)
     codec.packID(this.asset)
     codec.packUint64(this.value)
-    codec.packBytes(this.memo)
-    return codec.toBytes()
+    codec.packFixedBytes(this.memo) // Packing memo as fixed size
+    const bytes = codec.toBytes()
+    console.log('Action toBytes:', bytes, 'Length:', bytes.length)
+    return bytes
   }
 
   static fromBytes(bytes: Uint8Array): Transfer {
@@ -51,7 +52,9 @@ export class Transfer implements Action {
     const to = codec.unpackFixedBytes(ADDRESS_LEN)
     const asset = codec.unpackID()
     const value = codec.unpackUint64(true)
-    const memo = codec.unpackFixedBytes(MAX_MEMO_SIZE)
-    return new Transfer(to, asset, value, memo)
+    const memo = codec.unpackFixedBytes(MAX_MEMO_SIZE) // Unpacking memo as fixed size
+    const action = new Transfer(to, asset, value, memo)
+    console.log('Action fromBytes:', action)
+    return action
   }
 }

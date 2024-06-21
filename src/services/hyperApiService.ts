@@ -98,12 +98,26 @@ export class HyperApiService extends Api {
 
       console.log('submitting')
       const base = new BaseTx(timestamp, chainId, maxFee)
+
       let tx: Transaction = new Transaction(base, [action])
-      console.log('tx: ', tx.toBytes(), tx, tx.toBytes().length)
+      const serializedBytes = tx.toBytes()
+      console.log('Serialized Bytes:', serializedBytes)
+
+      const deserializedTx = Transaction.fromBytes(serializedBytes)
+      console.log('Deserialized Transaction:', deserializedTx)
+
+      const reSerializedBytes = deserializedTx.toBytes()
+      console.log('Re-Serialized Bytes:', reSerializedBytes)
+
+      if (serializedBytes.toString() === reSerializedBytes.toString()) {
+        console.log('Serialization and Deserialization are consistent')
+      } else {
+        console.error('Mismatch in Serialization and Deserialization')
+      }
 
       // Sign the transaction
-      tx = tx.sign(authFactory)
-      console.log('tx signed: ', tx.toBytes(), tx, tx.toBytes().length)
+      // tx = tx.sign(authFactory)
+      //console.log('tx signed: ', tx.toBytes(), tx, tx.toBytes().length)
 
       const submit = async () => {
         const txBytes = tx.toBytes()
