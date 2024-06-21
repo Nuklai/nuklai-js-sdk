@@ -43,7 +43,7 @@ export class Transfer implements Action {
     const codec = Codec.newWriter(size, size);
     codec.addFixedBytes(ADDRESS_LEN, this.to);
     codec.addFixedBytes(ID_LEN, this.asset.toBytes());
-    codec.addBigInt(this.value);
+    codec.addUint64(this.value);
     codec.addFixedBytes(MAX_MEMO_SIZE, this.memo);
     return codec.toBytes();
   }
@@ -52,7 +52,7 @@ export class Transfer implements Action {
     const codec = Codec.newReader(bytes, bytes.length);
     const to = codec.getFixedBytes(ADDRESS_LEN);
     const asset = Id.fromBytes(codec.getFixedBytes(ID_LEN))[0];
-    const value = codec.getBigInt();
+    const value = codec.getUint64();
     const memo = codec.getFixedBytes(MAX_MEMO_SIZE);
     return new Transfer(to, asset, value, memo);
   }

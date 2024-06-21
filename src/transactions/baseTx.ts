@@ -1,5 +1,3 @@
-// baseTx.ts
-
 import { Id } from "@avalabs/avalanchejs";
 import { ID_LEN, UINT64_LEN } from "../constants/consts";
 import { Codec } from "../utils/codec";
@@ -24,19 +22,19 @@ export class BaseTx {
   toBytes(): Uint8Array {
     const size = this.size();
     const codec = Codec.newWriter(size, size);
-    codec.addBigInt(this.timestamp);
+    codec.addInt64(this.timestamp);
     codec.addFixedBytes(ID_LEN, this.chainId.toBytes());
-    codec.addBigInt(this.maxFee);
+    codec.addUint64(this.maxFee);
     const bytes = codec.toBytes();
     return bytes;
   }
 
   static fromBytes(bytes: Uint8Array): BaseTx {
     const codec = Codec.newReader(bytes, bytes.length);
-    const timestamp = codec.getBigInt();
+    const timestamp = codec.getInt64();
     const chainIdBytes = codec.getFixedBytes(ID_LEN);
     const chainId = Id.fromBytes(chainIdBytes)[0];
-    const maxFee = codec.getBigInt();
+    const maxFee = codec.getUint64();
     return new BaseTx(timestamp, chainId, maxFee);
   }
 }

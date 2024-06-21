@@ -1,6 +1,4 @@
-// codec.ts
-
-import { INT64_LEN, INT_LEN, BYTE_LEN } from "../constants/consts";
+import { INT64_LEN, INT_LEN, BYTE_LEN, UINT64_LEN } from "../constants/consts";
 
 export class Codec {
   private buffer: Uint8Array;
@@ -38,10 +36,16 @@ export class Codec {
     this.offset += INT_LEN;
   }
 
-  addBigInt(value: bigint): void {
+  addInt64(value: bigint): void {
     this.checkLimit(INT64_LEN);
-    new DataView(this.buffer.buffer).setBigUint64(this.offset, value, true);
+    new DataView(this.buffer.buffer).setBigInt64(this.offset, value, true);
     this.offset += INT64_LEN;
+  }
+
+  addUint64(value: bigint): void {
+    this.checkLimit(UINT64_LEN);
+    new DataView(this.buffer.buffer).setBigUint64(this.offset, value, true);
+    this.offset += UINT64_LEN;
   }
 
   addString(value: string): void {
@@ -89,7 +93,16 @@ export class Codec {
     return value;
   }
 
-  getBigInt(): bigint {
+  getInt64(): bigint {
+    const value = new DataView(this.buffer.buffer).getBigInt64(
+      this.offset,
+      true
+    );
+    this.offset += INT64_LEN;
+    return value;
+  }
+
+  getUint64(): bigint {
     const value = new DataView(this.buffer.buffer).getBigUint64(
       this.offset,
       true
