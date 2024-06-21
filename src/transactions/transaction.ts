@@ -1,28 +1,21 @@
+// transaction.ts
+
 import { Id } from "@avalabs/avalanchejs";
 import { Codec } from "../utils/codec";
-import { BLS } from "../auth/bls";
+import { BLS, BlsAuthSize } from "../auth/bls";
 import { Auth, AuthFactory } from "../auth/auth";
-import { BaseTx } from "./baseTx";
+import { BaseTx, BaseTxSize } from "./baseTx";
 import { Action } from "../actions/action";
-import {
-  BYTE_LEN,
-  MaxInt,
-  MaxUint,
-  NETWORK_SIZE_LIMIT,
-  UINT8_LEN
-} from "../constants/consts";
+import { BYTE_LEN, NETWORK_SIZE_LIMIT, UINT8_LEN } from "../constants/consts";
 import { BLS_ID, TRANSFER_ID } from "../constants/nuklaivm";
-import { Transfer } from "../actions/transfer";
+import { Transfer, TransferTxSize } from "../actions/transfer";
 
 export class Transaction {
   public base: BaseTx;
   public actions: Action[];
   public auth?: Auth;
 
-  private digest?: Uint8Array;
-  private bytes?: Uint8Array;
-  private size?: number;
-  private id?: Id;
+  private bytes: Uint8Array = new Uint8Array();
 
   constructor(base: BaseTx, actions: Action[]) {
     this.base = base;
@@ -30,121 +23,141 @@ export class Transaction {
   }
 
   calculateDigest(): Uint8Array {
-    if (this.digest && this.digest.length > 0) return this.digest;
-
-    let size = this.base.size() + UINT8_LEN;
-    this.actions.forEach((action) => {
-      size += BYTE_LEN + action.size();
-    });
-
-    const codec = Codec.newWriter(size, NETWORK_SIZE_LIMIT);
-    codec.addBytes(this.base.toBytes());
+    const codec = Codec.newWriter(this.size(), NETWORK_SIZE_LIMIT);
+    codec.addFixedBytes(BaseTxSize, this.base.toBytes());
     codec.addByte(this.actions.length);
     this.actions.forEach((action) => {
-      codec.addByte(action.getTypeId());
-      codec.addBytes(action.toBytes());
+      const actionTypeId = action.getTypeId();
+      codec.addByte(actionTypeId);
+      let actionSize = 0;
+      if (actionTypeId === TRANSFER_ID) {
+        actionSize = TransferTxSize;
+      } else {
+        throw new Error(`Invalid action type: ${actionTypeId}`);
+      }
+      codec.addFixedBytes(actionSize, action.toBytes());
     });
 
-    this.digest = codec.toBytes();
-    return this.digest;
+    return codec.toBytes();
   }
 
   sign(factory: AuthFactory): Transaction {
     const msg = this.calculateDigest();
     this.auth = factory.sign(msg);
-
-    let size = msg.length + BYTE_LEN + this.auth!!.size();
-    let codec = Codec.newWriter(size, NETWORK_SIZE_LIMIT);
-    codec.addBytes(this.toBytes());
-
-    this.bytes = codec.toBytes();
-    this.size = this.bytes.length;
-    this.id = this.generateId(this.bytes);
-
-    codec = Codec.newReader(codec.toBytes(), MaxInt);
-    return Transaction.fromBytes(codec.toBytes());
+    this.bytes = this.toBytes();
+    return this;
   }
 
   toBytes(): Uint8Array {
-    if (this.bytes && this.size && this.bytes.length > 0) {
-      const codec = Codec.newWriter(this.size, NETWORK_SIZE_LIMIT);
-      codec.addFixedBytes(this.bytes);
-      return codec.toBytes();
+    if (this.bytes.length > 0) {
+      return this.bytes;
     }
-    const codec = new Codec();
-    codec.addBytes(this.base.toBytes());
+
+    const codec = Codec.newWriter(this.size(), NETWORK_SIZE_LIMIT);
+    codec.addFixedBytes(BaseTxSize, this.base.toBytes());
     codec.addByte(this.actions.length);
     this.actions.forEach((action) => {
-      codec.addByte(action.getTypeId());
-      codec.addBytes(action.toBytes());
+      const actionTypeId = action.getTypeId();
+      codec.addByte(actionTypeId);
+      let actionSize = 0;
+      if (actionTypeId === TRANSFER_ID) {
+        actionSize = TransferTxSize;
+      } else {
+        throw new Error(`Invalid action type: ${actionTypeId}`);
+      }
+      codec.addFixedBytes(actionSize, action.toBytes());
     });
     if (this.auth) {
-      codec.addByte(this.auth.getTypeId());
-      codec.addBytes(this.auth.toBytes());
+      const authTypeId = this.auth.getTypeId();
+      codec.addByte(authTypeId);
+      let authSize = 0;
+      if (authTypeId === BLS_ID) {
+        authSize = BlsAuthSize;
+      } else {
+        throw new Error(`Invalid auth type: ${authTypeId}`);
+      }
+      codec.addFixedBytes(authSize, this.auth.toBytes());
     }
+
     return codec.toBytes();
   }
 
   static fromBytes(bytes: Uint8Array): Transaction {
     const codec = Codec.newReader(bytes, bytes.length);
-    const start = codec.getOffset();
+    const baseBytes = codec.getFixedBytes(BaseTxSize);
+    const base = BaseTx.fromBytes(baseBytes);
+    console.log("base: ", base);
 
-    const base = BaseTx.fromBytes(codec.getBytes());
+    let currentSize = BaseTxSize;
 
-    const numActions = codec.getNumber();
+    const numActions = codec.getByte();
+    currentSize += BYTE_LEN;
     if (numActions === 0) {
       throw new Error("no actions");
     }
     const actions: Action[] = [];
     for (let i = 0; i < numActions; i++) {
       const actionTypeId = codec.getByte();
+      currentSize += BYTE_LEN;
       if (actionTypeId === TRANSFER_ID) {
-        actions.push(Transfer.fromBytes(codec.getBytes()));
+        const actionBytes = codec.getFixedBytes(TransferTxSize);
+        const action = Transfer.fromBytes(actionBytes);
+        actions.push(action);
+        currentSize += TransferTxSize;
       } else {
         throw new Error(`Invalid action type: ${actionTypeId}`);
       }
     }
-    const digest = codec.getOffset();
-
-    let auth: Auth;
-    const authTypeId = codec.getByte();
-    if (authTypeId === BLS_ID) {
-      auth = BLS.fromBytes(codec.getBytes());
-    } else {
-      throw new Error(`Invalid auth type: ${authTypeId}`);
-    }
-
-    const actorType = auth.actor()[0];
-    if (actorType !== authTypeId) {
-      throw new Error(
-        `actorType ${actorType} did not match authType ${authTypeId}`
-      );
-    }
-
-    const sponsorType = auth.sponsor()[0];
-    if (sponsorType !== authTypeId) {
-      throw new Error(
-        `sponsorType ${sponsorType} did not match authType ${authTypeId}`
-      );
-    }
+    console.log("actions: ", actions);
 
     const transaction = new Transaction(base, actions);
-    transaction.auth = auth;
-    const codecBytes = codec.toBytes();
-    transaction.digest = codecBytes.slice(start, digest);
-    transaction.bytes = codecBytes.slice(start, codec.getOffset());
-    transaction.size = bytes.length;
-    transaction.id = transaction.generateId(transaction.bytes);
+    // First check to ensure auth is also part of transactino
+    if (bytes.length > currentSize) {
+      const authTypeId = codec.getByte();
+      console.log("authTypeId: ", authTypeId);
+      let auth: Auth;
+      if (authTypeId === BLS_ID) {
+        const authBytes = codec.getFixedBytes(BlsAuthSize);
+        auth = BLS.fromBytes(authBytes);
+        console.log("auth: ", auth);
+      } else {
+        throw new Error(`Invalid auth type: ${authTypeId}`);
+      }
+      transaction.auth = auth;
+    }
+    console.log("auth: ", transaction.auth);
 
+    transaction.bytes = codec.toBytes();
     return transaction;
   }
 
-  generateId(bytes: Uint8Array): Id {
-    const [id, _] = Id.fromBytes(bytes);
+  id(): Id {
+    const [id] = Id.fromBytes(this.bytes);
     return id;
   }
 
-  getId(): string {
-    return this.id?.toString() || "";
+  size(): number {
+    let size = BaseTxSize + BYTE_LEN;
+    this.actions.forEach((action) => {
+      const actionTypeId = action.getTypeId();
+      let actionSize = 0;
+      if (actionTypeId === TRANSFER_ID) {
+        actionSize = TransferTxSize;
+      } else {
+        throw new Error(`Invalid action type: ${actionTypeId}`);
+      }
+      size += BYTE_LEN + actionSize; // for typeid + action
+    });
+    if (this.auth) {
+      const authTypeId = this.auth.getTypeId();
+      let authSize = 0;
+      if (authTypeId === BLS_ID) {
+        authSize = BlsAuthSize;
+      } else {
+        throw new Error(`Invalid auth type: ${authTypeId}`);
+      }
+      size += BYTE_LEN + authSize; // for typeid + auth
+    }
+    return size;
   }
 }

@@ -23,3 +23,8 @@ export const MINTASSET_COMPUTE_UNITS = 5;
 
 // Storage Chunks
 export const STORAGE_BALANCE_CHUNKS = 1;
+
+export const MAX_SYMBOL_SIZE = 8;
+export const MAX_MEMO_SIZE = 256;
+export const MAX_METADATA_SIZE = 256;
+export const MAX_DECIMALS = 9;

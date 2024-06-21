@@ -10,6 +10,8 @@ import {
 import { Codec } from "../utils/codec";
 import { Auth, AuthFactory } from "./auth";
 
+export const BlsAuthSize = bls.PUBLIC_KEY_LENGTH + bls.SIGNATURE_LENGTH;
+
 export class BLS implements Auth {
   public signer: bls.PublicKey;
   public signature: bls.Signature;
@@ -18,14 +20,7 @@ export class BLS implements Auth {
   constructor(signer: bls.PublicKey, signature: bls.Signature) {
     this.signer = signer;
     this.signature = signature;
-    this.addr = new Uint8Array();
-  }
-
-  public address(): Uint8Array {
-    if (this.addr.length === 0) {
-      this.addr = NewBLSAddress(this.signer);
-    }
-    return this.addr;
+    this.addr = NewBLSAddress(this.signer);
   }
 
   getTypeId(): number {
@@ -45,25 +40,25 @@ export class BLS implements Auth {
   }
 
   size(): number {
-    return bls.PUBLIC_KEY_LENGTH + bls.SIGNATURE_LENGTH;
+    return BlsAuthSize;
   }
 
   toBytes(): Uint8Array {
-    const codec = new Codec();
-    codec.addBytes(bls.publicKeyToBytes(this.signer));
-    codec.addBytes(bls.signatureToBytes(this.signature));
-    return codec.toBytes();
+    const size = this.size();
+    const codec = Codec.newWriter(size, size);
+    const signerBytes = bls.publicKeyToBytes(this.signer);
+    codec.addFixedBytes(bls.PUBLIC_KEY_LENGTH, signerBytes);
+    const signatureBytes = bls.signatureToBytes(this.signature);
+    codec.addFixedBytes(bls.SIGNATURE_LENGTH, signatureBytes);
+    const finalBytes = codec.toBytes();
+    return finalBytes;
   }
 
   static fromBytes(bytes: Uint8Array): BLS {
-    const codec = new Codec(bytes);
+    const codec = Codec.newReader(bytes, bytes.length);
     const signer = bls.publicKeyFromBytes(codec.getBytes());
     const signature = bls.signatureFromBytes(codec.getBytes());
     return new BLS(signer, signature);
-  }
-
-  static sign(message: Uint8Array, privateKey: bls.SecretKey): Uint8Array {
-    return bls.sign(message, privateKey);
   }
 }
 

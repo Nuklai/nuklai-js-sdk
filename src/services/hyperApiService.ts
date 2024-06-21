@@ -96,18 +96,21 @@ export class HyperApiService extends Api {
         };
       }
 
-      console.log("timestamp: ", timestamp.toString());
-      console.log("chainId: ", chainId.toJSON());
-      console.log("maxFee: ", JSON.stringify(maxFee));
-
+      console.log("submitting");
       const base = new BaseTx(timestamp, chainId, maxFee);
       let tx: Transaction = new Transaction(base, [action]);
+      console.log("tx unsigned: ", tx.toBytes());
 
       // Sign the transaction
-      tx = await tx.sign(authFactory);
+      tx = tx.sign(authFactory);
 
       const submit = async () => {
-        await this.submitTransaction(tx.toBytes());
+        const txBytes = tx.toBytes();
+        console.log("tx signed: ", txBytes);
+        const t: Transaction = Transaction.fromBytes(txBytes);
+        console.log("t: ", t.toBytes());
+
+        await this.submitTransaction(txBytes);
       };
 
       return { submit, tx, err: undefined };

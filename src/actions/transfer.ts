@@ -1,12 +1,18 @@
+// transfer.ts
+
 import { Id } from "@avalabs/avalanchejs";
 import { Codec } from "../utils/codec";
 import { Action } from "./action";
 import { ID_LEN, UINT64_LEN } from "../constants/consts";
 import {
+  ADDRESS_LEN,
+  MAX_MEMO_SIZE,
   STORAGE_BALANCE_CHUNKS,
   TRANSFER_COMPUTE_UNITS,
   TRANSFER_ID
 } from "../constants/nuklaivm";
+
+export const TransferTxSize = ADDRESS_LEN + ID_LEN + UINT64_LEN + MAX_MEMO_SIZE;
 
 export class Transfer implements Action {
   constructor(
@@ -21,17 +27,7 @@ export class Transfer implements Action {
   }
 
   size(): number {
-    // Size of value (bigint) is 8 bytes
-    const bigintSize = UINT64_LEN;
-
-    // Size of to and memo (length of Uint8Array)
-    const toSize = this.to.length;
-    const memoSize = this.memo.length;
-
-    // Size of asset
-    const assetSize = ID_LEN;
-
-    return toSize + assetSize + bigintSize + memoSize;
+    return TransferTxSize;
   }
 
   computeUnits(): number {
@@ -45,19 +41,19 @@ export class Transfer implements Action {
   toBytes(): Uint8Array {
     const size = this.size();
     const codec = Codec.newWriter(size, size);
-    codec.addBytes(this.to);
-    codec.addBytes(this.asset.toBytes());
+    codec.addFixedBytes(ADDRESS_LEN, this.to);
+    codec.addFixedBytes(ID_LEN, this.asset.toBytes());
     codec.addBigInt(this.value);
-    codec.addBytes(this.memo);
+    codec.addFixedBytes(MAX_MEMO_SIZE, this.memo);
     return codec.toBytes();
   }
 
   static fromBytes(bytes: Uint8Array): Transfer {
     const codec = Codec.newReader(bytes, bytes.length);
-    const to = codec.getBytes();
-    const [asset, _] = Id.fromBytes(codec.getBytes());
+    const to = codec.getFixedBytes(ADDRESS_LEN);
+    const asset = Id.fromBytes(codec.getFixedBytes(ID_LEN))[0];
     const value = codec.getBigInt();
-    const memo = codec.getBytes();
+    const memo = codec.getFixedBytes(MAX_MEMO_SIZE);
     return new Transfer(to, asset, value, memo);
   }
 }

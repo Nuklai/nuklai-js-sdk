@@ -10,11 +10,11 @@ type Dimension = number[];
 const FeeDimensions: number = 5;
 
 function mul64(a: number, b: number): bigint {
-  return bigInt(a).multiply(bigInt(b)).toJSNumber() as unknown as bigint;
+  return BigInt(a) * BigInt(b);
 }
 
 function add64(a: bigint, b: bigint): bigint {
-  return bigInt(a).add(bigInt(b)).toJSNumber() as unknown as bigint;
+  return a + b;
 }
 
 export function mulSum(a: Dimension, b: Dimension): [bigint, Error?] {
