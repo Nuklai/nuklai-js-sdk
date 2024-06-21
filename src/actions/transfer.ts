@@ -1,18 +1,16 @@
-// transfer.ts
-
-import { Id } from "@avalabs/avalanchejs";
-import { Codec } from "../utils/codec";
-import { Action } from "./action";
-import { ID_LEN, UINT64_LEN } from "../constants/consts";
+import { Id } from '@avalabs/avalanchejs'
+import { ID_LEN, UINT64_LEN } from '../constants/consts'
 import {
   ADDRESS_LEN,
   MAX_MEMO_SIZE,
   STORAGE_BALANCE_CHUNKS,
   TRANSFER_COMPUTE_UNITS,
   TRANSFER_ID
-} from "../constants/nuklaivm";
+} from '../constants/nuklaivm'
+import { Codec } from '../utils/codec'
+import { Action } from './action'
 
-export const TransferTxSize = ADDRESS_LEN + ID_LEN + UINT64_LEN + MAX_MEMO_SIZE;
+export const TransferTxSize = ADDRESS_LEN + ID_LEN + UINT64_LEN + MAX_MEMO_SIZE
 
 export class Transfer implements Action {
   constructor(
@@ -23,37 +21,37 @@ export class Transfer implements Action {
   ) {}
 
   getTypeId(): number {
-    return TRANSFER_ID;
+    return TRANSFER_ID
   }
 
   size(): number {
-    return TransferTxSize;
+    return TransferTxSize
   }
 
   computeUnits(): number {
-    return TRANSFER_COMPUTE_UNITS;
+    return TRANSFER_COMPUTE_UNITS
   }
 
   stateKeysMaxChunks(): number[] {
-    return [STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS];
+    return [STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS]
   }
 
   toBytes(): Uint8Array {
-    const size = this.size();
-    const codec = Codec.newWriter(size, size);
-    codec.addFixedBytes(ADDRESS_LEN, this.to);
-    codec.addFixedBytes(ID_LEN, this.asset.toBytes());
-    codec.addUint64(this.value);
-    codec.addFixedBytes(MAX_MEMO_SIZE, this.memo);
-    return codec.toBytes();
+    const size = this.size()
+    const codec = Codec.newWriter(size, size)
+    codec.packFixedBytes(this.to)
+    codec.packID(this.asset)
+    codec.packUint64(this.value)
+    codec.packBytes(this.memo)
+    return codec.toBytes()
   }
 
   static fromBytes(bytes: Uint8Array): Transfer {
-    const codec = Codec.newReader(bytes, bytes.length);
-    const to = codec.getFixedBytes(ADDRESS_LEN);
-    const asset = Id.fromBytes(codec.getFixedBytes(ID_LEN))[0];
-    const value = codec.getUint64();
-    const memo = codec.getFixedBytes(MAX_MEMO_SIZE);
-    return new Transfer(to, asset, value, memo);
+    const codec = Codec.newReader(bytes, bytes.length)
+    const to = codec.unpackFixedBytes(ADDRESS_LEN)
+    const asset = codec.unpackID()
+    const value = codec.unpackUint64(true)
+    const memo = codec.unpackFixedBytes(MAX_MEMO_SIZE)
+    return new Transfer(to, asset, value, memo)
   }
 }

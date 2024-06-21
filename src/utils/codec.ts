@@ -1,170 +1,294 @@
-import { INT64_LEN, INT_LEN, BYTE_LEN, UINT64_LEN } from "../constants/consts";
+import { Id } from '@avalabs/avalanchejs'
+import {
+  BYTE_LEN,
+  ID_LEN,
+  INT_LEN,
+  LONG_LEN,
+  MaxStringLen,
+  SHORT_LEN
+} from '../constants/consts'
 
-export class Codec {
-  private buffer: Uint8Array;
-  private limit: number | bigint;
-  private offset: number;
+const ErrInsufficientLength = new Error(
+  'packer has insufficient length for input'
+)
+const errNegativeOffset = new Error('negative offset')
+const errInvalidInput = new Error('input does not match expected format')
+const errBadBool = new Error('unexpected value when unpacking bool')
+const errOversized = new Error('size is larger than limit')
 
-  constructor(bytes?: Uint8Array, limit?: number | bigint) {
-    if (bytes) {
-      this.buffer = bytes;
-      this.offset = 0;
-    } else {
-      this.buffer = new Uint8Array();
-      this.offset = 0;
-    }
-    this.limit = limit || 0;
+class Codec {
+  private buffer: Uint8Array
+  private limit: number | bigint
+  private offset: number
+  private maxSize: number
+  private error: Error | null
+
+  constructor(
+    bytes?: Uint8Array,
+    limit?: number | bigint,
+    maxSize: number = Infinity
+  ) {
+    this.buffer = bytes || new Uint8Array()
+    this.offset = 0
+    this.limit = limit || 0
+    this.maxSize = maxSize
+    this.error = null
   }
 
   static newWriter(initialBufferSize: number, limit: number | bigint): Codec {
-    return new Codec(new Uint8Array(initialBufferSize), limit);
+    return new Codec(
+      new Uint8Array(initialBufferSize),
+      limit,
+      initialBufferSize
+    )
   }
 
   static newReader(bytes: Uint8Array, limit: number | bigint): Codec {
-    return new Codec(bytes, limit);
+    return new Codec(bytes, limit)
   }
 
-  private checkLimit(size: number): void {
-    if (this.limit && this.offset + size > this.limit) {
-      throw new Error("Buffer limit exceeded");
+  private checkSpace(bytes: number): void {
+    if (this.offset < 0) {
+      this.error = errNegativeOffset
+    } else if (bytes < 0) {
+      this.error = errInvalidInput
+    } else if (this.buffer.length - this.offset < bytes) {
+      this.error = ErrInsufficientLength
     }
   }
 
-  addNumber(value: number): void {
-    this.checkLimit(INT_LEN);
-    new DataView(this.buffer.buffer).setUint32(this.offset, value, true);
-    this.offset += INT_LEN;
+  private expand(bytes: number): void {
+    const neededSize = bytes + this.offset
+    if (neededSize <= this.buffer.length) {
+      return
+    }
+    if (neededSize > this.maxSize) {
+      this.error = ErrInsufficientLength
+      return
+    }
+    if (neededSize <= this.buffer.byteLength) {
+      this.buffer = this.buffer.subarray(0, neededSize)
+      return
+    }
+    const newBuffer = new Uint8Array(neededSize)
+    newBuffer.set(this.buffer)
+    this.buffer = newBuffer
   }
 
-  addInt64(value: bigint): void {
-    this.checkLimit(INT64_LEN);
-    new DataView(this.buffer.buffer).setBigInt64(this.offset, value, true);
-    this.offset += INT64_LEN;
+  packByte(value: number): void {
+    this.expand(BYTE_LEN)
+    if (this.error) return
+
+    this.buffer[this.offset] = value
+    this.offset += BYTE_LEN
   }
 
-  addUint64(value: bigint): void {
-    this.checkLimit(UINT64_LEN);
-    new DataView(this.buffer.buffer).setBigUint64(this.offset, value, true);
-    this.offset += UINT64_LEN;
+  unpackByte(): number {
+    this.checkSpace(BYTE_LEN)
+    if (this.error) return 0
+
+    const value = this.buffer[this.offset]
+    this.offset += BYTE_LEN
+    return value
   }
 
-  addString(value: string): void {
-    const strBytes = new TextEncoder().encode(value);
-    this.addNumber(strBytes.length);
-    this.checkLimit(strBytes.length);
-    this.buffer.set(strBytes, this.offset);
-    this.offset += strBytes.length;
+  packShort(value: number): void {
+    this.expand(SHORT_LEN)
+    if (this.error) return
+
+    new DataView(this.buffer.buffer).setUint16(this.offset, value, false)
+    this.offset += SHORT_LEN
   }
 
-  addArray(arr: Uint8Array[]): void {
-    this.addNumber(arr.length);
-    arr.forEach((item) => {
-      this.checkLimit(item.length);
-      this.buffer.set(item, this.offset);
-      this.offset += item.length;
-    });
+  unpackShort(): number {
+    this.checkSpace(SHORT_LEN)
+    if (this.error) return 0
+
+    const value = new DataView(this.buffer.buffer).getUint16(this.offset, false)
+    this.offset += SHORT_LEN
+    return value
   }
 
-  addBytes(bytes: Uint8Array): void {
-    this.checkLimit(bytes.length);
-    this.buffer.set(bytes, this.offset);
-    this.offset += bytes.length;
+  packInt(value: number): void {
+    this.expand(INT_LEN)
+    if (this.error) return
+
+    new DataView(this.buffer.buffer).setUint32(this.offset, value, false)
+    this.offset += INT_LEN
   }
 
-  addBool(value: boolean): void {
-    this.addNumber(value ? 1 : 0);
+  unpackInt(): number {
+    this.checkSpace(INT_LEN)
+    if (this.error) return 0
+
+    const value = new DataView(this.buffer.buffer).getUint32(this.offset, false)
+    this.offset += INT_LEN
+    return value
   }
 
-  addFixedBytes(size: number, bytes: Uint8Array): void {
-    this.checkLimit(size);
-    this.buffer.set(bytes, this.offset);
-    this.offset += size;
+  packLong(value: bigint): void {
+    this.expand(LONG_LEN)
+    if (this.error) return
+
+    new DataView(this.buffer.buffer).setBigUint64(this.offset, value, false)
+    this.offset += LONG_LEN
   }
 
-  addByte(value: number): void {
-    this.checkLimit(BYTE_LEN);
-    this.buffer[this.offset] = value;
-    this.offset += BYTE_LEN;
-  }
+  unpackLong(): bigint {
+    this.checkSpace(LONG_LEN)
+    if (this.error) return 0n
 
-  getNumber(): number {
-    const value = new DataView(this.buffer.buffer).getUint32(this.offset, true);
-    this.offset += INT_LEN;
-    return value;
-  }
-
-  getInt64(): bigint {
-    const value = new DataView(this.buffer.buffer).getBigInt64(
-      this.offset,
-      true
-    );
-    this.offset += INT64_LEN;
-    return value;
-  }
-
-  getUint64(): bigint {
     const value = new DataView(this.buffer.buffer).getBigUint64(
       this.offset,
-      true
-    );
-    this.offset += INT64_LEN;
-    return value;
+      false
+    )
+    this.offset += LONG_LEN
+    return value
   }
 
-  getString(): string {
-    const length = this.getNumber();
-    const value = new TextDecoder().decode(
-      this.buffer.slice(this.offset, this.offset + length)
-    );
-    this.offset += length;
-    return value;
+  packBool(value: boolean): void {
+    this.packByte(value ? 1 : 0)
   }
 
-  getArray<T>(callback: (bytes: Uint8Array) => T): T[] {
-    const length = this.getNumber();
-    const arr: T[] = [];
-    for (let i = 0; i < length; i++) {
-      arr.push(callback(this.getBytes()));
+  unpackBool(): boolean {
+    const b = this.unpackByte()
+    if (b === 0) return false
+    if (b === 1) return true
+
+    this.error = errBadBool
+    return false
+  }
+
+  packFixedBytes(bytes: Uint8Array): void {
+    this.expand(bytes.length)
+    if (this.error) return
+
+    this.buffer.set(bytes, this.offset)
+    this.offset += bytes.length
+  }
+
+  unpackFixedBytes(size: number): Uint8Array {
+    this.checkSpace(size)
+    if (this.error) return new Uint8Array()
+
+    const bytes = this.buffer.slice(this.offset, this.offset + size)
+    this.offset += size
+    return bytes
+  }
+
+  packBytes(bytes: Uint8Array): void {
+    this.packInt(bytes.length)
+    this.packFixedBytes(bytes)
+  }
+
+  unpackBytes(): Uint8Array {
+    const size = this.unpackInt()
+    return this.unpackFixedBytes(size)
+  }
+
+  unpackLimitedBytes(limit: number): Uint8Array {
+    const size = this.unpackInt()
+    if (size > limit) {
+      this.error = errOversized
+      return new Uint8Array()
     }
-    return arr;
+    return this.unpackFixedBytes(size)
   }
 
-  getBytes(): Uint8Array {
-    const length = this.getNumber();
-    const result = this.buffer.slice(this.offset, this.offset + length);
-    this.offset += length;
-    return result;
+  packStr(value: string): void {
+    const strBytes = new TextEncoder().encode(value)
+    if (strBytes.length > MaxStringLen) {
+      this.error = errInvalidInput
+      return
+    }
+    this.packShort(strBytes.length)
+    this.packFixedBytes(strBytes)
   }
 
-  getBool(): boolean {
-    return this.getNumber() === 1;
+  unpackStr(): string {
+    const length = this.unpackShort()
+    return new TextDecoder().decode(this.unpackFixedBytes(length))
   }
 
-  getFixedBytes(size: number): Uint8Array {
-    const result = this.buffer.slice(this.offset, this.offset + size);
-    this.offset += size;
-    return result;
+  unpackLimitedStr(limit: number): string {
+    const length = this.unpackShort()
+    if (length > limit) {
+      this.error = errOversized
+      return ''
+    }
+    return new TextDecoder().decode(this.unpackFixedBytes(length))
   }
 
-  getByte(): number {
-    const value = this.buffer[this.offset];
-    this.offset += BYTE_LEN;
-    return value;
+  packID(id: Id): void {
+    this.packFixedBytes(id.toBytes())
+  }
+
+  unpackID(): Id {
+    const id = this.unpackFixedBytes(ID_LEN)
+    return Id.fromBytes(id)[0]
+  }
+
+  packUint64(value: bigint): void {
+    this.packLong(value)
+  }
+
+  unpackUint64(required: boolean): bigint {
+    const value = this.unpackLong()
+    if (required && value === 0n) {
+      this.addError(new Error('Uint64 field is not populated'))
+    }
+    return value
+  }
+
+  packInt64(value: bigint): void {
+    this.packLong(value)
+  }
+
+  unpackInt64(required: boolean): bigint {
+    const value = this.unpackLong()
+    if (required && value === 0n) {
+      this.addError(new Error('Int64 field is not populated'))
+    }
+    return value
+  }
+
+  packString(value: string): void {
+    this.packStr(value)
+  }
+
+  unpackString(required: boolean): string {
+    const value = this.unpackStr()
+    if (required && value === '') {
+      this.addError(new Error('String field is not populated'))
+    }
+    return value
   }
 
   toBytes(): Uint8Array {
-    return this.buffer.slice(0, this.offset);
+    return this.buffer.slice(0, this.offset)
   }
 
   getOffset(): number {
-    return this.offset;
+    return this.offset
   }
 
   hasError(): boolean {
-    return false;
+    return this.error !== null
   }
 
   getError(): Error | null {
-    return null;
+    return this.error
+  }
+
+  addError(err: Error): void {
+    if (!this.error) {
+      this.error = err
+    }
+  }
+
+  empty(): boolean {
+    return this.offset === this.buffer.length
   }
 }
+
+export { Codec }
