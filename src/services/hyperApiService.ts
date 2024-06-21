@@ -61,8 +61,8 @@ export class HyperApiService extends Api {
   }
 
   // Submit a transaction to the network
-  submitTransaction(tx: Uint8Array): Promise<SubmitTransactionResponse> {
-    return this.callRpc<SubmitTransactionResponse>("submitTx", { tx });
+  async submitTransaction(tx: Uint8Array): Promise<SubmitTransactionResponse> {
+    return this.callRpc<SubmitTransactionResponse>("submitTx", { d: tx });
   }
 
   async generateTransaction(
@@ -107,8 +107,6 @@ export class HyperApiService extends Api {
       const submit = async () => {
         const txBytes = tx.toBytes();
         console.log("tx signed: ", txBytes);
-        const t: Transaction = Transaction.fromBytes(txBytes);
-        console.log("t: ", t.toBytes());
 
         await this.submitTransaction(txBytes);
       };

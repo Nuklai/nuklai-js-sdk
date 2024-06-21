@@ -50,14 +50,17 @@ export class BLS implements Auth {
     codec.addFixedBytes(bls.PUBLIC_KEY_LENGTH, signerBytes);
     const signatureBytes = bls.signatureToBytes(this.signature);
     codec.addFixedBytes(bls.SIGNATURE_LENGTH, signatureBytes);
-    const finalBytes = codec.toBytes();
-    return finalBytes;
+    return codec.toBytes();
   }
 
   static fromBytes(bytes: Uint8Array): BLS {
     const codec = Codec.newReader(bytes, bytes.length);
-    const signer = bls.publicKeyFromBytes(codec.getBytes());
-    const signature = bls.signatureFromBytes(codec.getBytes());
+    const signer = bls.publicKeyFromBytes(
+      codec.getFixedBytes(bls.PUBLIC_KEY_LENGTH)
+    );
+    const signature = bls.signatureFromBytes(
+      codec.getFixedBytes(bls.SIGNATURE_LENGTH)
+    );
     return new BLS(signer, signature);
   }
 }

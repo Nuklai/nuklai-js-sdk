@@ -86,7 +86,6 @@ export class Transaction {
     const codec = Codec.newReader(bytes, bytes.length);
     const baseBytes = codec.getFixedBytes(BaseTxSize);
     const base = BaseTx.fromBytes(baseBytes);
-    console.log("base: ", base);
 
     let currentSize = BaseTxSize;
 
@@ -108,24 +107,20 @@ export class Transaction {
         throw new Error(`Invalid action type: ${actionTypeId}`);
       }
     }
-    console.log("actions: ", actions);
 
     const transaction = new Transaction(base, actions);
     // First check to ensure auth is also part of transactino
     if (bytes.length > currentSize) {
       const authTypeId = codec.getByte();
-      console.log("authTypeId: ", authTypeId);
       let auth: Auth;
       if (authTypeId === BLS_ID) {
         const authBytes = codec.getFixedBytes(BlsAuthSize);
         auth = BLS.fromBytes(authBytes);
-        console.log("auth: ", auth);
       } else {
         throw new Error(`Invalid auth type: ${authTypeId}`);
       }
       transaction.auth = auth;
     }
-    console.log("auth: ", transaction.auth);
 
     transaction.bytes = codec.toBytes();
     return transaction;
