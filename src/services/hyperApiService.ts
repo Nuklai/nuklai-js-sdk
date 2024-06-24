@@ -1,8 +1,8 @@
-import { Id } from "@avalabs/avalanchejs";
+import { Id } from '@avalabs/avalanchejs'
 
-import { Transfer } from "../actions/transfer";
-import { AuthFactory } from "../auth/auth";
-import { Api } from "../common/baseApi";
+import { Transfer } from '../actions/transfer'
+import { AuthFactory } from '../auth/auth'
+import { Api } from '../common/baseApi'
 import {
   GetLastAcceptedResponse,
   GetNetworkInfoResponse,
@@ -10,130 +10,130 @@ import {
   GetWarpSignaturesResponse,
   PingResponse,
   SubmitTransactionResponse
-} from "../common/hyperApiModels";
-import { GetGenesisInfoResponse } from "../common/nuklaiApiModels";
-import { SDKConfig } from "../config/sdkConfig";
+} from '../common/hyperApiModels'
+import { GetGenesisInfoResponse } from '../common/nuklaiApiModels'
+import { SDKConfig } from '../config/sdkConfig'
 import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
-} from "../constants/endpoints";
-import { BaseTx } from "../transactions/baseTx";
-import { estimateUnits, mulSum } from "../transactions/fees";
-import { Transaction } from "../transactions/transaction";
-import { GenesisService } from "./nuklaivm/genesisService";
-import { getUnixRMilli } from "../utils/utils";
+} from '../constants/endpoints'
+import { BaseTx } from '../transactions/baseTx'
+import { estimateUnits, mulSum } from '../transactions/fees'
+import { Transaction } from '../transactions/transaction'
+import { getUnixRMilli } from '../utils/utils'
+import { GenesisService } from './nuklaivm/genesisService'
 
 export class HyperApiService extends Api {
-  private genesisApiService: GenesisService;
+  private genesisApiService: GenesisService
 
   constructor(protected config: SDKConfig) {
     super(
       config.baseApiUrl,
       `/ext/bc/${config.blockchainId}/${NUKLAI_COREAPI_PATH}`,
       NUKLAI_COREAPI_METHOD_PREFIX
-    );
-    this.genesisApiService = new GenesisService(config);
+    )
+    this.genesisApiService = new GenesisService(config)
   }
 
   ping(): Promise<PingResponse> {
-    return this.callRpc<PingResponse>("ping");
+    return this.callRpc<PingResponse>('ping')
   }
 
   // Retrieve network IDs
   getNetworkInfo(): Promise<GetNetworkInfoResponse> {
-    return this.callRpc<GetNetworkInfoResponse>("network");
+    return this.callRpc<GetNetworkInfoResponse>('network')
   }
 
   // Get information about the last accepted block
   getLastAccepted(): Promise<GetLastAcceptedResponse> {
-    return this.callRpc<GetLastAcceptedResponse>("lastAccepted");
+    return this.callRpc<GetLastAcceptedResponse>('lastAccepted')
   }
 
   // Fetch current unit prices for transactions
   getUnitPrices(): Promise<GetUnitPricesResponse> {
-    return this.callRpc<GetUnitPricesResponse>("unitPrices");
+    return this.callRpc<GetUnitPricesResponse>('unitPrices')
   }
 
   // Fetch warp signatures associated with a transaction
   getWarpSignatures(txID: string): Promise<GetWarpSignaturesResponse> {
-    return this.callRpc<GetWarpSignaturesResponse>("getWarpSignatures", {
+    return this.callRpc<GetWarpSignaturesResponse>('getWarpSignatures', {
       txID
-    });
+    })
   }
 
   // Submit a transaction to the network
   async submitTransaction(tx: Uint8Array): Promise<SubmitTransactionResponse> {
-    return this.callRpc<SubmitTransactionResponse>("submitTx", { d: tx });
+    // Convert Uint8Array to base64 string
+    const txBase64 = Array.from(tx)
+    return this.callRpc<SubmitTransactionResponse>('submitTx', { tx: txBase64 })
   }
 
   async generateTransaction(
     action: Transfer,
     authFactory: AuthFactory
   ): Promise<{
-    submit: (ctx: any) => Promise<SubmitTransactionResponse>;
-    txSigned: Transaction;
-    err: Error | undefined;
+    submit: () => Promise<SubmitTransactionResponse>
+    txSigned: Transaction
+    err: Error | undefined
   }> {
     try {
       // Construct the base transaction
       // Set timestamp
       const genesisInfo: GetGenesisInfoResponse =
-        await this.genesisApiService.getGenesisInfo();
+        await this.genesisApiService.getGenesisInfo()
       const timestamp: bigint = getUnixRMilli(
         Date.now(),
         genesisInfo.genesis.validityWindow
-      );
+      )
       // Set chain ID
-      const chainId = Id.fromString(this.config.blockchainId);
+      const chainId = Id.fromString(this.config.blockchainId)
       // Set maxFee
-      const unitPrices: GetUnitPricesResponse = await this.getUnitPrices();
-      const units = estimateUnits(genesisInfo.genesis, [action], authFactory);
-      const [maxFee, error] = mulSum(unitPrices.unitPrices, units);
+      const unitPrices: GetUnitPricesResponse = await this.getUnitPrices()
+      const units = estimateUnits(genesisInfo.genesis, [action], authFactory)
+      const [maxFee, error] = mulSum(unitPrices.unitPrices, units)
       if (error) {
         return {
           submit: async () => {
-            throw new Error("Transaction failed, cannot submit.");
+            throw new Error('Transaction failed, cannot submit.')
           },
           txSigned: {} as Transaction,
           err: error as Error
-        };
+        }
       }
 
-      console.log("submitting");
-      const base = new BaseTx(timestamp, chainId, maxFee);
+      const base = new BaseTx(timestamp, chainId, maxFee)
 
-      const tx: Transaction = new Transaction(base, [action]);
-      console.log("tx: ", tx);
+      const tx: Transaction = new Transaction(base, [action])
+
       // Sign the transaction
-      const [txSigned, err] = tx.sign(authFactory);
+      const [txSigned, err] = tx.sign(authFactory)
       if (err) {
         return {
           submit: async () => {
-            throw new Error("Transaction failed, cannot submit.");
+            throw new Error('Transaction failed, cannot submit.')
           },
           txSigned: {} as Transaction,
           err: err as Error
-        };
+        }
       }
-      console.log("txSigned: ", txSigned);
 
       const submit = async (): Promise<SubmitTransactionResponse> => {
-        const [txBytes, err] = txSigned.toBytes();
+        const [txBytes, err] = txSigned.toBytes()
         if (err) {
-          throw new Error(`Transaction failed, cannot submit. Err: ${err}`);
+          throw new Error(`Transaction failed, cannot submit. Err: ${err}`)
         }
-        return await this.submitTransaction(txBytes);
-      };
+        return await this.submitTransaction(txBytes)
+      }
 
-      return { submit, txSigned, err: undefined };
+      return { submit, txSigned, err: undefined }
     } catch (error) {
       return {
         submit: async () => {
-          throw new Error("Transaction failed, cannot submit.");
+          throw new Error('Transaction failed, cannot submit.')
         },
         txSigned: {} as Transaction,
         err: error as Error
-      };
+      }
     }
   }
 }

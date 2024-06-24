@@ -38,6 +38,7 @@ export class JrpcProvider {
       method,
       params: parameters
     }
+
     const resp = await fetch(this.url, {
       ...fetchOptions,
       method: 'POST',
@@ -47,9 +48,7 @@ export class JrpcProvider {
         ...fetchOptions?.headers
       }
     })
-      .then(async (r) => {
-        return r.json()
-      })
+      .then(async (r) => r.json())
       .then((data) => data as JsonRpcSuccessResp<T> | JsonRpcErrorResp)
 
     if (resp.error) throw new Error(resp.error.message)
