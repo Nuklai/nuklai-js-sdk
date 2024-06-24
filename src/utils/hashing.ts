@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { createHash } from 'crypto'
 
 const HashLen = 32 // sha256 hash length in bytes

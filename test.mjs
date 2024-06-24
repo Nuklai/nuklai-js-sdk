@@ -1,8 +1,11 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: '2bGpKJc6Faf9W5RMZ6cxQWcbeBjJ4DjSqq9k6u1zRvcG8Cbeho'
+  blockchainId: 'CuH4wPFDk6p1jSRPMcJPgt9nGFfF7zfRrH3nkJW2TWLfRE53L'
 })
 
 async function testSDK() {
@@ -26,7 +29,7 @@ async function testSDK() {
         'NAI', // asset ID (defaulted to NAI)
         '0.0001', // amount
         'Test Memo', // memo
-        '5262814baaa103b3b6fe0f0e0aacdd3a0dffd271dcd5255f737815c1207a59d2' // private key (as hex string) for nuklai1qfgc2st57mmtzet7ajq4lh6d6rp3ev277ejxpandlzzy35v5fnhf6ccx39e
+        '5262814baaa103b3b6fe0f0e0aacdd3a0dffd271dcd5255f737815c1207a59d2' // private key (as hex string) for nuklai1qtph93hsh40u4l8rypacp2y72dks6w8vws9vvfzr7wdsy4qmr3w9vdnpeyt
       )
     console.log('Transaction:', transaction)
   } catch (error) {

@@ -1,5 +1,7 @@
-import { Id } from '@avalabs/avalanchejs'
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
 
+import { Id } from '@avalabs/avalanchejs'
 import { Transfer } from '../actions/transfer'
 import { AuthFactory } from '../auth/auth'
 import { Api } from '../common/baseApi'

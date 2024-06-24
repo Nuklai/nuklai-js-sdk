@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { Transfer } from '../../actions/transfer'
 import {
   BLSFactory,

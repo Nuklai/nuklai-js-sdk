@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { MillisecondsPerSecond } from '../constants/consts'
 
 export function getUnixRMilli(now: number, add: number): bigint {
