@@ -72,12 +72,13 @@ export class TransactionService extends NuklaiApiService {
       memo
     );
 
-    const { submit, tx } = await this.hyperApiService.generateTransaction(
-      transfer,
-      blsFactory
-    );
+    const { submit, txSigned, err } =
+      await this.hyperApiService.generateTransaction(transfer, blsFactory);
+    if (err) {
+      throw err;
+    }
     await submit({});
-    return tx.id().toString();
+    return txSigned.id().toString();
   }
 
   private async getBalance(

@@ -25,13 +25,12 @@ class Codec {
   private buffer: Uint8Array;
   private offset: number;
   private maxSize: number;
-  private error: Error | null;
+  private error?: Error;
 
   constructor(bytes?: Uint8Array, maxSize: number = Infinity) {
     this.buffer = bytes || new Uint8Array();
     this.offset = 0;
     this.maxSize = maxSize;
-    this.error = null;
   }
 
   static newWriter(initialBufferSize: number, maxSize: number): Codec {
@@ -294,7 +293,7 @@ class Codec {
     return this.error !== null;
   }
 
-  getError(): Error | null {
+  getError(): Error | undefined {
     return this.error;
   }
 

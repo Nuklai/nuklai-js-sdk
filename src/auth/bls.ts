@@ -49,7 +49,7 @@ export class BLS implements Auth {
     return codec.toBytes();
   }
 
-  static fromBytes(bytes: Uint8Array): BLS {
+  static fromBytes(bytes: Uint8Array): [BLS, Error?] {
     const codec = Codec.newReader(bytes, bytes.length);
     const signer = bls.publicKeyFromBytes(
       codec.unpackFixedBytes(bls.PUBLIC_KEY_LENGTH)
@@ -57,7 +57,7 @@ export class BLS implements Auth {
     const signature = bls.signatureFromBytes(
       codec.unpackFixedBytes(bls.SIGNATURE_LENGTH)
     );
-    return new BLS(signer, signature);
+    return [new BLS(signer, signature), codec.getError()];
   }
 }
 

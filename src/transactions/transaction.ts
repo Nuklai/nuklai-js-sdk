@@ -19,7 +19,7 @@ export class Transaction {
     this.actions = actions;
   }
 
-  calculateDigest(): Uint8Array {
+  calculateDigest(): [Uint8Array, Error?] {
     const codec = Codec.newWriter(this.size(), NETWORK_SIZE_LIMIT);
     codec.packBytes(this.base.toBytes());
     codec.packByte(this.actions.length);
@@ -29,20 +29,28 @@ export class Transaction {
       codec.packBytes(action.toBytes());
     });
 
-    return codec.toBytes();
+    return [codec.toBytes(), codec.getError()];
   }
 
-  sign(factory: AuthFactory): Transaction {
-    const msg = this.calculateDigest();
+  sign(factory: AuthFactory): [Transaction, Error?] {
+    let [msg, err] = this.calculateDigest();
+    if (err) {
+      return [this, err];
+    }
     this.auth = factory.sign(msg);
-    this.bytes = this.toBytes();
+    [this.bytes, err] = this.toBytes();
+    if (err) {
+      return [this, err];
+    }
 
-    const codec = Codec.newReader(this.bytes, this.bytes.length);
-    codec.unpackFixedBytes(this.bytes.length);
-    return Transaction.fromBytes(codec.toBytes());
+    return Transaction.fromBytes(this.bytes);
   }
 
-  toBytes(): Uint8Array {
+  toBytes(): [Uint8Array, Error?] {
+    if (this.bytes.length > 0) {
+      return [this.bytes, undefined];
+    }
+
     const codec = Codec.newWriter(this.size(), NETWORK_SIZE_LIMIT);
 
     // Pack the base transaction
@@ -69,22 +77,29 @@ export class Transaction {
       codec.packBytes(authBytes);
     }
 
-    // Get the final byte array
-    const finalBytes = codec.toBytes();
-    return finalBytes;
+    return [codec.toBytes(), codec.getError()];
   }
 
-  static fromBytes(bytes: Uint8Array): Transaction {
+  static fromBytes(bytes: Uint8Array): [Transaction, Error?] {
     const codec = Codec.newReader(bytes, bytes.length);
 
     // Unpack the base transaction
     const baseBytes = codec.unpackBytes();
-    const base = BaseTx.fromBytes(baseBytes);
+    let [base, err] = BaseTx.fromBytes(baseBytes);
+    if (err) {
+      return [
+        new Transaction(base, []),
+        new Error(`Failed to unpack base transaction: ${err}`)
+      ];
+    }
 
     // Unpack the number of actions
     const numActions = codec.unpackByte();
     if (numActions === 0) {
-      throw new Error("No actions found");
+      return [
+        new Transaction(base, []),
+        new Error("Transaction must have at least one action")
+      ];
     }
 
     // Unpack each action
@@ -93,10 +108,19 @@ export class Transaction {
       const actionTypeId = codec.unpackByte();
       if (actionTypeId === TRANSFER_ID) {
         const actionBytes = codec.unpackBytes();
-        const action = Transfer.fromBytes(actionBytes);
+        const [action, err] = Transfer.fromBytes(actionBytes);
+        if (err) {
+          return [
+            new Transaction(base, []),
+            new Error(`Failed to unpack transfer action: ${err}`)
+          ];
+        }
         actions.push(action);
       } else {
-        throw new Error(`Invalid action type: ${actionTypeId}`);
+        return [
+          new Transaction(base, []),
+          new Error(`Invalid action type: ${actionTypeId}`)
+        ];
       }
     }
 
@@ -108,15 +132,18 @@ export class Transaction {
       let auth: Auth;
       if (authTypeId === BLS_ID) {
         const authBytes = codec.unpackBytes();
-        auth = BLS.fromBytes(authBytes);
+        [auth, err] = BLS.fromBytes(authBytes);
+        if (err) {
+          return [transaction, new Error(`Failed to unpack BLS auth: ${err}`)];
+        }
       } else {
-        throw new Error(`Invalid auth type: ${authTypeId}`);
+        return [transaction, new Error(`Invalid auth type: ${authTypeId}`)];
       }
       transaction.auth = auth;
     }
-
     transaction.bytes = bytes;
-    return transaction;
+
+    return [transaction, codec.getError()];
   }
 
   id(): Id {
@@ -125,7 +152,7 @@ export class Transaction {
   }
 
   size(): number {
-    let size = BaseTxSize + BYTE_LEN; // BaseTx size + number of actions byte
+    let size = this.base.size() + BYTE_LEN; // BaseTx size + number of actions byte
     this.actions.forEach((action) => {
       const actionSize = BYTE_LEN + action.size(); // Action type byte + action size
       size += actionSize;

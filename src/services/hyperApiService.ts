@@ -21,6 +21,7 @@ import { BaseTx } from "../transactions/baseTx";
 import { estimateUnits, mulSum } from "../transactions/fees";
 import { Transaction } from "../transactions/transaction";
 import { GenesisService } from "./nuklaivm/genesisService";
+import { getUnixRMilli } from "../utils/utils";
 
 export class HyperApiService extends Api {
   private genesisApiService: GenesisService;
@@ -69,8 +70,8 @@ export class HyperApiService extends Api {
     action: Transfer,
     authFactory: AuthFactory
   ): Promise<{
-    submit: (ctx: any) => Promise<void>;
-    tx: Transaction;
+    submit: (ctx: any) => Promise<SubmitTransactionResponse>;
+    txSigned: Transaction;
     err: Error | undefined;
   }> {
     try {
@@ -78,8 +79,10 @@ export class HyperApiService extends Api {
       // Set timestamp
       const genesisInfo: GetGenesisInfoResponse =
         await this.genesisApiService.getGenesisInfo();
-      const timestamp: bigint =
-        BigInt(Date.now()) + BigInt(genesisInfo.genesis.validityWindow);
+      const timestamp: bigint = getUnixRMilli(
+        Date.now(),
+        genesisInfo.genesis.validityWindow
+      );
       // Set chain ID
       const chainId = Id.fromString(this.config.blockchainId);
       // Set maxFee
@@ -91,7 +94,7 @@ export class HyperApiService extends Api {
           submit: async () => {
             throw new Error("Transaction failed, cannot submit.");
           },
-          tx: {} as Transaction,
+          txSigned: {} as Transaction,
           err: error as Error
         };
       }
@@ -99,24 +102,36 @@ export class HyperApiService extends Api {
       console.log("submitting");
       const base = new BaseTx(timestamp, chainId, maxFee);
 
-      let tx: Transaction = new Transaction(base, [action]);
-
+      const tx: Transaction = new Transaction(base, [action]);
+      console.log("tx: ", tx);
       // Sign the transaction
-      tx = tx.sign(authFactory);
+      const [txSigned, err] = tx.sign(authFactory);
+      if (err) {
+        return {
+          submit: async () => {
+            throw new Error("Transaction failed, cannot submit.");
+          },
+          txSigned: {} as Transaction,
+          err: err as Error
+        };
+      }
+      console.log("txSigned: ", txSigned);
 
-      const submit = async () => {
-        const txBytes = tx.toBytes();
-
-        await this.submitTransaction(txBytes);
+      const submit = async (): Promise<SubmitTransactionResponse> => {
+        const [txBytes, err] = txSigned.toBytes();
+        if (err) {
+          throw new Error(`Transaction failed, cannot submit. Err: ${err}`);
+        }
+        return await this.submitTransaction(txBytes);
       };
 
-      return { submit, tx, err: undefined };
+      return { submit, txSigned, err: undefined };
     } catch (error) {
       return {
         submit: async () => {
           throw new Error("Transaction failed, cannot submit.");
         },
-        tx: {} as Transaction,
+        txSigned: {} as Transaction,
         err: error as Error
       };
     }

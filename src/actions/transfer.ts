@@ -47,7 +47,7 @@ export class Transfer implements Action {
     return bytes;
   }
 
-  static fromBytes(bytes: Uint8Array): Transfer {
+  static fromBytes(bytes: Uint8Array): [Transfer, Error?] {
     const codec = Codec.newReader(bytes, bytes.length);
     const to = codec.unpackAddress();
     const asset = codec.unpackID(false);
@@ -59,6 +59,6 @@ export class Transfer implements Action {
       value,
       new TextDecoder().decode(memo)
     );
-    return action;
+    return [action, codec.getError()];
   }
 }

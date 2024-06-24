@@ -1,5 +1,10 @@
 import { Id } from "@avalabs/avalanchejs";
-import { ID_LEN, UINT64_LEN } from "../constants/consts";
+import {
+  EMPTY_ID,
+  ID_LEN,
+  MillisecondsPerSecond,
+  UINT64_LEN
+} from "../constants/consts";
 import { Codec } from "../utils/codec";
 
 export const BaseTxSize = 2 * UINT64_LEN + ID_LEN;
@@ -27,12 +32,18 @@ export class BaseTx {
     return codec.toBytes();
   }
 
-  static fromBytes(bytes: Uint8Array): BaseTx {
+  static fromBytes(bytes: Uint8Array): [BaseTx, Error?] {
     const codec = Codec.newReader(bytes, bytes.length);
     const timestamp = codec.unpackInt64(true);
+    if (timestamp % MillisecondsPerSecond !== 0n) {
+      return [
+        new BaseTx(0n, EMPTY_ID, 0n),
+        new Error("Timestamp is misaligned")
+      ];
+    }
     const chainId = codec.unpackID(true);
     const maxFee = codec.unpackUint64(true);
     const baseTx = new BaseTx(timestamp, chainId, maxFee);
-    return baseTx;
+    return [baseTx, codec.getError()];
   }
 }

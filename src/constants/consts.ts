@@ -29,5 +29,5 @@ export const MaxUint = Number.MAX_SAFE_INTEGER; // 9007199254740991 (Note: JavaS
 export const MaxInt = Math.floor(MaxUint / 2); // 4503599627370495
 export const MaxUint64Offset = 63;
 export const MaxUint64 = BigInt("0xFFFFFFFFFFFFFFFF"); // 18446744073709551615n
-export const MillisecondsPerSecond = 1000;
+export const MillisecondsPerSecond: bigint = BigInt(1000);
 export const MaxStringLen = 65535; // math.MaxUint16 in Go
