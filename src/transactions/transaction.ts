@@ -6,6 +6,7 @@ import { BLS, BlsAuthSize } from '../auth/bls'
 import { BYTE_LEN, NETWORK_SIZE_LIMIT } from '../constants/consts'
 import { BLS_ID, TRANSFER_ID } from '../constants/nuklaivm'
 import { Codec } from '../utils/codec'
+import { ToID } from '../utils/hashing'
 import { BaseTx, BaseTxSize } from './baseTx'
 
 export class Transaction {
@@ -146,8 +147,7 @@ export class Transaction {
   }
 
   id(): Id {
-    const [id] = Id.fromBytes(this.bytes)
-    return id
+    return Id.fromBytes(ToID(this.bytes))[0]
   }
 
   size(): number {

@@ -65,11 +65,9 @@ export class TransactionService extends NuklaiApiService {
         throw err
       }
 
-      const { txId } = await submit()
+      await submit()
 
-      console.log('checking id: ', txSigned.id().toString())
-
-      return txId
+      return txSigned.id().toString()
     } catch (error) {
       console.error('Failed to create and submit transfer transaction', error)
       throw error
