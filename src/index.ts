@@ -2,6 +2,7 @@
 // See the file LICENSE for licensing terms.
 
 import { BLS, BLSFactory } from './auth/bls'
+import { ED25519, ED25519Factory } from './auth/ed25519'
 import { SDKConfig } from './config/sdkConfig'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
@@ -28,6 +29,8 @@ export class NuklaiSDK {
   // Auth
   blsAuth: typeof BLS
   blsAuthFactory: typeof BLSFactory
+  ed25519Auth: typeof ED25519
+  ed25519AuthFactory: typeof ED25519Factory
 
   constructor(configOverrides?: Partial<SDKConfig>) {
     const defaultSDKConfig: SDKConfig = {
@@ -48,5 +51,7 @@ export class NuklaiSDK {
     // Auth
     this.blsAuth = BLS
     this.blsAuthFactory = BLSFactory
+    this.ed25519Auth = ED25519
+    this.ed25519AuthFactory = ED25519Factory
   }
 }
