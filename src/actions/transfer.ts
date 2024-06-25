@@ -2,13 +2,7 @@
 // See the file LICENSE for licensing terms.
 
 import { Id } from '@avalabs/avalanchejs'
-import {
-  ADDRESS_LEN,
-  EMPTY_ID,
-  ID_LEN,
-  INT_LEN,
-  UINT64_LEN
-} from '../constants/consts'
+import { ADDRESS_LEN, ID_LEN, INT_LEN, UINT64_LEN } from '../constants/consts'
 import {
   MAX_MEMO_SIZE,
   STORAGE_BALANCE_CHUNKS,
@@ -17,6 +11,7 @@ import {
 } from '../constants/nuklaivm'
 import { Address } from '../utils/address'
 import { Codec } from '../utils/codec'
+import { toAssetID } from '../utils/utils'
 import { Action } from './action'
 
 export const TransferTxSize =
@@ -31,7 +26,7 @@ export class Transfer implements Action {
   constructor(to: string, asset: string, value: bigint, memo: string) {
     this.to = Address.fromString(to)
     // Default asset to NAI if asset is "NAI"
-    this.asset = asset === 'NAI' ? EMPTY_ID : Id.fromString(asset)
+    this.asset = toAssetID(asset)
     this.value = value
     this.memo = new TextEncoder().encode(memo)
   }

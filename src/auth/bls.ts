@@ -4,11 +4,10 @@
 import { bls, utils } from '@avalabs/avalanchejs'
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { randomBytes } from '@noble/hashes/utils'
-import { ADDRESS_LEN, EMPTY_ADDRESS } from '../constants/consts'
+import { EMPTY_ADDRESS } from '../constants/consts'
 import { BLS_COMPUTE_UNITS, BLS_ID, HRP } from '../constants/nuklaivm'
 import { Address } from '../utils/address'
 import { Codec } from '../utils/codec'
-import { ToID } from '../utils/hashing'
 import { bufferEquals } from '../utils/utils'
 import { Auth, AuthFactory } from './auth'
 
@@ -26,7 +25,7 @@ export class BLS implements Auth {
 
   address(): Address {
     if (bufferEquals(this.addr.toBytes(), EMPTY_ADDRESS.toBytes())) {
-      this.addr = NewBLSAddress(this.signer)
+      this.addr = Address.newAddress(BLS_ID, bls.publicKeyToBytes(this.signer))
     }
     return this.addr
   }
@@ -71,17 +70,37 @@ export class BLS implements Auth {
     )
     return [new BLS(signer, signature), codec.getError()]
   }
+
+  static publicKeyToHex(publicKey: bls.PublicKey): string {
+    return Buffer.from(bls.publicKeyToBytes(publicKey)).toString('hex')
+  }
+
+  static hexToPublicKey(hex: string): bls.PublicKey {
+    return bls.publicKeyFromBytes(Buffer.from(hex, 'hex'))
+  }
+
+  static formatAddress(address: Uint8Array): string {
+    return utils.formatBech32(HRP, address)
+  }
+
+  static parseAddress(address: string): Uint8Array {
+    return utils.parseBech32(address)[1]
+  }
 }
 
 export class BLSFactory implements AuthFactory {
   privateKey: bls.SecretKey
 
-  constructor(privateKey: bls.SecretKey) {
-    this.privateKey = privateKey
+  constructor(privateKey?: bls.SecretKey) {
+    let privKey = bls.secretKeyFromBytes(randomBytes(32)) // 32 bytes for a private key
+    if (privateKey) {
+      privKey = privateKey
+    }
+    this.privateKey = privKey
   }
 
   sign(message: Uint8Array): Auth {
-    const signer = GetPublicKeyFromPrivateKey(this.privateKey)
+    const signer = BLSFactory.publicKeyFromPrivateKey(this.privateKey)
     const signature = bls.sign(message, this.privateKey)
     return new BLS(signer, bls.signatureFromBytes(signature))
   }
@@ -93,56 +112,26 @@ export class BLSFactory implements AuthFactory {
   bandwidth(): number {
     return bls.PUBLIC_KEY_LENGTH + bls.SIGNATURE_LENGTH
   }
-}
 
-export function NewBLSAddress(publicKey: bls.PublicKey): Address {
-  const address = new Uint8Array(ADDRESS_LEN)
-  address[0] = BLS_ID
-  const pkBytes = bls.publicKeyToBytes(publicKey)
-  address.set(ToID(pkBytes), 1)
-  return Address.fromBytes(address)[0]
-}
+  static generateKeyPair(): {
+    privateKey: bls.SecretKey
+    publicKey: bls.PublicKey
+  } {
+    const privateKey = new BLSFactory().privateKey
+    const publicKey = BLSFactory.publicKeyFromPrivateKey(privateKey)
+    return { privateKey, publicKey }
+  }
 
-export async function GenerateRandomPrivateKey(): Promise<bls.SecretKey> {
-  return bls.secretKeyFromBytes(randomBytes(32)) // 32 bytes for a private key
-}
+  static publicKeyFromPrivateKey(privateKey: bls.SecretKey): bls.PublicKey {
+    const publicKeyBytes = bls12_381.getPublicKey(privateKey)
+    return bls.publicKeyFromBytes(publicKeyBytes)
+  }
 
-export function GetPublicKeyFromPrivateKey(
-  secretKey: bls.SecretKey
-): bls.PublicKey {
-  const publicKeyBytes = bls12_381.getPublicKey(secretKey)
-  return bls.publicKeyFromBytes(publicKeyBytes)
-}
+  static privateKeyToHex(privateKey: bls.SecretKey): string {
+    return Buffer.from(bls.secretKeyToBytes(privateKey)).toString('hex')
+  }
 
-export async function GenerateKeyPair(): Promise<{
-  privateKey: bls.SecretKey
-  publicKey: bls.PublicKey
-}> {
-  const privateKey = await GenerateRandomPrivateKey()
-  const publicKey = GetPublicKeyFromPrivateKey(privateKey)
-  return { privateKey, publicKey }
-}
-
-export function secretKeyToHex(secretKey: bls.SecretKey): string {
-  return Buffer.from(bls.secretKeyToBytes(secretKey)).toString('hex')
-}
-
-export function hexToSecretKey(hex: string): bls.SecretKey {
-  return bls.secretKeyFromBytes(Buffer.from(hex, 'hex'))
-}
-
-export function publicKeyToHex(publicKey: bls.PublicKey): string {
-  return Buffer.from(bls.publicKeyToBytes(publicKey)).toString('hex')
-}
-
-export function hexToPublicKey(hex: string): bls.PublicKey {
-  return bls.publicKeyFromBytes(Buffer.from(hex, 'hex'))
-}
-
-export function formatAddress(address: Uint8Array): string {
-  return utils.formatBech32(HRP, address)
-}
-
-export function parseAddress(address: string): Uint8Array {
-  return utils.parseBech32(address)[1]
+  static hexToPrivateKey(hex: string): bls.SecretKey {
+    return bls.secretKeyFromBytes(Buffer.from(hex, 'hex'))
+  }
 }

@@ -1,20 +1,17 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { bls } from '@avalabs/avalanchejs'
 import { Transfer } from '../../actions/transfer'
-import {
-  BLSFactory,
-  GetPublicKeyFromPrivateKey,
-  NewBLSAddress,
-  hexToSecretKey
-} from '../../auth/bls'
+import { BLSFactory } from '../../auth/bls'
 import {
   GetBalanceParams,
   GetBalanceResponse,
   GetTransactionInfoParams,
   GetTransactionInfoResponse
 } from '../../common/nuklaiApiModels'
-import { DECIMALS } from '../../constants/nuklaivm'
+import { BLS_ID, DECIMALS } from '../../constants/nuklaivm'
+import { Address } from '../../utils/address'
 import { HyperApiService } from '../hyperApiService'
 import { NuklaiApiService } from '../nuklaiApiService'
 
@@ -44,12 +41,15 @@ export class TransactionService extends NuklaiApiService {
   ): Promise<string> {
     try {
       // Convert the private key from hex string to bls.SecretKey
-      const privateKey = hexToSecretKey(privateKeyHex)
+      const privateKey = BLSFactory.hexToPrivateKey(privateKeyHex)
       const blsFactory = new BLSFactory(privateKey)
 
       // Generate the from address using the private key
-      const publicKey = GetPublicKeyFromPrivateKey(privateKey)
-      const fromAddress = NewBLSAddress(publicKey).toString()
+      const publicKey = BLSFactory.publicKeyFromPrivateKey(privateKey)
+      const fromAddress = Address.newAddress(
+        BLS_ID,
+        bls.publicKeyToBytes(publicKey)
+      ).toString()
 
       const decimals = DECIMALS
       const amountInUnits = this.parseBalance(amount, decimals)

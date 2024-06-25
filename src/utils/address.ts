@@ -3,7 +3,8 @@
 
 import { TypeSymbols, utils } from '@avalabs/avalanchejs'
 import { ADDRESS_LEN } from '../constants/consts'
-import { HRP } from '../constants/nuklaivm'
+import { BLS_ID, ED25519_ID, HRP, SECP256R1_ID } from '../constants/nuklaivm'
+import { ToID } from './hashing'
 
 export class Address {
   _type = TypeSymbols.Address
@@ -42,5 +43,15 @@ export class Address {
 
   value() {
     return this.toString()
+  }
+
+  static newAddress(authTypeID: number, publicKeyBytes: Uint8Array): Address {
+    if (![ED25519_ID, SECP256R1_ID, BLS_ID].includes(authTypeID)) {
+      throw new Error('invalid auth type')
+    }
+    const address = new Uint8Array(ADDRESS_LEN)
+    address[0] = authTypeID
+    address.set(ToID(publicKeyBytes), 1)
+    return Address.fromBytes(address)[0]
   }
 }

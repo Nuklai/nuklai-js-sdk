@@ -1,6 +1,6 @@
 # Nuklai SDK
 
-The Nuklai SDK provides a modular and comprehensive interface for interacting with both the HyperVM and NuklaiVM on the Nuklai blockchain. It is designed to facilitate developers with functions ranging from network configurations to transaction management and complex warp operations.
+The Nuklai SDK provides a modular and comprehensive interface for interacting with the Nuklai blockchain. It is designed to facilitate developers with functions ranging from network configurations to transaction management and complex warp operations.
 
 ## Features
 
@@ -9,43 +9,39 @@ The Nuklai SDK provides a modular and comprehensive interface for interacting wi
 - **Health Checks**: Monitor the liveness and connectivity of the blockchain network.
 - **Transaction Management**: Submit and fetch details about transactions.
 - **Asset Management**: Query and manage blockchain assets.
-- **Loan Services**: Handle creation and management of loans.
 - **Emission Details**: Access emission information, validator details, and staking functionalities.
-- **Warp Protocol Services**: Manage and fetch warp signatures and related operations.
 
 ## Installation
 
-Install the Nuklai SDK via npm(NOTE: Currently does not work so need to build locally):
+Install the Nuklai SDK via npm (NOTE: Currently does not work, so you need to build it locally):
 
 ```bash
 npm install @nuklai/nuklai-sdk
 ```
 
-## Build from source
+## Build from Source
+
+To build the SDK from source:
 
 ```bash
 npm install
 npm run build
 ```
 
-## Run the test.mjs file
+## Examples
 
-This file contains an example code on how to use the SDK in your own application.
-
-```bash
-node test.mjs
-```
+The [examples directory](./examples) contains various example code to interact with the Nuklai SDK.
 
 ## Usage
 
 Import and initialize the SDK in your project:
 
 ```javascript
-import { NuklaiSDK } from 'nuklai-sdk'
+import { NuklaiSDK } from '@nuklai/nuklai-sdk'
 
 const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:34575', // Node API URL
-  blockchainId: 'YaGWnYQGevYnFJe6mkhWAbB15vHGqq1YZpBLs7ABRFZDMxakN' // Blockchain ID
+  baseApiUrl: 'http://127.0.0.1:9650', // Node API URL
+  blockchainId: 'CuH4wPFDk6p1jSRPMcJPgt9nGFfF7zfRrH3nkJW2TWLfRE53L' // Blockchain ID
 })
 ```
 
@@ -54,47 +50,57 @@ const sdk = new NuklaiSDK({
 ### Check Health Status
 
 ```javascript
-async function checkHealth() {
-  const healthStatus = await sdk.healthService.ping()
-  console.log('Health Status:', healthStatus)
-}
+const healthStatus = await sdk.hyperApiService.ping()
+console.log('Node Ping:', JSON.stringify(healthStatus, null, 2))
 ```
 
 ### Get Network Information
 
 ```javascript
-async function fetchNetworkInfo() {
-  const networkInfo = await sdk.networkService.getNetworkInfo()
-  console.log('Network Info:', networkInfo)
-}
+const networkInfo = await sdk.hyperApiService.getNetworkInfo()
+console.log('Network Info:', JSON.stringify(networkInfo, null, 2))
 ```
 
 ### Fetch a Balance
 
 ```javascript
-async function getBalance(address, assetId) {
-  const balance = await sdk.assetService.getBalance(address, assetId)
-  console.log('Balance:', balance)
+const params = {
+  address: 'nuklai1qpg4ecapjymddcde8sfq06dshzpxltqnl47tvfz0hnkesjz7t0p35d5fnr3',
+  asset: 'NAI'
 }
+const balance = await sdk.assetService.getBalance(params)
+console.log('Balance:', JSON.stringify(balance, null, 2))
 ```
 
 ### Fetch Emission Information
 
 ```javascript
-async function fetchEmissionDetails() {
-  const emissionInfo = await sdk.emissionService.getEmissionInfo()
-  console.log('Emission Details:', emissionInfo)
-}
+const emissionInfo = await sdk.emissionService.getEmissionInfo()
+console.log('Emission Info:', JSON.stringify(emissionInfo, null, 2))
+```
+
+### Generate Private/Public Key Pair
+
+```javascript
+const { privateKey, publicKey } = sdk.blsAuthFactory.generateKeyPair()
+console.log(
+  'Generated BLS Private Key:',
+  sdk.blsAuthFactory.privateKeyToHex(privateKey)
+)
+console.log('Generated BLS Public Key:', sdk.blsAuth.publicKeyToHex(publicKey))
 ```
 
 ### Submit a Transaction
 
 ```javascript
-async function submitTransaction(txData) {
-  const transactionReceipt =
-    await sdk.hyperTransactionService.submitTransaction(txData)
-  console.log('Transaction Receipt:', transactionReceipt)
-}
+const txID = await sdk.transactionService.createAndSubmitTransferTransaction(
+  'nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz', // receiver address
+  'NAI', // asset ID (defaulted to NAI)
+  '0.0001', // amount
+  'Test Memo', // memo
+  '5262814baaa103b3b6fe0f0e0aacdd3a0dffd271dcd5255f737815c1207a59d2' // private key (as hex string) for nuklai1qtph93hsh40u4l8rypacp2y72dks6w8vws9vvfzr7wdsy4qmr3w9vdnpeyt
+)
+console.log('Transaction ID:', txID)
 ```
 
 ## Contributing
@@ -104,3 +110,5 @@ Contributions to the Nuklai SDK are welcome! Please ensure that your code adhere
 ## License
 
 This SDK is released under the [MIT License](LICENSE).
+
+This README file should provide a clear and professional introduction to your SDK, making it easier for developers to understand how to use it and contribute to it.

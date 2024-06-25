@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { BLS } from './auth/bls'
+import { BLS, BLSFactory } from './auth/bls'
 import { SDKConfig } from './config/sdkConfig'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
@@ -27,6 +27,7 @@ export class NuklaiSDK {
 
   // Auth
   blsAuth: typeof BLS
+  blsAuthFactory: typeof BLSFactory
 
   constructor(configOverrides?: Partial<SDKConfig>) {
     const defaultSDKConfig: SDKConfig = {
@@ -46,5 +47,6 @@ export class NuklaiSDK {
 
     // Auth
     this.blsAuth = BLS
+    this.blsAuthFactory = BLSFactory
   }
 }

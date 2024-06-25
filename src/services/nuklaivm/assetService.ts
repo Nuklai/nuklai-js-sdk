@@ -7,16 +7,21 @@ import {
   GetBalanceParams,
   GetBalanceResponse
 } from '../../common/nuklaiApiModels'
+import { toAssetID } from '../../utils/utils'
 import { NuklaiApiService } from '../nuklaiApiService'
 
 export class AssetService extends NuklaiApiService {
   getBalance(getBalanceParams: GetBalanceParams): Promise<GetBalanceResponse> {
-    return this.callRpc<GetBalanceResponse>('balance', getBalanceParams)
+    const params = getBalanceParams
+    params.asset = toAssetID(params.asset).toString()
+    return this.callRpc<GetBalanceResponse>('balance', params)
   }
 
   getAssetInfo(
     getAssetInfoParams: GetAssetInfoParams
   ): Promise<GetAssetInfoResponse> {
-    return this.callRpc<GetAssetInfoResponse>('asset', getAssetInfoParams)
+    const params = getAssetInfoParams
+    params.asset = toAssetID(params.asset).toString()
+    return this.callRpc<GetAssetInfoResponse>('asset', params)
   }
 }
