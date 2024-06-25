@@ -49,6 +49,36 @@ async function testSDK() {
   } catch (error) {
     console.error('Failed to generate BLS Key Pair:', error)
   }
+
+  // Testing ED25519 Key Generation and Signing
+  try {
+    console.log('Generating ED25519 Key Pair...')
+    const { privateKey, publicKey } = sdk.ed25519AuthFactory.generateKeyPair()
+    console.log(
+      'Generated ED25519 Private Key:',
+      sdk.ed25519AuthFactory.privateKeyToHex(privateKey)
+    )
+    console.log(
+      'Generated ED25519 Public Key:',
+      sdk.ed25519Auth.publicKeyToHex(publicKey)
+    )
+
+    const ed25519AuthFactory = new sdk.ed25519AuthFactory(privateKey)
+    const message = new TextEncoder().encode('Test message')
+    const ed25519Auth = await ed25519AuthFactory.sign(message)
+    console.log(
+      'Signature:',
+      Buffer.from(ed25519Auth.signature).toString('hex')
+    )
+
+    const isValid = await ed25519Auth.verify(message)
+    console.log('Signature valid:', isValid)
+
+    const address = ed25519Auth.address().toString()
+    console.log('Generated Address:', address)
+  } catch (error) {
+    console.error('Failed to generate ED25519 Key Pair:', error)
+  }
 }
 
 testSDK()

@@ -1,25 +1,28 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { bls } from '@avalabs/avalanchejs'
 import { Transfer } from '../../actions/transfer'
+import { AuthFactory } from '../../auth/auth'
 import { BLSFactory } from '../../auth/bls'
+import { ED25519Factory } from '../../auth/ed25519'
 import {
   GetBalanceParams,
-  GetBalanceResponse,
   GetTransactionInfoParams,
   GetTransactionInfoResponse
 } from '../../common/nuklaiApiModels'
-import { BLS_ID, DECIMALS } from '../../constants/nuklaivm'
-import { Address } from '../../utils/address'
+import { DECIMALS } from '../../constants/nuklaivm'
+import { parseBalance } from '../../utils/utils'
 import { HyperApiService } from '../hyperApiService'
 import { NuklaiApiService } from '../nuklaiApiService'
+import { AssetService } from './assetService'
 
 export class TransactionService extends NuklaiApiService {
+  private assetService: AssetService
   private hyperApiService: HyperApiService
 
   constructor(config: any) {
     super(config)
+    this.assetService = new AssetService(config)
     this.hyperApiService = new HyperApiService(config)
   }
 
@@ -37,25 +40,35 @@ export class TransactionService extends NuklaiApiService {
     asset: string,
     amount: string,
     memo: string,
-    privateKeyHex: string
+    privateKeyHex: string,
+    keyType: 'bls' | 'ed25519'
   ): Promise<string> {
     try {
-      // Convert the private key from hex string to bls.SecretKey
-      const privateKey = BLSFactory.hexToPrivateKey(privateKeyHex)
-      const blsFactory = new BLSFactory(privateKey)
+      // Select the appropriate factory based on the key type
+      let authFactory: AuthFactory
+      if (keyType === 'bls') {
+        authFactory = new BLSFactory(BLSFactory.hexToPrivateKey(privateKeyHex))
+      } else if (keyType === 'ed25519') {
+        authFactory = new ED25519Factory(
+          ED25519Factory.hexToPrivateKey(privateKeyHex)
+        )
+      } else {
+        throw new Error('Unsupported key type')
+      }
 
       // Generate the from address using the private key
-      const publicKey = BLSFactory.publicKeyFromPrivateKey(privateKey)
-      const fromAddress = Address.newAddress(
-        BLS_ID,
-        bls.publicKeyToBytes(publicKey)
-      ).toString()
+      const auth = authFactory.sign(new Uint8Array(0))
+      const fromAddress = auth.address()
+      console.log('fromAddress: ', fromAddress.toString())
 
       const decimals = DECIMALS
-      const amountInUnits = this.parseBalance(amount, decimals)
+      const amountInUnits = parseBalance(amount, decimals)
 
       // Fetch the balance to ensure sufficient funds
-      const balanceResponse = await this.getBalance(fromAddress, asset)
+      const balanceResponse = await this.assetService.getBalance({
+        address: fromAddress.toString(),
+        asset
+      } as GetBalanceParams)
       if (BigInt(balanceResponse.amount) < amountInUnits) {
         throw new Error('Insufficient balance')
       }
@@ -63,7 +76,7 @@ export class TransactionService extends NuklaiApiService {
       const transfer: Transfer = new Transfer(to, asset, amountInUnits, memo)
 
       const { submit, txSigned, err } =
-        await this.hyperApiService.generateTransaction(transfer, blsFactory)
+        await this.hyperApiService.generateTransaction(transfer, authFactory)
       if (err) {
         throw err
       }
@@ -75,17 +88,5 @@ export class TransactionService extends NuklaiApiService {
       console.error('Failed to create and submit transfer transaction', error)
       throw error
     }
-  }
-
-  private async getBalance(
-    address: string,
-    asset: string
-  ): Promise<GetBalanceResponse> {
-    const params: GetBalanceParams = { address, asset }
-    return this.callRpc<GetBalanceResponse>('balance', params)
-  }
-
-  private parseBalance(amount: string, decimals: number): bigint {
-    return BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)))
   }
 }

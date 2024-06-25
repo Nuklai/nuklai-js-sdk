@@ -7,10 +7,11 @@ import { Transfer } from '../actions/transfer'
 import { Auth, AuthFactory } from '../auth/auth'
 import { BLS, BlsAuthSize } from '../auth/bls'
 import { BYTE_LEN, NETWORK_SIZE_LIMIT } from '../constants/consts'
-import { BLS_ID, TRANSFER_ID } from '../constants/nuklaivm'
+import { BLS_ID, ED25519_ID, TRANSFER_ID } from '../constants/nuklaivm'
 import { Codec } from '../utils/codec'
 import { ToID } from '../utils/hashing'
 import { BaseTx, BaseTxSize } from './baseTx'
+import { ED25519, Ed25519AuthSize } from 'auth/ed25519'
 
 export class Transaction {
   public base: BaseTx
@@ -138,6 +139,15 @@ export class Transaction {
         ;[auth, err] = BLS.fromBytes(authBytes)
         if (err) {
           return [transaction, new Error(`Failed to unpack BLS auth: ${err}`)]
+        }
+      } else if (authTypeId === ED25519_ID) {
+        const authBytes = codec.unpackFixedBytes(Ed25519AuthSize)
+        ;[auth, err] = ED25519.fromBytes(authBytes)
+        if (err) {
+          return [
+            transaction,
+            new Error(`Failed to unpack ED25519 auth: ${err}`)
+          ]
         }
       } else {
         return [transaction, new Error(`Invalid auth type: ${authTypeId}`)]

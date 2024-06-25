@@ -1,12 +1,12 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { utils } from '@avalabs/avalanchejs'
 import { getPublicKey } from '@noble/ed25519'
 import { randomBytes } from '@noble/hashes/utils'
 import { EMPTY_ADDRESS } from '../constants/consts'
-import { ED25519_COMPUTE_UNITS, ED25519_ID, HRP } from '../constants/nuklaivm'
+import { ED25519_COMPUTE_UNITS, ED25519_ID } from '../constants/nuklaivm'
 import {
+  PRIVATE_KEY_LENGTH,
   PUBLIC_KEY_LENGTH,
   PublicKey,
   SIGNATURE_LENGTH,
@@ -17,6 +17,7 @@ import {
 } from '../crypto/ed25519'
 import { Address } from '../utils/address'
 import { Codec } from '../utils/codec'
+import { loadHex, toHex } from '../utils/hex'
 import { bufferEquals } from '../utils/utils'
 import { Auth, AuthFactory } from './auth'
 
@@ -81,14 +82,6 @@ export class ED25519 implements Auth {
   static hexToPublicKey(hex: string): PublicKey {
     return Buffer.from(hex, 'hex')
   }
-
-  static formatAddress(address: Uint8Array): string {
-    return utils.formatBech32(HRP, address)
-  }
-
-  static parseAddress(address: string): Uint8Array {
-    return utils.parseBech32(address)[1]
-  }
 }
 
 export class ED25519Factory implements AuthFactory {
@@ -134,6 +127,13 @@ export class ED25519Factory implements AuthFactory {
   }
 
   static hexToPrivateKey(hex: string): SecretKey {
-    return Buffer.from(hex, 'hex')
+    let privateKeyBytes = Buffer.from(hex, 'hex')
+    if (privateKeyBytes.length === PRIVATE_KEY_LENGTH + PUBLIC_KEY_LENGTH) {
+      privateKeyBytes = privateKeyBytes.subarray(0, PRIVATE_KEY_LENGTH)
+      return loadHex(toHex(privateKeyBytes), PRIVATE_KEY_LENGTH)
+    } else if (privateKeyBytes.length !== PRIVATE_KEY_LENGTH) {
+      throw new Error('Invalid combined key size')
+    }
+    return loadHex(hex, PRIVATE_KEY_LENGTH)
   }
 }

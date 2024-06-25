@@ -5,6 +5,10 @@ import { Id } from '@avalabs/avalanchejs'
 import { EMPTY_ID, MillisecondsPerSecond } from '../constants/consts'
 import { SYMBOL } from '../constants/nuklaivm'
 
+export function parseBalance(amount: string, decimals: number): bigint {
+  return BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)))
+}
+
 export function getUnixRMilli(now: number, add: number): bigint {
   let currentTime = now
   if (currentTime < 0) {

@@ -5,7 +5,7 @@ import { NuklaiSDK } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'PHsV1a1Vjaqc6V4pcZH5AhrBuoHyhygebGKJDfvT7ZWqdH8TN'
+  blockchainId: '2do59soECuHQF4NiYNwCdK2NyUpNpHY81DqGycK5FbFNyjKKE9'
 })
 
 async function testSDK() {
@@ -20,35 +20,21 @@ async function testSDK() {
     console.error('Failed to fetch Health Status:', error)
   }
 
-  // Testing ED25519 Key Generation and Signing
+  // Testing NAI Transfer
   try {
-    console.log('Generating ED25519 Key Pair...')
-    const { privateKey, publicKey } =
-      await sdk.ed25519AuthFactory.generateKeyPair()
-    console.log(
-      'Generated ED25519 Private Key:',
-      sdk.ed25519AuthFactory.privateKeyToHex(privateKey)
-    )
-    console.log(
-      'Generated ED25519 Public Key:',
-      sdk.ed25519Auth.publicKeyToHex(publicKey)
-    )
-
-    const ed25519AuthFactory = new sdk.ed25519AuthFactory(privateKey)
-    const message = new TextEncoder().encode('Test message')
-    const ed25519Auth = await ed25519AuthFactory.sign(message)
-    console.log(
-      'Signature:',
-      Buffer.from(ed25519Auth.signature).toString('hex')
-    )
-
-    const isValid = await ed25519Auth.verify(message)
-    console.log('Signature valid:', isValid)
-
-    const address = ed25519Auth.address().toString()
-    console.log('Generated Address:', address)
+    console.log('Creating Transfer Transaction...')
+    const txID =
+      await sdk.transactionService.createAndSubmitTransferTransaction(
+        'nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz', // receiver address
+        'NAI', // asset ID
+        '0.0001', // amount
+        'Test Memo', // memo
+        '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7', // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
+        'ed25519' // key type
+      )
+    console.log('Transaction ID:', txID)
   } catch (error) {
-    console.error('Failed to generate ED25519 Key Pair:', error)
+    console.error('Failed to transfer crypto:', error)
   }
 }
 

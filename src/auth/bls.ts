@@ -78,14 +78,6 @@ export class BLS implements Auth {
   static hexToPublicKey(hex: string): bls.PublicKey {
     return bls.publicKeyFromBytes(Buffer.from(hex, 'hex'))
   }
-
-  static formatAddress(address: Uint8Array): string {
-    return utils.formatBech32(HRP, address)
-  }
-
-  static parseAddress(address: string): Uint8Array {
-    return utils.parseBech32(address)[1]
-  }
 }
 
 export class BLSFactory implements AuthFactory {

@@ -54,4 +54,12 @@ export class Address {
     address.set(ToID(publicKeyBytes), 1)
     return Address.fromBytes(address)[0]
   }
+
+  static formatAddress(address: Uint8Array): string {
+    return utils.formatBech32(HRP, address)
+  }
+
+  static parseAddress(address: string): Uint8Array {
+    return utils.parseBech32(address)[1]
+  }
 }
