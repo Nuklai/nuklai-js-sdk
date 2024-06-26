@@ -9,11 +9,22 @@ import {
   GetValidatorStakeResponse,
   GetValidatorsResponse
 } from '../../common/nuklaiApiModels'
+import { DECIMALS } from '../../constants/nuklaivm'
+import { formatBalance } from '../../utils/utils'
 import { NuklaiApiService } from '../nuklaiApiService'
 
 export class EmissionService extends NuklaiApiService {
-  getEmissionInfo(): Promise<GetEmissionInfoResponse> {
-    return this.callRpc<GetEmissionInfoResponse>('emissionInfo')
+  async getEmissionInfo(): Promise<GetEmissionInfoResponse> {
+    const result = await this.callRpc<GetEmissionInfoResponse>('emissionInfo')
+    result.totalSupply = formatBalance(result.totalSupply, DECIMALS)
+    result.maxSupply = formatBalance(result.maxSupply, DECIMALS)
+    result.totalStaked = formatBalance(result.totalStaked, DECIMALS)
+    result.rewardsPerEpoch = formatBalance(result.rewardsPerEpoch, DECIMALS)
+    result.emissionAccount.accumulatedReward = formatBalance(
+      result.emissionAccount.accumulatedReward,
+      DECIMALS
+    )
+    return result
   }
 
   getAllValidators(): Promise<GetValidatorsResponse> {

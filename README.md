@@ -82,12 +82,16 @@ console.log('Emission Info:', JSON.stringify(emissionInfo, null, 2))
 ### Generate Private/Public Key Pair
 
 ```javascript
-const { privateKey, publicKey } = sdk.blsAuthFactory.generateKeyPair()
+import { NuklaiSDK, auth } from '@nuklai/nuklai-sdk'
+const { privateKey, publicKey } = auth.ED25519Factory.generateKeyPair()
 console.log(
-  'Generated BLS Private Key:',
-  sdk.blsAuthFactory.privateKeyToHex(privateKey)
+  'Generated ED25519 Private Key:',
+  auth.ED25519Factory.privateKeyToHex(privateKey)
 )
-console.log('Generated BLS Public Key:', sdk.blsAuth.publicKeyToHex(publicKey))
+console.log(
+  'Generated ED25519 Public Key:',
+  auth.ED25519.publicKeyToHex(publicKey)
+)
 ```
 
 ### Submit a Transaction

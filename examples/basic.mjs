@@ -5,7 +5,7 @@ import { NuklaiSDK } from '../dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'PHsV1a1Vjaqc6V4pcZH5AhrBuoHyhygebGKJDfvT7ZWqdH8TN'
+  blockchainId: 'gj2m68KeSYeJp687akQDcQhHtG1JwvNiernCjt3Cgos1VAVw3'
 })
 
 async function testSDK() {
@@ -55,7 +55,7 @@ async function testSDK() {
     console.log('Fetching Balance...')
     const params = {
       address:
-        'nuklai1qpg4ecapjymddcde8sfq06dshzpxltqnl47tvfz0hnkesjz7t0p35d5fnr3',
+        'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
       asset: 'NAI' // or any other asset ID
     }
     const balance = await sdk.assetService.getBalance(params)

@@ -3,8 +3,6 @@
 
 import { Transfer } from '../../actions/transfer'
 import { AuthFactory } from '../../auth/auth'
-import { BLSFactory } from '../../auth/bls'
-import { ED25519Factory } from '../../auth/ed25519'
 import {
   GetBalanceParams,
   GetTransactionInfoParams,
@@ -40,26 +38,12 @@ export class TransactionService extends NuklaiApiService {
     asset: string,
     amount: string,
     memo: string,
-    privateKeyHex: string,
-    keyType: 'bls' | 'ed25519'
+    authFactory: AuthFactory
   ): Promise<string> {
     try {
-      // Select the appropriate factory based on the key type
-      let authFactory: AuthFactory
-      if (keyType === 'bls') {
-        authFactory = new BLSFactory(BLSFactory.hexToPrivateKey(privateKeyHex))
-      } else if (keyType === 'ed25519') {
-        authFactory = new ED25519Factory(
-          ED25519Factory.hexToPrivateKey(privateKeyHex)
-        )
-      } else {
-        throw new Error('Unsupported key type')
-      }
-
       // Generate the from address using the private key
       const auth = authFactory.sign(new Uint8Array(0))
       const fromAddress = auth.address()
-      console.log('fromAddress: ', fromAddress.toString())
 
       const decimals = DECIMALS
       const amountInUnits = parseBalance(amount, decimals)
@@ -69,7 +53,7 @@ export class TransactionService extends NuklaiApiService {
         address: fromAddress.toString(),
         asset
       } as GetBalanceParams)
-      if (BigInt(balanceResponse.amount) < amountInUnits) {
+      if (parseBalance(balanceResponse.amount, decimals) < amountInUnits) {
         throw new Error('Insufficient balance')
       }
 

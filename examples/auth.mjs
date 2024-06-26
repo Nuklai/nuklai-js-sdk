@@ -1,11 +1,11 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiSDK } from '../dist/index.js'
+import { NuklaiSDK, auth } from '../dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'PHsV1a1Vjaqc6V4pcZH5AhrBuoHyhygebGKJDfvT7ZWqdH8TN'
+  blockchainId: 'gj2m68KeSYeJp687akQDcQhHtG1JwvNiernCjt3Cgos1VAVw3'
 })
 
 async function testSDK() {
@@ -23,17 +23,14 @@ async function testSDK() {
   // Testing BLS Key Generation and Signing
   try {
     console.log('Generating BLS Key Pair...')
-    const { privateKey, publicKey } = sdk.blsAuthFactory.generateKeyPair()
+    const { privateKey, publicKey } = auth.BLSFactory.generateKeyPair()
     console.log(
       'Generated BLS Private Key:',
-      sdk.blsAuthFactory.privateKeyToHex(privateKey)
+      auth.BLSFactory.privateKeyToHex(privateKey)
     )
-    console.log(
-      'Generated BLS Public Key:',
-      sdk.blsAuth.publicKeyToHex(publicKey)
-    )
+    console.log('Generated BLS Public Key:', auth.BLS.publicKeyToHex(publicKey))
 
-    const blsAuthFactory = new sdk.blsAuthFactory(privateKey)
+    const blsAuthFactory = new auth.BLSFactory(privateKey)
     const message = new TextEncoder().encode('Test message')
     const blsAuth = blsAuthFactory.sign(message)
     console.log(
@@ -53,17 +50,17 @@ async function testSDK() {
   // Testing ED25519 Key Generation and Signing
   try {
     console.log('Generating ED25519 Key Pair...')
-    const { privateKey, publicKey } = sdk.ed25519AuthFactory.generateKeyPair()
+    const { privateKey, publicKey } = auth.ED25519Factory.generateKeyPair()
     console.log(
       'Generated ED25519 Private Key:',
-      sdk.ed25519AuthFactory.privateKeyToHex(privateKey)
+      auth.ED25519Factory.privateKeyToHex(privateKey)
     )
     console.log(
       'Generated ED25519 Public Key:',
-      sdk.ed25519Auth.publicKeyToHex(publicKey)
+      auth.ED25519.publicKeyToHex(publicKey)
     )
 
-    const ed25519AuthFactory = new sdk.ed25519AuthFactory(privateKey)
+    const ed25519AuthFactory = new auth.ED25519Factory(privateKey)
     const message = new TextEncoder().encode('Test message')
     const ed25519Auth = await ed25519AuthFactory.sign(message)
     console.log(

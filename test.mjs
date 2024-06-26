@@ -1,11 +1,11 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiSDK } from './dist/index.js'
+import { NuklaiSDK, auth } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: '2do59soECuHQF4NiYNwCdK2NyUpNpHY81DqGycK5FbFNyjKKE9'
+  blockchainId: 'gj2m68KeSYeJp687akQDcQhHtG1JwvNiernCjt3Cgos1VAVw3'
 })
 
 async function testSDK() {
@@ -20,6 +20,12 @@ async function testSDK() {
     console.error('Failed to fetch Health Status:', error)
   }
 
+  // Set the private key for the sender address
+  const authFactory = auth.getAuthFactory(
+    'ed25519',
+    '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
+  )
+
   // Testing NAI Transfer
   try {
     console.log('Creating Transfer Transaction...')
@@ -29,8 +35,7 @@ async function testSDK() {
         'NAI', // asset ID
         '0.0001', // amount
         'Test Memo', // memo
-        '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7', // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
-        'ed25519' // key type
+        authFactory
       )
     console.log('Transaction ID:', txID)
   } catch (error) {

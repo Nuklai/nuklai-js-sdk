@@ -1,6 +1,11 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+export function isHex(str: string): boolean {
+  const hexRegex = /^[0-9a-fA-F]+$/
+  return hexRegex.test(str)
+}
+
 // ToHex converts a byte to a hex string.
 export function toHex(b: Uint8Array): string {
   return Buffer.from(b).toString('hex')

@@ -1,11 +1,11 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { bls, utils } from '@avalabs/avalanchejs'
+import { bls } from '@avalabs/avalanchejs'
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { randomBytes } from '@noble/hashes/utils'
 import { EMPTY_ADDRESS } from '../constants/consts'
-import { BLS_COMPUTE_UNITS, BLS_ID, HRP } from '../constants/nuklaivm'
+import { BLS_COMPUTE_UNITS, BLS_ID } from '../constants/nuklaivm'
 import { Address } from '../utils/address'
 import { Codec } from '../utils/codec'
 import { bufferEquals } from '../utils/utils'
@@ -81,7 +81,7 @@ export class BLS implements Auth {
 }
 
 export class BLSFactory implements AuthFactory {
-  privateKey: bls.SecretKey
+  public privateKey: bls.SecretKey
 
   constructor(privateKey?: bls.SecretKey) {
     let privKey = bls.secretKeyFromBytes(randomBytes(32)) // 32 bytes for a private key

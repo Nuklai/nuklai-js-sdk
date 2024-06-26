@@ -5,8 +5,25 @@ import { Id } from '@avalabs/avalanchejs'
 import { EMPTY_ID, MillisecondsPerSecond } from '../constants/consts'
 import { SYMBOL } from '../constants/nuklaivm'
 
-export function parseBalance(amount: string, decimals: number): bigint {
-  return BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)))
+export function parseBalance(
+  amount: string | number,
+  decimals: number
+): bigint {
+  const parsedAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+  return BigInt(Math.floor(parsedAmount * Math.pow(10, decimals)))
+}
+
+export function formatBalance(
+  parsedAmount: number | bigint,
+  decimals: number
+): number {
+  const factor = Math.pow(10, decimals)
+  const parsedBigInt =
+    typeof parsedAmount === 'bigint' ? parsedAmount : BigInt(parsedAmount)
+  const wholePart = Number(parsedBigInt / BigInt(factor))
+  const fractionalPart = Number(parsedBigInt % BigInt(factor)) / factor
+
+  return wholePart + fractionalPart
 }
 
 export function getUnixRMilli(now: number, add: number): bigint {

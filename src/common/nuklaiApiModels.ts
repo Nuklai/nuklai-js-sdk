@@ -90,7 +90,6 @@ export type CustomAllocation = {
 }
 
 export type EmissionBalancer = {
-  totalSupply: number
   maxSupply: number
   emissionAddress: string
 }

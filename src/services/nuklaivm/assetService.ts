@@ -7,21 +7,28 @@ import {
   GetBalanceParams,
   GetBalanceResponse
 } from '../../common/nuklaiApiModels'
-import { toAssetID } from '../../utils/utils'
+import { DECIMALS } from '../../constants/nuklaivm'
+import { formatBalance, toAssetID } from '../../utils/utils'
 import { NuklaiApiService } from '../nuklaiApiService'
 
 export class AssetService extends NuklaiApiService {
-  getBalance(getBalanceParams: GetBalanceParams): Promise<GetBalanceResponse> {
+  async getBalance(
+    getBalanceParams: GetBalanceParams
+  ): Promise<GetBalanceResponse> {
     const params = getBalanceParams
     params.asset = toAssetID(params.asset).toString()
-    return this.callRpc<GetBalanceResponse>('balance', params)
+    const result = await this.callRpc<GetBalanceResponse>('balance', params)
+    result.amount = formatBalance(result.amount, DECIMALS)
+    return result
   }
 
-  getAssetInfo(
+  async getAssetInfo(
     getAssetInfoParams: GetAssetInfoParams
   ): Promise<GetAssetInfoResponse> {
     const params = getAssetInfoParams
     params.asset = toAssetID(params.asset).toString()
-    return this.callRpc<GetAssetInfoResponse>('asset', params)
+    const result = await this.callRpc<GetAssetInfoResponse>('asset', params)
+    result.supply = formatBalance(result.supply, DECIMALS)
+    return result
   }
 }
