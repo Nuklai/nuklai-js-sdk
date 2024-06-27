@@ -2,17 +2,19 @@
 // See the file LICENSE for licensing terms.
 
 import { Id } from '@avalabs/avalanchejs'
-import { ED25519, Ed25519AuthSize } from 'auth/ed25519'
 import { Action } from '../actions/action'
 import { CreateAsset } from '../actions/createAsset'
+import { MintAsset } from '../actions/mintAsset'
 import { Transfer } from '../actions/transfer'
 import { Auth, AuthFactory } from '../auth/auth'
 import { BLS, BlsAuthSize } from '../auth/bls'
+import { ED25519, Ed25519AuthSize } from '../auth/ed25519'
 import { BYTE_LEN, NETWORK_SIZE_LIMIT } from '../constants/consts'
 import {
   BLS_ID,
   CREATEASSET_ID,
   ED25519_ID,
+  MINTASSET_ID,
   TRANSFER_ID
 } from '../constants/nuklaivm'
 import { Codec } from '../utils/codec'
@@ -141,6 +143,17 @@ export class Transaction {
         }
         codecAction = codecActionCreateAsset
         action = actionCreateAsset
+      } else if (actionTypeId === MINTASSET_ID) {
+        const [actionMintAsset, codecActionMintAsset] =
+          MintAsset.fromBytesCodec(codec)
+        if (codecActionMintAsset.getError()) {
+          return [
+            new Transaction(base, []),
+            new Error(`Failed to unpack mint asset action: ${err}`)
+          ]
+        }
+        codecAction = codecActionMintAsset
+        action = actionMintAsset
       } else {
         return [
           new Transaction(base, []),

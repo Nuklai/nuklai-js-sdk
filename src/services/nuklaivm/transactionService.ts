@@ -1,8 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { createActionID } from 'utils/hashing'
 import { CreateAsset } from '../../actions/createAsset'
+import { MintAsset } from '../../actions/mintAsset'
 import { Transfer } from '../../actions/transfer'
 import { AuthFactory } from '../../auth/auth'
 import {
@@ -12,6 +12,7 @@ import {
 } from '../../common/nuklaiApiModels'
 import { NodeConfig } from '../../config'
 import { DECIMALS } from '../../constants/nuklaivm'
+import { createActionID } from '../../utils/hashing'
 import { parseBalance } from '../../utils/utils'
 import { HyperApiService } from '../hyperApiService'
 import { NuklaiApiService } from '../nuklaiApiService'
@@ -39,7 +40,7 @@ export class TransactionService extends NuklaiApiService {
   async sendTransferTransaction(
     to: string,
     asset: string,
-    amount: string,
+    amount: number,
     memo: string,
     authFactory: AuthFactory
   ): Promise<string> {
@@ -110,6 +111,36 @@ export class TransactionService extends NuklaiApiService {
     } catch (error) {
       console.error(
         'Failed to create and submit transaction for "CreateAsset" type',
+        error
+      )
+      throw error
+    }
+  }
+
+  async sendMintAssetTransaction(
+    to: string,
+    asset: string,
+    amount: number,
+    authFactory: AuthFactory
+  ): Promise<string> {
+    try {
+      const decimals = DECIMALS
+      const amountInUnits = parseBalance(amount, decimals)
+
+      const mintAsset: MintAsset = new MintAsset(to, asset, amountInUnits)
+
+      const { submit, txSigned, err } =
+        await this.hyperApiService.generateTransaction([mintAsset], authFactory)
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      return txSigned.id().toString()
+    } catch (error) {
+      console.error(
+        'Failed to create and submit transaction for "MintAsset" type',
         error
       )
       throw error

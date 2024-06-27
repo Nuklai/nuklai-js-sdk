@@ -5,7 +5,7 @@ import { NuklaiSDK, auth } from './dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'iVGwRKQ6jTrhsuG1FpQjtFcs6awhRTZYtzq8dLidUL6Xz2PYK'
+  blockchainId: 'L7XnbAsnfnVj8Kfr7XPCyHuuEF74abTbJMxTFgbdLUHg5aNoy'
 })
 
 async function testSDK() {
@@ -28,24 +28,40 @@ async function testSDK() {
       'ed25519',
       '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
     )
-    const { txID, assetID } =
+    let { txID, assetID } =
       await sdk.transactionService.sendCreateAssetTransaction(
         'TEST', // symbol
         1, // decimals
         'Test token', // metadata
         authFactory
       )
-    console.log('Transaction ID:', txID)
+    console.log('Create Asset Transaction ID:', txID)
     console.log('Asset ID:', assetID)
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 5000))
     console.log('Fetching Asset Info...')
-    const params = {
+    let params = {
       asset: assetID
     }
-    const assetInfo = await sdk.assetService.getAssetInfo(params)
+    let assetInfo = await sdk.assetService.getAssetInfo(params)
     console.log('Newly created Asset:', JSON.stringify(assetInfo, null, 2))
+
+    console.log('Minting Asset...')
+    txID = await sdk.transactionService.sendMintAssetTransaction(
+      'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx', // receiver address
+      assetID, // asset ID
+      10, // amount to mint
+      authFactory
+    )
+    console.log('Mint Asset Transaction ID:', txID)
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+    console.log('Fetching Asset Info...')
+    params = {
+      asset: assetID
+    }
+    assetInfo = await sdk.assetService.getAssetInfo(params)
+    console.log('Newly minted Asset:', JSON.stringify(assetInfo, null, 2))
   } catch (error) {
-    console.error('Failed to create asset:', error)
+    console.error('Failed to create & mint asset:', error)
   }
 }
 
