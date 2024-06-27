@@ -106,7 +106,7 @@ export class ED25519Factory implements AuthFactory {
   }
 
   bandwidth(): number {
-    return PUBLIC_KEY_LENGTH + SIGNATURE_LENGTH
+    return Ed25519AuthSize
   }
 
   static generateKeyPair(): {

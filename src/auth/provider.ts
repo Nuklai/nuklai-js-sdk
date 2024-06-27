@@ -8,7 +8,7 @@ import { Auth, AuthFactory } from './auth'
 import { BLS, BLSFactory } from './bls'
 import { ED25519, ED25519Factory } from './ed25519'
 
-export type KeyType = 'bls' | 'ed25519'
+export type AuthType = 'bls' | 'ed25519'
 
 function decodePrivateKey(privateKey: string): Uint8Array {
   if (isHex(privateKey)) {
@@ -21,16 +21,16 @@ function decodePrivateKey(privateKey: string): Uint8Array {
 }
 
 export function getAuthFactory(
-  keyType: KeyType,
+  authType: AuthType,
   privateKeyString: string
 ): AuthFactory {
   const privateKeyBytes = decodePrivateKey(privateKeyString)
   const privateKeyHex = Buffer.from(privateKeyBytes).toString('hex')
 
-  if (keyType === 'bls') {
+  if (authType === 'bls') {
     const privateKey = BLSFactory.hexToPrivateKey(privateKeyHex)
     return new BLSFactory(privateKey)
-  } else if (keyType === 'ed25519') {
+  } else if (authType === 'ed25519') {
     const privateKey = ED25519Factory.hexToPrivateKey(privateKeyHex)
     return new ED25519Factory(privateKey)
   } else {
@@ -39,16 +39,16 @@ export function getAuthFactory(
 }
 
 export function getAuth(
-  keyType: KeyType,
+  authType: AuthType,
   signer: Uint8Array,
   signature: Uint8Array
 ): Auth {
-  if (keyType === 'bls') {
+  if (authType === 'bls') {
     return new BLS(
       bls.publicKeyFromBytes(signer),
       bls.signatureFromBytes(signature)
     )
-  } else if (keyType === 'ed25519') {
+  } else if (authType === 'ed25519') {
     return new ED25519(signer, signature)
   } else {
     throw new Error('Unsupported key type')

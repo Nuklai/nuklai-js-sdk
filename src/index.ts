@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { SDKConfig } from './config/sdkConfig'
+import { NodeConfig } from './config'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -15,6 +15,7 @@ import { TransactionService } from './services/nuklaivm/transactionService'
 export * as actions from './actions'
 export * as auth from './auth'
 export * as common from './common'
+export * as config from './config'
 export * as consts from './constants'
 export * as crypto from './crypto'
 export * as services from './services'
@@ -22,7 +23,7 @@ export * as transactions from './transactions'
 export * as utils from './utils'
 
 export class NuklaiSDK {
-  config: SDKConfig
+  nodeConfig: NodeConfig
 
   // Hypervm services
   hyperApiService: HyperApiService
@@ -33,20 +34,20 @@ export class NuklaiSDK {
   transactionService: TransactionService
   emissionService: EmissionService
 
-  constructor(configOverrides?: Partial<SDKConfig>) {
-    const defaultSDKConfig: SDKConfig = {
+  constructor(nodeConfig?: Partial<NodeConfig>) {
+    const defaultSDKConfig: NodeConfig = {
       baseApiUrl: MAINNET_PUBLIC_API_BASE_URL,
       blockchainId: NUKLAI_CHAIN_ID
     }
-    this.config = { ...defaultSDKConfig, ...configOverrides }
+    this.nodeConfig = { ...defaultSDKConfig, ...nodeConfig }
 
     // Hypervm services
-    this.hyperApiService = new HyperApiService(this.config)
+    this.hyperApiService = new HyperApiService(this.nodeConfig)
 
     // Nuklaivm services
-    this.genesisService = new GenesisService(this.config)
-    this.transactionService = new TransactionService(this.config)
-    this.assetService = new AssetService(this.config)
-    this.emissionService = new EmissionService(this.config)
+    this.genesisService = new GenesisService(this.nodeConfig)
+    this.transactionService = new TransactionService(this.nodeConfig)
+    this.assetService = new AssetService(this.nodeConfig)
+    this.emissionService = new EmissionService(this.nodeConfig)
   }
 }

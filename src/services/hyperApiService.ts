@@ -2,7 +2,7 @@
 // See the file LICENSE for licensing terms.
 
 import { Id } from '@avalabs/avalanchejs'
-import { Transfer } from '../actions/transfer'
+import { Action } from '../actions/action'
 import { AuthFactory } from '../auth/auth'
 import { Api } from '../common/baseApi'
 import {
@@ -14,7 +14,7 @@ import {
   SubmitTransactionResponse
 } from '../common/hyperApiModels'
 import { GetGenesisInfoResponse } from '../common/nuklaiApiModels'
-import { SDKConfig } from '../config/sdkConfig'
+import { NodeConfig } from '../config'
 import {
   NUKLAI_COREAPI_METHOD_PREFIX,
   NUKLAI_COREAPI_PATH
@@ -28,7 +28,7 @@ import { GenesisService } from './nuklaivm/genesisService'
 export class HyperApiService extends Api {
   private genesisApiService: GenesisService
 
-  constructor(protected config: SDKConfig) {
+  constructor(protected config: NodeConfig) {
     super(
       config.baseApiUrl,
       `/ext/bc/${config.blockchainId}/${NUKLAI_COREAPI_PATH}`,
@@ -71,7 +71,7 @@ export class HyperApiService extends Api {
   }
 
   async generateTransaction(
-    action: Transfer,
+    actions: Action[],
     authFactory: AuthFactory
   ): Promise<{
     submit: () => Promise<SubmitTransactionResponse>
@@ -91,7 +91,7 @@ export class HyperApiService extends Api {
       const chainId = Id.fromString(this.config.blockchainId)
       // Set maxFee
       const unitPrices: GetUnitPricesResponse = await this.getUnitPrices()
-      const units = estimateUnits(genesisInfo.genesis, [action], authFactory)
+      const units = estimateUnits(genesisInfo.genesis, actions, authFactory)
       const [maxFee, error] = mulSum(unitPrices.unitPrices, units)
       if (error) {
         return {
@@ -105,7 +105,7 @@ export class HyperApiService extends Api {
 
       const base = new BaseTx(timestamp, chainId, maxFee)
 
-      const tx: Transaction = new Transaction(base, [action])
+      const tx: Transaction = new Transaction(base, actions)
 
       // Sign the transaction
       const [txSigned, err] = tx.sign(authFactory)

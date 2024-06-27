@@ -1,6 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { createActionID } from 'utils/hashing'
+import { CreateAsset } from '../../actions/createAsset'
 import { Transfer } from '../../actions/transfer'
 import { AuthFactory } from '../../auth/auth'
 import {
@@ -8,6 +10,7 @@ import {
   GetTransactionInfoParams,
   GetTransactionInfoResponse
 } from '../../common/nuklaiApiModels'
+import { NodeConfig } from '../../config'
 import { DECIMALS } from '../../constants/nuklaivm'
 import { parseBalance } from '../../utils/utils'
 import { HyperApiService } from '../hyperApiService'
@@ -18,7 +21,7 @@ export class TransactionService extends NuklaiApiService {
   private assetService: AssetService
   private hyperApiService: HyperApiService
 
-  constructor(config: any) {
+  constructor(config: NodeConfig) {
     super(config)
     this.assetService = new AssetService(config)
     this.hyperApiService = new HyperApiService(config)
@@ -33,7 +36,7 @@ export class TransactionService extends NuklaiApiService {
     )
   }
 
-  async createAndSubmitTransferTransaction(
+  async sendTransferTransaction(
     to: string,
     asset: string,
     amount: string,
@@ -60,7 +63,7 @@ export class TransactionService extends NuklaiApiService {
       const transfer: Transfer = new Transfer(to, asset, amountInUnits, memo)
 
       const { submit, txSigned, err } =
-        await this.hyperApiService.generateTransaction(transfer, authFactory)
+        await this.hyperApiService.generateTransaction([transfer], authFactory)
       if (err) {
         throw err
       }
@@ -69,7 +72,46 @@ export class TransactionService extends NuklaiApiService {
 
       return txSigned.id().toString()
     } catch (error) {
-      console.error('Failed to create and submit transfer transaction', error)
+      console.error(
+        'Failed to create and submit transaction for "Transfer" type',
+        error
+      )
+      throw error
+    }
+  }
+
+  async sendCreateAssetTransaction(
+    symbol: string,
+    decimals: number,
+    metadata: string,
+    authFactory: AuthFactory
+  ): Promise<{ txID: string; assetID: string }> {
+    try {
+      const createAsset: CreateAsset = new CreateAsset(
+        symbol,
+        decimals,
+        metadata
+      )
+
+      const { submit, txSigned, err } =
+        await this.hyperApiService.generateTransaction(
+          [createAsset],
+          authFactory
+        )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      const txID = txSigned.id().toString()
+
+      return { txID, assetID: createActionID(txSigned.id(), 0).toString() }
+    } catch (error) {
+      console.error(
+        'Failed to create and submit transaction for "CreateAsset" type',
+        error
+      )
       throw error
     }
   }

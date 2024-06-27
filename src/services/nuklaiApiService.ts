@@ -2,14 +2,14 @@
 // See the file LICENSE for licensing terms.
 
 import { Api } from '../common/baseApi'
-import { SDKConfig } from '../config/sdkConfig'
+import { NodeConfig } from '../config'
 import {
   NUKLAI_VMAPI_METHOD_PREFIX,
   NUKLAI_VMAPI_PATH
 } from '../constants/endpoints'
 
 export class NuklaiApiService extends Api {
-  constructor(protected config: SDKConfig) {
+  constructor(protected config: NodeConfig) {
     super(
       config.baseApiUrl,
       `/ext/bc/${config.blockchainId}/${NUKLAI_VMAPI_PATH}`,

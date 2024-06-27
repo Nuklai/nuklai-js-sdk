@@ -5,7 +5,7 @@ import { NuklaiSDK } from '../dist/index.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'gj2m68KeSYeJp687akQDcQhHtG1JwvNiernCjt3Cgos1VAVw3'
+  blockchainId: 'iVGwRKQ6jTrhsuG1FpQjtFcs6awhRTZYtzq8dLidUL6Xz2PYK'
 })
 
 async function testSDK() {
@@ -44,8 +44,8 @@ async function testSDK() {
     const params = {
       asset: 'NAI' // or any other asset ID
     }
-    const balance = await sdk.assetService.getAssetInfo(params)
-    console.log('Asset Info:', JSON.stringify(balance, null, 2))
+    const assetInfo = await sdk.assetService.getAssetInfo(params)
+    console.log('Asset Info:', JSON.stringify(assetInfo, null, 2))
   } catch (error) {
     console.error('Failed to fetch Asset info:', error)
   }

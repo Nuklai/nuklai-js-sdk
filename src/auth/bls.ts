@@ -102,7 +102,7 @@ export class BLSFactory implements AuthFactory {
   }
 
   bandwidth(): number {
-    return bls.PUBLIC_KEY_LENGTH + bls.SIGNATURE_LENGTH
+    return BlsAuthSize
   }
 
   static generateKeyPair(): {

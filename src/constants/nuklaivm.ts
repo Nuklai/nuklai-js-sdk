@@ -25,6 +25,9 @@ export const MINTASSET_COMPUTE_UNITS = 5
 
 // Storage Chunks
 export const STORAGE_BALANCE_CHUNKS = 1
+export const STORAGE_ASSET_CHUNKS = 5
+export const REGISTER_VALIDATOR_STAKE_CHUNKS = 5
+export const DELEGATE_USER_STAKE_CHUNKS = 3
 
 export const MAX_SYMBOL_SIZE = 8
 export const MAX_MEMO_SIZE = 256
