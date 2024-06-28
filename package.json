@@ -1,6 +1,6 @@
 {
   "name": "@nuklai/nuklai-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JavaScript SDK for interacting with the Nuklai blockchain, providing modular services for HyperVM and NuklaiVM.",
   "main": "index.js",
   "type": "module",
