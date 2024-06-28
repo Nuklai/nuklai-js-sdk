@@ -1,0 +1,17 @@
+# Exclude source files
+src/
+test/
+scripts/
+
+# Exclude configuration files
+*.config.js
+*.conf.js
+*.json
+!package.json
+
+# Exclude documentation and other non-essential files
+docs/
+.DS_Store
+*.log
+node_modules/
+npm-debug.log
