@@ -2,29 +2,26 @@
 // See the file LICENSE for licensing terms.
 
 import { Id } from '@avalabs/avalanchejs'
-import { ADDRESS_LEN, ID_LEN, UINT64_LEN } from '../constants/consts'
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
   MINTASSET_COMPUTE_UNITS,
   MINTASSET_ID,
   STORAGE_ASSET_CHUNKS,
   STORAGE_BALANCE_CHUNKS
 } from '../constants/nuklaivm'
-import { Address } from '../utils/address'
-import { Codec } from '../utils/codec'
-import { toAssetID } from '../utils/utils'
-import { Action } from './action'
 
-export const MintAssetTxSize = ADDRESS_LEN + ID_LEN + UINT64_LEN
+export const MintAssetTxSize =
+  consts.ADDRESS_LEN + consts.ID_LEN + consts.UINT64_LEN
 
-export class MintAsset implements Action {
-  public to: Address
+export class MintAsset implements actions.Action {
+  public to: utils.Address
   public asset: Id
   public value: bigint
 
   constructor(to: string, asset: string, value: bigint) {
-    this.to = Address.fromString(to)
+    this.to = utils.Address.fromString(to)
     // Default asset to NAI if asset is "NAI"
-    this.asset = toAssetID(asset)
+    this.asset = utils.toAssetID(asset)
     this.value = value
   }
 
@@ -33,7 +30,7 @@ export class MintAsset implements Action {
   }
 
   size(): number {
-    return ADDRESS_LEN + ID_LEN + UINT64_LEN
+    return consts.ADDRESS_LEN + consts.ID_LEN + consts.UINT64_LEN
   }
 
   computeUnits(): number {
@@ -45,7 +42,7 @@ export class MintAsset implements Action {
   }
 
   toBytes(): Uint8Array {
-    const codec = Codec.newWriter(this.size(), this.size())
+    const codec = utils.Codec.newWriter(this.size(), this.size())
     codec.packAddress(this.to)
     codec.packID(this.asset)
     codec.packUint64(this.value)
@@ -54,7 +51,7 @@ export class MintAsset implements Action {
   }
 
   static fromBytes(bytes: Uint8Array): [MintAsset, Error?] {
-    const codec = Codec.newReader(bytes, bytes.length)
+    const codec = utils.Codec.newReader(bytes, bytes.length)
     const to = codec.unpackAddress()
     const asset = codec.unpackID(false)
     const value = codec.unpackUint64(true)
@@ -62,7 +59,7 @@ export class MintAsset implements Action {
     return [action, codec.getError()]
   }
 
-  static fromBytesCodec(codec: Codec): [MintAsset, Codec] {
+  static fromBytesCodec(codec: utils.Codec): [MintAsset, utils.Codec] {
     const codecResult = codec
     const to = codecResult.unpackAddress()
     const asset = codecResult.unpackID(false)

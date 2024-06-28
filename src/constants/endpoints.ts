@@ -10,7 +10,5 @@ export const NUKLAI_CHAIN_ID =
   'zepWp9PbeU9HLHebQ8gXkvxBYH5Bz4v8SoWXE6kyjjwNaMJfC'
 export const NUKLAI_CHAIN_ENDPOINT = `/ext/bc/${NUKLAI_CHAIN_ID}`
 
-export const NUKLAI_COREAPI_PATH = 'coreapi'
-export const NUKLAI_COREAPI_METHOD_PREFIX = 'hypersdk'
 export const NUKLAI_VMAPI_PATH = 'nuklaiapi'
 export const NUKLAI_VMAPI_METHOD_PREFIX = 'nuklaivm'

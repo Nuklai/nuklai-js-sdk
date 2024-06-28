@@ -1,11 +1,12 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiSDK, auth } from '../dist/index.js'
+import { auth } from '@nuklai/hyperchain-sdk'
+import { NuklaiSDK } from '../dist/index.js'
 
 const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:9650',
-  blockchainId: 'iVGwRKQ6jTrhsuG1FpQjtFcs6awhRTZYtzq8dLidUL6Xz2PYK'
+  baseApiUrl: 'http://api-devnet.nuklaivm-dev.net:9650',
+  blockchainId: 'zepWp9PbeU9HLHebQ8gXkvxBYH5Bz4v8SoWXE6kyjjwNaMJfC'
 })
 
 async function testSDK() {

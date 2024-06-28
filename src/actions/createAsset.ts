@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { BYTE_LEN, INT_LEN } from '../constants/consts'
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
   CREATEASSET_COMPUTE_UNITS,
   CREATEASSET_ID,
@@ -10,13 +10,15 @@ import {
   MAX_SYMBOL_SIZE,
   STORAGE_ASSET_CHUNKS
 } from '../constants/nuklaivm'
-import { Codec } from '../utils/codec'
-import { Action } from './action'
 
 export const CreateAssetTxSize =
-  INT_LEN + MAX_SYMBOL_SIZE + BYTE_LEN + INT_LEN + MAX_MEMO_SIZE
+  consts.INT_LEN +
+  MAX_SYMBOL_SIZE +
+  consts.BYTE_LEN +
+  consts.INT_LEN +
+  MAX_MEMO_SIZE
 
-export class CreateAsset implements Action {
+export class CreateAsset implements actions.Action {
   public symbol: Uint8Array
   public decimals: number
   public metadata: Uint8Array
@@ -34,7 +36,11 @@ export class CreateAsset implements Action {
   size(): number {
     // We have to add INT_LEN because when packing bytes, we pack the length of the bytes
     return (
-      INT_LEN + this.symbol.length + BYTE_LEN + INT_LEN + this.metadata.length
+      consts.INT_LEN +
+      this.symbol.length +
+      consts.BYTE_LEN +
+      consts.INT_LEN +
+      this.metadata.length
     )
   }
 
@@ -47,7 +53,7 @@ export class CreateAsset implements Action {
   }
 
   toBytes(): Uint8Array {
-    const codec = Codec.newWriter(this.size(), this.size())
+    const codec = utils.Codec.newWriter(this.size(), this.size())
     codec.packBytes(this.symbol)
     codec.packByte(this.decimals)
     codec.packBytes(this.metadata)
@@ -56,7 +62,7 @@ export class CreateAsset implements Action {
   }
 
   static fromBytes(bytes: Uint8Array): [CreateAsset, Error?] {
-    const codec = Codec.newReader(bytes, bytes.length)
+    const codec = utils.Codec.newReader(bytes, bytes.length)
     // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
     const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE)
     const symbol = new TextDecoder().decode(symbolBytes)
@@ -68,7 +74,7 @@ export class CreateAsset implements Action {
     return [action, codec.getError()]
   }
 
-  static fromBytesCodec(codec: Codec): [CreateAsset, Codec] {
+  static fromBytesCodec(codec: utils.Codec): [CreateAsset, utils.Codec] {
     const codecResult = codec
     // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
     const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE)

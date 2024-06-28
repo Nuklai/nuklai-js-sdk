@@ -1,14 +1,14 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { utils } from '@nuklai/hyperchain-sdk'
 import {
   GetAssetInfoParams,
   GetAssetInfoResponse,
   GetBalanceParams,
   GetBalanceResponse
-} from '../../common/nuklaiApiModels'
+} from '../../common/models'
 import { DECIMALS } from '../../constants/nuklaivm'
-import { formatBalance, toAssetID } from '../../utils/utils'
 import { NuklaiApiService } from '../nuklaiApiService'
 
 export class AssetService extends NuklaiApiService {
@@ -16,9 +16,9 @@ export class AssetService extends NuklaiApiService {
     getBalanceParams: GetBalanceParams
   ): Promise<GetBalanceResponse> {
     const params = getBalanceParams
-    params.asset = toAssetID(params.asset).toString()
+    params.asset = utils.toAssetID(params.asset).toString()
     const result = await this.callRpc<GetBalanceResponse>('balance', params)
-    result.amount = formatBalance(result.amount, DECIMALS)
+    result.amount = utils.formatBalance(result.amount, DECIMALS)
     return result
   }
 
@@ -26,9 +26,9 @@ export class AssetService extends NuklaiApiService {
     getAssetInfoParams: GetAssetInfoParams
   ): Promise<GetAssetInfoResponse> {
     const params = getAssetInfoParams
-    params.asset = toAssetID(params.asset).toString()
+    params.asset = utils.toAssetID(params.asset).toString()
     const result = await this.callRpc<GetAssetInfoResponse>('asset', params)
-    result.supply = formatBalance(result.supply, DECIMALS)
+    result.supply = utils.formatBalance(result.supply, DECIMALS)
     return result
   }
 }

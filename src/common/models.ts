@@ -1,6 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { common } from '@nuklai/hyperchain-sdk'
+
 export type GetBalanceParams = {
   address: string
   asset: string
@@ -84,50 +86,17 @@ export type GetUserStakeResponse = {
   ownerAddress: string
 }
 
-export type CustomAllocation = {
-  address: string
-  balance: number
-}
-
 export type EmissionBalancer = {
   maxSupply: number
   emissionAddress: string
 }
 
-export type Genesis = {
-  stateBranchFactor: number
-  minBlockGap: number
-  minEmptyBlockGap: number
-  minUnitPrice: Uint8Array
-  unitPriceChangeDenominator: Uint8Array
-  windowTargetUnits: Uint8Array
-  maxBlockUnits: Uint8Array
-  validityWindow: number
-  baseUnits: number
-  baseWarpUnits: number
-  warpUnitsPerSigner: number
-  outgoingWarpComputeUnits: number
-  storageKeyReadUnits: number
-  storageValueReadUnits: number
-  storageKeyAllocateUnits: number
-  storageValueAllocateUnits: number
-  storageKeyWriteUnits: number
-  storageValueWriteUnits: number
-  customAllocation: CustomAllocation[]
+export type Genesis = common.Genesis & {
   emissionBalancer: EmissionBalancer
 }
 
 export type GetGenesisInfoResponse = {
   genesis: Genesis
-}
-
-export type GetLoanInfoParams = {
-  destination: string
-  asset: string
-}
-
-export type GetLoanInfoResponse = {
-  amount: number
 }
 
 export type GetTransactionInfoParams = {

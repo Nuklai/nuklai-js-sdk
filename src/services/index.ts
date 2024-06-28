@@ -1,3 +1,2 @@
-export * from './hyperApiService'
 export * from './nuklaiApiService'
-export * as nuklaivm from './nuklaivm'
+export * as rpc from './rpc'

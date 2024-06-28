@@ -1,31 +1,31 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { auth, config, services, utils } from '@nuklai/hyperchain-sdk'
 import { CreateAsset } from '../../actions/createAsset'
 import { MintAsset } from '../../actions/mintAsset'
 import { Transfer } from '../../actions/transfer'
-import { AuthFactory } from '../../auth/auth'
 import {
   GetBalanceParams,
+  GetGenesisInfoResponse,
   GetTransactionInfoParams,
   GetTransactionInfoResponse
-} from '../../common/nuklaiApiModels'
-import { NodeConfig } from '../../config'
+} from '../../common/models'
 import { DECIMALS } from '../../constants/nuklaivm'
-import { createActionID } from '../../utils/hashing'
-import { parseBalance } from '../../utils/utils'
-import { HyperApiService } from '../hyperApiService'
 import { NuklaiApiService } from '../nuklaiApiService'
 import { AssetService } from './assetService'
+import { GenesisService } from './genesisService'
 
 export class TransactionService extends NuklaiApiService {
+  private hyperApiService: services.RpcService
+  private genesisApiService: GenesisService
   private assetService: AssetService
-  private hyperApiService: HyperApiService
 
-  constructor(config: NodeConfig) {
-    super(config)
-    this.assetService = new AssetService(config)
-    this.hyperApiService = new HyperApiService(config)
+  constructor(configNuklai: config.NodeConfig) {
+    super(configNuklai)
+    this.hyperApiService = new services.RpcService(configNuklai)
+    this.genesisApiService = new GenesisService(configNuklai)
+    this.assetService = new AssetService(configNuklai)
   }
 
   getTransactionInfo(
@@ -42,7 +42,7 @@ export class TransactionService extends NuklaiApiService {
     asset: string,
     amount: number,
     memo: string,
-    authFactory: AuthFactory
+    authFactory: auth.AuthFactory
   ): Promise<string> {
     try {
       // Generate the from address using the private key
@@ -50,21 +50,29 @@ export class TransactionService extends NuklaiApiService {
       const fromAddress = auth.address()
 
       const decimals = DECIMALS
-      const amountInUnits = parseBalance(amount, decimals)
+      const amountInUnits = utils.parseBalance(amount, decimals)
 
       // Fetch the balance to ensure sufficient funds
       const balanceResponse = await this.assetService.getBalance({
         address: fromAddress.toString(),
         asset
       } as GetBalanceParams)
-      if (parseBalance(balanceResponse.amount, decimals) < amountInUnits) {
+      if (
+        utils.parseBalance(balanceResponse.amount, decimals) < amountInUnits
+      ) {
         throw new Error('Insufficient balance')
       }
 
       const transfer: Transfer = new Transfer(to, asset, amountInUnits, memo)
 
+      const genesisInfo: GetGenesisInfoResponse =
+        await this.genesisApiService.getGenesisInfo()
       const { submit, txSigned, err } =
-        await this.hyperApiService.generateTransaction([transfer], authFactory)
+        await this.hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          [transfer],
+          authFactory
+        )
       if (err) {
         throw err
       }
@@ -85,7 +93,7 @@ export class TransactionService extends NuklaiApiService {
     symbol: string,
     decimals: number,
     metadata: string,
-    authFactory: AuthFactory
+    authFactory: auth.AuthFactory
   ): Promise<{ txID: string; assetID: string }> {
     try {
       const createAsset: CreateAsset = new CreateAsset(
@@ -94,8 +102,11 @@ export class TransactionService extends NuklaiApiService {
         metadata
       )
 
+      const genesisInfo: GetGenesisInfoResponse =
+        await this.genesisApiService.getGenesisInfo()
       const { submit, txSigned, err } =
         await this.hyperApiService.generateTransaction(
+          genesisInfo.genesis,
           [createAsset],
           authFactory
         )
@@ -107,7 +118,10 @@ export class TransactionService extends NuklaiApiService {
 
       const txID = txSigned.id().toString()
 
-      return { txID, assetID: createActionID(txSigned.id(), 0).toString() }
+      return {
+        txID,
+        assetID: utils.createActionID(txSigned.id(), 0).toString()
+      }
     } catch (error) {
       console.error(
         'Failed to create and submit transaction for "CreateAsset" type',
@@ -121,16 +135,22 @@ export class TransactionService extends NuklaiApiService {
     to: string,
     asset: string,
     amount: number,
-    authFactory: AuthFactory
+    authFactory: auth.AuthFactory
   ): Promise<string> {
     try {
       const decimals = DECIMALS
-      const amountInUnits = parseBalance(amount, decimals)
+      const amountInUnits = utils.parseBalance(amount, decimals)
 
       const mintAsset: MintAsset = new MintAsset(to, asset, amountInUnits)
 
+      const genesisInfo: GetGenesisInfoResponse =
+        await this.genesisApiService.getGenesisInfo()
       const { submit, txSigned, err } =
-        await this.hyperApiService.generateTransaction([mintAsset], authFactory)
+        await this.hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          [mintAsset],
+          authFactory
+        )
       if (err) {
         throw err
       }
