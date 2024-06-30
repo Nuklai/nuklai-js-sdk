@@ -29,10 +29,6 @@ async function testSDK() {
       "ed25519",
       "323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7" // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
     );
-    console.log(
-      "actionRegistry: ",
-      JSON.stringify(sdk.actionRegistry, null, 2)
-    );
     let { txID, assetID } =
       await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
         "TEST", // symbol
