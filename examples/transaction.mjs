@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiSDK } from "../dist/index.js";
+import { NuklaiSDK } from "../dist/index.esm.js";
 import { auth } from "@nuklai/hyperchain-sdk";
 
 const sdk = new NuklaiSDK({

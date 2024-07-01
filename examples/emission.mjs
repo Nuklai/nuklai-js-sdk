@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiSDK } from "../dist/index.js";
+import { NuklaiSDK } from "../dist/index.esm.js";
 
 const sdk = new NuklaiSDK({
   baseApiUrl: "http://api-devnet.nuklaivm-dev.net:9650",
