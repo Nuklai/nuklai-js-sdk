@@ -111,7 +111,10 @@ const txID = await sdk.transactionService.sendTransferTransaction(
   "NAI", // asset ID
   "0.0001", // amount
   "Test Memo", // memo
-  authFactory
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
 );
 console.log("Transaction ID:", txID);
 ```
@@ -119,23 +122,30 @@ console.log("Transaction ID:", txID);
 ### Create a New Asset
 
 ```js
-const createAsset = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
-  "IO", // symbol
-  8, // decimals
-  "IO asset metadata", // metadata
-  authFactory
+const { txID, assetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+  "TEST", // symbol
+  1, // decimals
+  "Test token", // metadata
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
 );
-console.log("Asset Transaction ID:", createAsset);
+console.log("Create Asset Transaction ID:", txID);
+console.log("Asset ID:", assetID);
 ```
 
 ### Mint Asset
 
 ```js
 const mintAsset = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
-  "nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz", // receiver address
-  "IO", // asset ID
-  "1000", // amount
-  authFactory
+  "nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx", // receiver address
+  assetID, // asset ID
+  10, // amount to mint
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
 );
 console.log("Mint Transaction ID:", mintAsset);
 ```
