@@ -1,4 +1,6 @@
-# Nuklai SDK
+<p align="center">
+  <img width="90%" alt="hypersdk" src="https://i.ibb.co/qMBy03t/Nuklai-SDK.png">
+</p>
 
 The Nuklai SDK provides a modular and comprehensive interface for interacting with the Nuklai blockchain. It is designed to facilitate developers with functions ranging from network configurations to transaction management and complex warp operations.
 
