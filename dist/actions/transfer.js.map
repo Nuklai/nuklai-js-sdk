@@ -1,1 +1,0 @@
-{"version":3,"file":"transfer.js","sourceRoot":"","sources":["../../src/actions/transfer.ts"],"names":[],"mappings":";AAAA,mDAAmD;AACnD,4CAA4C;;;AAE5C,2DAAgD;AAEhD,MAAa,QAAS,SAAQ,wBAAO,CAAC,QAAQ;IAC5C,YAAY,EAAU,EAAE,KAAa,EAAE,KAAa,EAAE,IAAY;QAChE,KAAK,CAAC,EAAE,EAAE,KAAK,EAAE,KAAK,EAAE,IAAI,CAAC,CAAA;IAC/B,CAAC;CACF;AAJD,4BAIC"}
