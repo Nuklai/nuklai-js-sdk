@@ -116,6 +116,30 @@ const txID = await sdk.transactionService.sendTransferTransaction(
 console.log("Transaction ID:", txID);
 ```
 
+### Create a New Asset
+
+```js
+const createAsset = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+  "IO", // symbol
+  8, // decimals
+  "IO asset metadata", // metadata
+  authFactory
+);
+console.log("Asset Transaction ID:", createAsset);
+```
+
+### Mint Asset
+
+```js
+const mintAsset = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
+  "nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz", // receiver address
+  "IO", // asset ID
+  "1000", // amount
+  authFactory
+);
+console.log("Mint Transaction ID:", mintAsset);
+```
+
 ## Publish
 
 ```bash
