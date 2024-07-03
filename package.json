@@ -63,7 +63,7 @@
     "@avalabs/avalanchejs": "^4.0.5",
     "@noble/curves": "^1.4.0",
     "@noble/ed25519": "^2.1.0",
-    "@nuklai/hyperchain-sdk": "^0.1.9",
+    "@nuklai/hyperchain-sdk": "https://github.com/nuklai/hyperchain-js-sdk#9ad991a",
     "bech32": "^2.0.0",
     "big-integer": "^1.6.52"
   },
