@@ -714,9 +714,9 @@
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-2.0.0.tgz#c214269d45e0233ad6a8ae5104655453636e253d"
   integrity sha512-rUGBd95e2a45rlmFTqQJYEFA4/gdIARFfuTuTqLglz0PZ6AKyzyXsEZZq7UZn8hZsvaBgpCzKKBJizT2cJERXw==
 
-"@nuklai/hyperchain-sdk@https://github.com/nuklai/hyperchain-js-sdk#134b24c":
+"@nuklai/hyperchain-sdk@https://github.com/nuklai/hyperchain-js-sdk#3db227f":
   version "0.1.9"
-  resolved "https://github.com/nuklai/hyperchain-js-sdk#134b24c88b8a6b0827f62ddec6f04f54ed4d5dd2"
+  resolved "https://github.com/nuklai/hyperchain-js-sdk#3db227f3bfe71fcdfe9c00672f54f8571e557818"
   dependencies:
     "@avalabs/avalanchejs" "^4.0.5"
     "@noble/curves" "^1.4.0"

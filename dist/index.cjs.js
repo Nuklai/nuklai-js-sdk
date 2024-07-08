@@ -47217,8 +47217,9 @@ var MAINNET_PUBLIC_API_BASE_URL = "http://api-mainnet.nuklaivm-dev.net:9650";
 var TESTNET_PUBLIC_API_BASE_URL = "http://api-devnet.nuklaivm-dev.net:9650";
 var HYPERCHAIN_ID = "zepWp9PbeU9HLHebQ8gXkvxBYH5Bz4v8SoWXE6kyjjwNaMJfC";
 var HYPERCHAIN_ENDPOINT = `/ext/bc/${HYPERCHAIN_ID}`;
-var COREAPI_PATH = "coreapi";
 var COREAPI_METHOD_PREFIX = "hypersdk";
+var JSONRPC_ENDPOINT = "coreapi";
+var WEBSOCKET_ENDPOINT = "corews";
 init_polyfills();
 var JrpcProvider = class {
   constructor(url) {
@@ -47247,7 +47248,7 @@ var JrpcProvider = class {
   // TODO: Batch RPC call
 };
 var Api = class {
-  constructor(baseURL = MAINNET_PUBLIC_API_BASE_URL, path = `${HYPERCHAIN_ENDPOINT}/${COREAPI_PATH}`, base, fetchOptions) {
+  constructor(baseURL = MAINNET_PUBLIC_API_BASE_URL, path = `${HYPERCHAIN_ENDPOINT}/${JSONRPC_ENDPOINT}`, base, fetchOptions) {
     this.path = path;
     this.base = base;
     this.fetchOptions = fetchOptions;
@@ -47279,7 +47280,6 @@ __export2(constants_exports, {
   BOOL_LEN: () => BOOL_LEN,
   BYTE_LEN: () => BYTE_LEN,
   COREAPI_METHOD_PREFIX: () => COREAPI_METHOD_PREFIX,
-  COREAPI_PATH: () => COREAPI_PATH,
   CREATEASSET_COMPUTE_UNITS: () => CREATEASSET_COMPUTE_UNITS,
   CREATEASSET_ID: () => CREATEASSET_ID,
   DECIMALS: () => DECIMALS,
@@ -47294,6 +47294,7 @@ __export2(constants_exports, {
   ID_LEN: () => ID_LEN,
   INT64_LEN: () => INT64_LEN,
   INT_LEN: () => INT_LEN,
+  JSONRPC_ENDPOINT: () => JSONRPC_ENDPOINT,
   LONG_LEN: () => LONG_LEN,
   MAINNET_PUBLIC_API_BASE_URL: () => MAINNET_PUBLIC_API_BASE_URL,
   MAX_DECIMALS: () => MAX_DECIMALS,
@@ -47326,6 +47327,7 @@ __export2(constants_exports, {
   UINT32_LEN: () => UINT32_LEN,
   UINT64_LEN: () => UINT64_LEN,
   UINT8_LEN: () => UINT8_LEN,
+  WEBSOCKET_ENDPOINT: () => WEBSOCKET_ENDPOINT,
   WINDOW_ARRAY_SIZE: () => WINDOW_ARRAY_SIZE,
   WINDOW_SIZE: () => WINDOW_SIZE
 });
@@ -47357,7 +47359,7 @@ var RpcService = class extends Api {
   constructor(config3) {
     super(
       config3.baseApiUrl,
-      `/ext/bc/${config3.blockchainId}/${COREAPI_PATH}`,
+      `/ext/bc/${config3.blockchainId}/${JSONRPC_ENDPOINT}`,
       COREAPI_METHOD_PREFIX
     );
     this.config = config3;
@@ -47659,18 +47661,20 @@ function getWebSocketClient() {
   return WebSocketClient;
 }
 var WebSocketService = class {
-  config;
+  uri;
   ws;
   pendingBlocks = [];
   pendingTxs = [];
   closed = false;
   constructor(config3) {
-    this.config = config3;
+    this.uri = this.getWebSocketUri(
+      config3.baseApiUrl + `/ext/bc/${config3.blockchainId}/${WEBSOCKET_ENDPOINT}`
+    );
   }
   async connect() {
     await loadWebSocketClient();
     const WebSocketClient2 = getWebSocketClient();
-    this.ws = new WebSocketClient2(this.getWebSocketUri(this.config.baseApiUrl));
+    this.ws = new WebSocketClient2(this.uri);
     this.ws.onopen = () => {
       console.log("WebSocket connection opened.");
     };
@@ -47686,9 +47690,12 @@ var WebSocketService = class {
     };
   }
   getWebSocketUri(apiUrl) {
-    let uri = apiUrl.replace(/^http/, "ws");
-    uri = uri.endsWith("/") ? uri : `${uri}/`;
-    uri += "ws";
+    let uri = apiUrl.replace(/http:\/\//g, "ws://");
+    uri = uri.replace(/https:\/\//g, "wss://");
+    if (!uri.startsWith("ws")) {
+      uri = "ws://" + uri;
+    }
+    uri = uri.replace(/\/$/, "");
     return uri;
   }
   async handleMessage(data) {
