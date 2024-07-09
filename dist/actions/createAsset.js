@@ -44,11 +44,11 @@ export class CreateAsset {
     static fromBytes(bytes) {
         const codec = utils.Codec.newReader(bytes, bytes.length);
         // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
-        const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE);
+        const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE, true);
         const symbol = new TextDecoder().decode(symbolBytes);
         const decimals = codec.unpackByte();
         // Ensure the metadata is unpacked as fixed bytes of MAX_METADATA_SIZE
-        const metadataBytes = codec.unpackLimitedBytes(MAX_METADATA_SIZE);
+        const metadataBytes = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true);
         const metadata = new TextDecoder().decode(metadataBytes);
         const action = new CreateAsset(symbol, decimals, metadata);
         return [action, codec.getError()];
@@ -56,11 +56,11 @@ export class CreateAsset {
     static fromBytesCodec(codec) {
         const codecResult = codec;
         // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
-        const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE);
+        const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE, true);
         const symbol = new TextDecoder().decode(symbolBytes);
         const decimals = codecResult.unpackByte();
         // Ensure the metadata is unpacked as fixed bytes of MAX_METADATA_SIZE
-        const metadataBytes = codecResult.unpackLimitedBytes(MAX_METADATA_SIZE);
+        const metadataBytes = codecResult.unpackLimitedBytes(MAX_METADATA_SIZE, true);
         const metadata = new TextDecoder().decode(metadataBytes);
         const action = new CreateAsset(symbol, decimals, metadata);
         return [action, codecResult];

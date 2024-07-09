@@ -42916,6 +42916,7 @@ var MaxUint64Offset = 63;
 var MaxUint64 = BigInt("0xFFFFFFFFFFFFFFFF");
 var MillisecondsPerSecond = BigInt(1e3);
 var MaxStringLen = 65535;
+var MaxWriteMessageSize = 16777216;
 var WINDOW_SIZE = 10;
 var WINDOW_ARRAY_SIZE = WINDOW_SIZE + UINT64_LEN;
 var ErrInsufficientLength = new Error(
@@ -42925,6 +42926,7 @@ var errNegativeOffset = new Error("negative offset");
 var errInvalidInput = new Error("input does not match expected format");
 var errBadBool = new Error("unexpected value when unpacking bool");
 var errOversized = new Error("size is larger than limit");
+var errNotPopulated = new Error("field is not populated");
 var Codec = class _Codec {
   buffer;
   offset;
@@ -43007,7 +43009,7 @@ var Codec = class _Codec {
     const value = new DataView(this.buffer.buffer).getUint32(this.offset, false);
     this.offset += INT_LEN;
     if (required && value === 0) {
-      this.addError(new Error("Int field is not populated"));
+      this.addError(errNotPopulated);
     }
     return value;
   }
@@ -43055,15 +43057,17 @@ var Codec = class _Codec {
     this.packFixedBytes(bytes3);
   }
   unpackBytes(required) {
-    const size = this.unpackInt(true);
+    const size = this.unpackInt(required);
     const bytes3 = this.unpackFixedBytes(size);
     if (required && bytes3.length === 0) {
       this.addError(new Error("Bytes field is not populated"));
     }
     return bytes3;
   }
-  unpackLimitedBytes(limit) {
-    const size = this.unpackInt(true);
+  unpackLimitedBytes(limit, required) {
+    const size = this.unpackInt(required);
+    console.log("Unpacked size:", size);
+    console.log("Limit:", limit);
     if (size > limit) {
       this.error = errOversized;
       return new Uint8Array();
@@ -43204,7 +43208,7 @@ var Transfer = class _Transfer {
     const to2 = codec.unpackAddress();
     const asset = codec.unpackID(false);
     const value = codec.unpackUint64(true);
-    const memoBytes = codec.unpackLimitedBytes(MAX_MEMO_SIZE);
+    const memoBytes = codec.unpackLimitedBytes(MAX_MEMO_SIZE, false);
     const memo = new TextDecoder().decode(memoBytes);
     const action = new _Transfer(to2.toString(), asset.toString(), value, memo);
     return [action, codec.getError()];
@@ -43214,7 +43218,7 @@ var Transfer = class _Transfer {
     const to2 = codec.unpackAddress();
     const asset = codec.unpackID(false);
     const value = codec.unpackUint64(true);
-    const memoBytes = codec.unpackLimitedBytes(MAX_MEMO_SIZE);
+    const memoBytes = codec.unpackLimitedBytes(MAX_MEMO_SIZE, false);
     const memo = new TextDecoder().decode(memoBytes);
     const action = new _Transfer(to2.toString(), asset.toString(), value, memo);
     return [action, codec];
@@ -47311,6 +47315,7 @@ __export2(constants_exports, {
   MaxUint64Offset: () => MaxUint64Offset,
   MaxUint8: () => MaxUint8,
   MaxUint8Offset: () => MaxUint8Offset,
+  MaxWriteMessageSize: () => MaxWriteMessageSize,
   MillisecondsPerSecond: () => MillisecondsPerSecond,
   NETWORK_SIZE_LIMIT: () => NETWORK_SIZE_LIMIT,
   REGISTER_VALIDATOR_STAKE_CHUNKS: () => REGISTER_VALIDATOR_STAKE_CHUNKS,
@@ -47347,12 +47352,154 @@ __export2(crypto_exports, {
   verify: () => verify2
 });
 init_polyfills();
-var services_exports = {};
-__export2(services_exports, {
-  RpcService: () => RpcService,
-  WebSocketService: () => WebSocketService,
-  ws: () => ws_exports
+var pubsub_exports = {};
+__export2(pubsub_exports, {
+  MessageBuffer: () => MessageBuffer,
+  Timer: () => Timer,
+  createBatchMessage: () => createBatchMessage,
+  parseBatchMessage: () => parseBatchMessage
 });
+init_polyfills();
+init_polyfills();
+init_polyfills();
+function cummSize(arr) {
+  let size = 0;
+  for (const item of arr) {
+    size += item.size();
+  }
+  return size;
+}
+function bytesLen(bytes3) {
+  return INT_LEN + bytes3.length;
+}
+init_polyfills();
+var Timer = class {
+  callback;
+  timeoutId = null;
+  constructor(callback) {
+    this.callback = callback;
+  }
+  setTimeoutIn(timeout) {
+    this.clearTimeout();
+    this.timeoutId = setTimeout(this.callback, timeout);
+  }
+  cancel() {
+    this.clearTimeout();
+  }
+  stop() {
+    this.clearTimeout();
+  }
+  clearTimeout() {
+    if (this.timeoutId !== null) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  }
+};
+var MessageBuffer = class {
+  queue = [];
+  pending = [];
+  pendingSize = 0;
+  closed = false;
+  lock = Promise.resolve();
+  // Initialize lock as a resolved promise
+  maxSize;
+  timeout;
+  timer;
+  constructor(maxSize, timeout) {
+    this.queue = [];
+    this.pending = [];
+    this.pendingSize = 0;
+    this.closed = false;
+    this.maxSize = maxSize;
+    this.timeout = timeout;
+    this.timer = new Timer(this.clearPending.bind(this));
+  }
+  async withLock(fn2) {
+    let release;
+    const newLock = new Promise((resolve) => release = resolve);
+    const previousLock = this.lock;
+    this.lock = newLock;
+    await previousLock;
+    try {
+      return fn2();
+    } finally {
+      release();
+    }
+  }
+  async send(msg) {
+    await this.withLock(() => {
+      const msgLength = msg.length;
+      if (msgLength > this.maxSize) {
+        throw new Error("Message too large");
+      }
+      if (this.pendingSize + msgLength > this.maxSize) {
+        this.clearPending();
+      }
+      this.pendingSize += msgLength;
+      this.pending.push(msg);
+      if (this.pending.length === 1) {
+        this.timer.setTimeoutIn(this.timeout);
+      }
+    });
+  }
+  async clearPending() {
+    await this.withLock(() => {
+      if (this.pending.length === 0) {
+        return;
+      }
+      const batchMessage = createBatchMessage(this.maxSize, this.pending);
+      this.queue.push(batchMessage);
+      this.pending = [];
+      this.pendingSize = 0;
+      this.timer.cancel();
+    });
+  }
+  async getQueue() {
+    return this.withLock(() => {
+      const result = this.queue;
+      this.queue = [];
+      return result;
+    });
+  }
+  async hasMessages() {
+    return this.withLock(() => this.queue.length > 0);
+  }
+  async close() {
+    await this.withLock(() => {
+      if (this.closed) {
+        throw new Error("Buffer already closed");
+      }
+      this.clearPending();
+      this.closed = true;
+    });
+  }
+};
+function createBatchMessage(maxSize, msgs) {
+  let size = INT_LEN;
+  for (const msg of msgs) {
+    size += bytesLen(msg);
+  }
+  const codec = Codec.newWriter(size, maxSize);
+  codec.packInt(msgs.length);
+  for (const msg of msgs) {
+    codec.packBytes(msg);
+  }
+  return codec.toBytes();
+}
+function parseBatchMessage(maxSize, msg) {
+  const codec = Codec.newReader(msg, maxSize);
+  const msgLen = codec.unpackInt(true);
+  const msgs = [];
+  for (let i = 0; i < msgLen; i++) {
+    const nextMsg = codec.unpackBytes(true);
+    if (codec.getError()) {
+      throw codec.getError();
+    }
+    msgs.push(nextMsg);
+  }
+  return msgs;
+}
 init_polyfills();
 init_polyfills();
 var RpcService = class extends Api {
@@ -47442,17 +47589,6 @@ var RpcService = class extends Api {
 };
 init_polyfills();
 init_polyfills();
-init_polyfills();
-function cummSize(arr) {
-  let size = 0;
-  for (const item of arr) {
-    size += item.size();
-  }
-  return size;
-}
-function bytesLen(bytes3) {
-  return INT_LEN + bytes3.length;
-}
 var StatefulBlock = class _StatefulBlock {
   prnt;
   tmstmp;
@@ -47605,14 +47741,14 @@ var Result = class _Result {
   }
   static fromBytes(codec) {
     const success = codec.unpackBool();
-    const error = codec.unpackLimitedBytes(MaxInt);
+    const error = codec.unpackLimitedBytes(MaxInt, false);
     const numActions = codec.unpackByte();
     const outputs = [];
     for (let i = 0; i < numActions; i++) {
       const numOutputs = codec.unpackByte();
       const actionOutputs = [];
       for (let j2 = 0; j2 < numOutputs; j2++) {
-        const output3 = codec.unpackLimitedBytes(MaxInt);
+        const output3 = codec.unpackLimitedBytes(MaxInt, false);
         actionOutputs.push(output3);
       }
       outputs.push(actionOutputs);
@@ -47642,51 +47778,35 @@ var Result = class _Result {
     return [results, codec.getError()];
   }
 };
-init_polyfills();
-var WebSocketClient;
-async function loadWebSocketClient() {
-  if (isNodeEnvironment()) {
-    const wsModule = await Promise.resolve().then(() => __toESM2(require_browser14(), 1));
-    WebSocketClient = wsModule.default;
-  } else {
-    WebSocketClient = WebSocket;
-  }
-}
-function getWebSocketClient() {
-  if (!WebSocketClient) {
-    throw new Error(
-      "WebSocket client is not initialized. Please call loadWebSocketClient() first."
-    );
-  }
-  return WebSocketClient;
-}
+var BlockMode = 0;
+var TxMode = 1;
 var WebSocketService = class {
   uri;
-  ws;
+  conn;
+  mb;
+  readStopped = false;
   pendingBlocks = [];
   pendingTxs = [];
+  startedClose = false;
   closed = false;
+  err = null;
   constructor(config3) {
     this.uri = this.getWebSocketUri(
       config3.baseApiUrl + `/ext/bc/${config3.blockchainId}/${WEBSOCKET_ENDPOINT}`
     );
+    this.mb = new MessageBuffer(NETWORK_SIZE_LIMIT, 1e3 * 10);
   }
   async connect() {
-    await loadWebSocketClient();
-    const WebSocketClient2 = getWebSocketClient();
-    this.ws = new WebSocketClient2(this.uri);
-    this.ws.onopen = () => {
-      console.log("WebSocket connection opened.");
+    console.log("WebSocketService.connect called, connecting to:", this.uri);
+    this.conn = new WebSocket(this.uri);
+    this.conn.onopen = () => {
+      console.log("WebSocket connection opened");
+      this.readLoop();
+      this.writeLoop();
     };
-    this.ws.onmessage = async (event) => {
-      await this.handleMessage(event.data);
-    };
-    this.ws.onclose = () => {
-      this.closed = true;
-      console.log("WebSocket connection closed.");
-    };
-    this.ws.onerror = (err2) => {
-      console.error("WebSocket error:", err2);
+    this.conn.onerror = (event) => {
+      this.err = new Error(`WebSocket error: ${event}`);
+      this.close();
     };
   }
   getWebSocketUri(apiUrl) {
@@ -47698,136 +47818,146 @@ var WebSocketService = class {
     uri = uri.replace(/\/$/, "");
     return uri;
   }
-  async handleMessage(data) {
-    let message;
-    if (typeof Blob !== "undefined" && data instanceof Blob) {
-      const arrayBuffer = await data.arrayBuffer();
-      message = new Uint8Array(arrayBuffer);
-    } else if (typeof Buffer !== "undefined" && data instanceof Buffer) {
-      message = new Uint8Array(data);
-    } else if (data instanceof ArrayBuffer) {
-      message = new Uint8Array(data);
-    } else if (typeof data === "string") {
-      message = new Uint8Array(Buffer.from(data));
-    } else {
-      throw new Error(`Unsupported WebSocket message type: ${typeof data}`);
+  async readLoop() {
+    try {
+      while (this.conn.readyState === WebSocket.OPEN) {
+        const event = await new Promise(
+          (resolve) => this.conn.onmessage = resolve
+        );
+        const msgBatch = new Uint8Array(await event.data.arrayBuffer());
+        if (msgBatch.length === 0) {
+          continue;
+        }
+        const msgs = parseBatchMessage(MaxWriteMessageSize, msgBatch);
+        for (const msg of msgs) {
+          const mode = msg[0];
+          const tmsg = msg.slice(1);
+          if (mode === BlockMode) {
+            this.pendingBlocks.push(tmsg);
+          } else if (mode === TxMode) {
+            this.pendingTxs.push(tmsg);
+          } else {
+            console.warn(`unexpected message mode: ${mode}`);
+          }
+        }
+      }
+    } catch (error) {
+      this.err = error;
+      this.close();
+    } finally {
+      this.readStopped = true;
     }
-    const messageType = message[0];
-    const messageContent = message.slice(1);
-    switch (messageType) {
-      case 0:
-        this.pendingBlocks.push(messageContent);
-        break;
-      case 1:
-        this.pendingTxs.push(messageContent);
-        break;
-      default:
-        console.warn("Unexpected WebSocket message type:", messageType);
+  }
+  async writeLoop() {
+    try {
+      while (this.conn.readyState === WebSocket.OPEN) {
+        if (await this.mb.hasMessages()) {
+          const queue = await this.mb.getQueue();
+          for (const msg of queue) {
+            this.conn.send(msg);
+          }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      this.err = error;
+      this.close();
     }
   }
   async registerBlocks() {
-    if (this.closed) throw new Error("WebSocket is closed.");
-    this.ws.send(JSON.stringify({ type: "register", messageType: "block" }));
-  }
-  async registerTx(tx) {
-    if (this.closed) throw new Error("WebSocket is closed.");
-    this.ws.send(
-      JSON.stringify({
-        type: "register",
-        messageType: "tx",
-        data: tx.toBytes()
-      })
-    );
+    if (this.closed) {
+      throw new Error("Connection is closed");
+    }
+    await this.mb.send(new Uint8Array([BlockMode]));
   }
   async listenBlock(actionRegistry, authRegistry) {
-    if (this.closed) throw new Error("WebSocket is closed.");
-    return new Promise((resolve, reject) => {
-      const message = this.pendingBlocks.shift();
-      if (!message) {
-        return reject(new Error("No block messages available."));
+    console.log("WebSocketService.listenBlock called");
+    while (!this.readStopped) {
+      const msg = this.pendingBlocks.shift();
+      if (msg) {
+        return this.unpackBlockMessage(msg, actionRegistry, authRegistry);
       }
-      let codec = Codec.newReader(message, MaxInt);
-      const blkMessage = codec.unpackBytes(true);
-      const [block, c] = StatefulBlock.fromBytes(
-        blkMessage,
-        actionRegistry,
-        authRegistry
-      );
-      if (c.getError()) {
-        return reject(c.getError());
-      }
-      codec = c;
-      const resultsMessage = codec.unpackBytes(true);
-      const [results, errResults] = Result.resultsFromBytes(resultsMessage);
-      if (errResults) {
-        return reject(errResults);
-      }
-      const pricesMessage = codec.unpackFixedBytes(DimensionsLen);
-      const [prices, errMessage] = dimensionFromBytes(pricesMessage);
-      if (errMessage) {
-        return reject(errMessage);
-      }
-      if (!codec.empty()) {
-        return reject(new Error("Invalid object"));
-      }
-      resolve([block, results, prices]);
-    });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw this.err;
+  }
+  async registerTx(tx) {
+    console.log("WebSocketService.registerTx called with transaction:", tx);
+    if (this.closed) {
+      throw new Error("Connection is closed");
+    }
+    const [txBytes, err2] = tx.toBytes();
+    if (err2) {
+      throw err2;
+    }
+    const msg = new Uint8Array(1 + txBytes.length);
+    msg.set([TxMode], 0);
+    msg.set(txBytes, 1);
+    await this.mb.send(msg);
   }
   async listenTx() {
-    if (this.closed) throw new Error("WebSocket is closed.");
-    return new Promise((resolve, reject) => {
-      const message = this.pendingTxs.shift();
-      if (!message) {
-        return reject(new Error("No transaction messages available."));
+    console.log("WebSocketService.listenTx called");
+    while (!this.readStopped) {
+      const msg = this.pendingTxs.shift();
+      if (msg) {
+        return this.unpackTxMessage(msg);
       }
-      const codec = Codec.newReader(message, MaxInt);
-      const txId = codec.unpackID(true);
-      const hasError = codec.unpackBool();
-      if (hasError) {
-        const error = new Error(codec.unpackString(true));
-        return resolve([txId, error, void 0, void 0]);
-      }
-      const [result, err2] = Result.fromBytes(codec);
-      if (err2) {
-        return reject(err2);
-      }
-      resolve([txId, void 0, result, codec.getError()]);
-    });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw this.err;
   }
   async close() {
-    if (this.closed) return;
-    this.ws.close();
+    console.log("WebSocketService.close called");
+    if (!this.startedClose) {
+      this.startedClose = true;
+      await this.mb.close();
+      this.conn.close();
+      this.closed = true;
+    }
   }
-  isClosed() {
-    return this.closed;
+  unpackBlockMessage(msg, actionRegistry, authRegistry) {
+    let codec = Codec.newReader(msg, MaxInt);
+    const blkMessage = codec.unpackBytes(true);
+    const [block, c] = StatefulBlock.fromBytes(
+      blkMessage,
+      actionRegistry,
+      authRegistry
+    );
+    if (c.getError()) {
+      return Promise.reject(c.getError());
+    }
+    codec = c;
+    const resultsMessage = codec.unpackBytes(true);
+    const [results, errResults] = Result.resultsFromBytes(resultsMessage);
+    if (errResults) {
+      return Promise.reject(errResults);
+    }
+    const pricesMessage = codec.unpackFixedBytes(DimensionsLen);
+    const [prices, errMessage] = dimensionFromBytes(pricesMessage);
+    if (errMessage) {
+      return Promise.reject(errMessage);
+    }
+    if (!codec.empty()) {
+      return Promise.reject(new Error("Invalid object"));
+    }
+    return Promise.resolve([block, results, prices]);
+  }
+  async unpackTxMessage(msg) {
+    const codec = Codec.newReader(msg, MaxInt);
+    const txId = codec.unpackID(true);
+    const hasError = codec.unpackBool();
+    if (hasError) {
+      const error = new Error(codec.unpackString(true));
+      return Promise.resolve([txId, error, void 0, void 0]);
+    }
+    const [result, err2] = Result.fromBytes(codec);
+    if (err2) {
+      return Promise.reject(err2);
+    }
+    const finalError = codec.getError();
+    return Promise.resolve([txId, void 0, result, finalError]);
   }
 };
-var ws_exports = {};
-__export2(ws_exports, {
-  getWebSocketClient: () => getWebSocketClient,
-  loadWebSocketClient: () => loadWebSocketClient
-});
-init_polyfills();
-var utils_exports2 = {};
-__export2(utils_exports2, {
-  Address: () => Address,
-  Codec: () => Codec,
-  ToID: () => ToID,
-  base64ToUint8Array: () => base64ToUint8Array,
-  bufferEquals: () => bufferEquals,
-  createActionID: () => createActionID,
-  formatBalance: () => formatBalance,
-  getUnixRMilli: () => getUnixRMilli,
-  isBase64: () => isBase64,
-  isHex: () => isHex,
-  isNodeEnvironment: () => isNodeEnvironment,
-  loadHex: () => loadHex,
-  parseBalance: () => parseBalance,
-  toAssetID: () => toAssetID,
-  toHex: () => toHex
-});
-init_polyfills();
-init_polyfills();
 var HyperchainSDK = class {
   nodeConfig;
   // Hypervm services
@@ -47854,6 +47984,56 @@ var HyperchainSDK = class {
     this.authRegistry.register(ED25519_ID, ED25519.fromBytesCodec, false);
   }
 };
+var services_exports = {};
+__export2(services_exports, {
+  RpcService: () => RpcService,
+  WebSocketService: () => WebSocketService,
+  ws: () => ws_exports
+});
+init_polyfills();
+var ws_exports = {};
+__export2(ws_exports, {
+  getWebSocketClient: () => getWebSocketClient,
+  loadWebSocketClient: () => loadWebSocketClient
+});
+init_polyfills();
+init_polyfills();
+var WebSocketClient;
+async function loadWebSocketClient() {
+  if (isNodeEnvironment()) {
+    const wsModule = await Promise.resolve().then(() => __toESM2(require_browser14(), 1));
+    WebSocketClient = wsModule.default;
+  } else {
+    WebSocketClient = WebSocket;
+  }
+}
+function getWebSocketClient() {
+  if (!WebSocketClient) {
+    throw new Error(
+      "WebSocket client is not initialized. Please call loadWebSocketClient() first."
+    );
+  }
+  return WebSocketClient;
+}
+var utils_exports2 = {};
+__export2(utils_exports2, {
+  Address: () => Address,
+  Codec: () => Codec,
+  ToID: () => ToID,
+  base64ToUint8Array: () => base64ToUint8Array,
+  bufferEquals: () => bufferEquals,
+  createActionID: () => createActionID,
+  formatBalance: () => formatBalance,
+  getUnixRMilli: () => getUnixRMilli,
+  isBase64: () => isBase64,
+  isHex: () => isHex,
+  isNodeEnvironment: () => isNodeEnvironment,
+  loadHex: () => loadHex,
+  parseBalance: () => parseBalance,
+  toAssetID: () => toAssetID,
+  toHex: () => toHex
+});
+init_polyfills();
 
 // src/constants/nuklaivm.ts
 var HRP2 = "nuklai";
@@ -47913,20 +48093,23 @@ var CreateAsset = class _CreateAsset {
   }
   static fromBytes(bytes3) {
     const codec = utils_exports2.Codec.newReader(bytes3, bytes3.length);
-    const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE2);
+    const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE2, true);
     const symbol = new TextDecoder().decode(symbolBytes);
     const decimals = codec.unpackByte();
-    const metadataBytes = codec.unpackLimitedBytes(MAX_METADATA_SIZE2);
+    const metadataBytes = codec.unpackLimitedBytes(MAX_METADATA_SIZE2, true);
     const metadata = new TextDecoder().decode(metadataBytes);
     const action = new _CreateAsset(symbol, decimals, metadata);
     return [action, codec.getError()];
   }
   static fromBytesCodec(codec) {
     const codecResult = codec;
-    const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE2);
+    const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE2, true);
     const symbol = new TextDecoder().decode(symbolBytes);
     const decimals = codecResult.unpackByte();
-    const metadataBytes = codecResult.unpackLimitedBytes(MAX_METADATA_SIZE2);
+    const metadataBytes = codecResult.unpackLimitedBytes(
+      MAX_METADATA_SIZE2,
+      true
+    );
     const metadata = new TextDecoder().decode(metadataBytes);
     const action = new _CreateAsset(symbol, decimals, metadata);
     return [action, codecResult];

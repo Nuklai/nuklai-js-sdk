@@ -726,9 +726,9 @@
     lodash "^4.17.21"
     ws "^8.17.1"
 
-"@nuklai/hyperchain-sdk@https://github.com/nuklai/hyperchain-js-sdk#9ad991a":
+"@nuklai/hyperchain-sdk@https://github.com/nuklai/hyperchain-js-sdk#d8a0a79":
   version "0.1.9"
-  resolved "https://github.com/nuklai/hyperchain-js-sdk#9ad991a4fabee684f12c081ce57b8929ba59c9c9"
+  resolved "https://github.com/nuklai/hyperchain-js-sdk#d8a0a793d281e9b208c047461d04e0b5179f4cc6"
   dependencies:
     "@avalabs/avalanchejs" "^4.0.5"
     "@noble/curves" "^1.4.0"
