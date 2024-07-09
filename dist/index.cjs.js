@@ -7291,14 +7291,14 @@ var require_lodash = __commonJS({
             object = this;
             methodNames = baseFunctions(source, keys(source));
           }
-          var chain3 = !(isObject(options) && "chain" in options) || !!options.chain, isFunc = isFunction(object);
+          var chain32 = !(isObject(options) && "chain" in options) || !!options.chain, isFunc = isFunction(object);
           arrayEach(methodNames, function(methodName) {
             var func = source[methodName];
             object[methodName] = func;
             if (isFunc) {
               object.prototype[methodName] = function() {
                 var chainAll = this.__chain__;
-                if (chain3 || chainAll) {
+                if (chain32 || chainAll) {
                   var result2 = object(this.__wrapped__), actions3 = result2.__actions__ = copyArray(this.__actions__);
                   actions3.push({ "func": func, "args": arguments, "thisArg": object });
                   result2.__chain__ = chainAll;
@@ -10447,15 +10447,15 @@ var require_browser3 = __commonJS({
     init_polyfills();
     module2.exports = deprecate;
     function deprecate(fn2, msg) {
-      if (config3("noDeprecation")) {
+      if (config4("noDeprecation")) {
         return fn2;
       }
       var warned = false;
       function deprecated() {
         if (!warned) {
-          if (config3("throwDeprecation")) {
+          if (config4("throwDeprecation")) {
             throw new Error(msg);
-          } else if (config3("traceDeprecation")) {
+          } else if (config4("traceDeprecation")) {
             console.trace(msg);
           } else {
             console.warn(msg);
@@ -10466,7 +10466,7 @@ var require_browser3 = __commonJS({
       }
       return deprecated;
     }
-    function config3(name) {
+    function config4(name) {
       try {
         if (!globalThis.localStorage) return false;
       } catch (_6) {
@@ -17014,23 +17014,23 @@ var require_encrypter = __commonJS({
       return Buffer8.concat([this.cache, padBuff]);
     };
     function createCipheriv(suite, password, iv) {
-      var config3 = MODES[suite.toLowerCase()];
-      if (!config3) throw new TypeError("invalid suite type");
+      var config4 = MODES[suite.toLowerCase()];
+      if (!config4) throw new TypeError("invalid suite type");
       if (typeof password === "string") password = Buffer8.from(password);
-      if (password.length !== config3.key / 8) throw new TypeError("invalid key length " + password.length);
+      if (password.length !== config4.key / 8) throw new TypeError("invalid key length " + password.length);
       if (typeof iv === "string") iv = Buffer8.from(iv);
-      if (config3.mode !== "GCM" && iv.length !== config3.iv) throw new TypeError("invalid iv length " + iv.length);
-      if (config3.type === "stream") {
-        return new StreamCipher(config3.module, password, iv);
-      } else if (config3.type === "auth") {
-        return new AuthCipher(config3.module, password, iv);
+      if (config4.mode !== "GCM" && iv.length !== config4.iv) throw new TypeError("invalid iv length " + iv.length);
+      if (config4.type === "stream") {
+        return new StreamCipher(config4.module, password, iv);
+      } else if (config4.type === "auth") {
+        return new AuthCipher(config4.module, password, iv);
       }
-      return new Cipher(config3.module, password, iv);
+      return new Cipher(config4.module, password, iv);
     }
     function createCipher(suite, password) {
-      var config3 = MODES[suite.toLowerCase()];
-      if (!config3) throw new TypeError("invalid suite type");
-      var keys = ebtk(password, false, config3.key, config3.iv);
+      var config4 = MODES[suite.toLowerCase()];
+      if (!config4) throw new TypeError("invalid suite type");
+      var keys = ebtk(password, false, config4.key, config4.iv);
       return createCipheriv(suite, keys.key, keys.iv);
     }
     exports2.createCipheriv = createCipheriv;
@@ -17122,23 +17122,23 @@ var require_decrypter = __commonJS({
       return last.slice(0, 16 - padded);
     }
     function createDecipheriv(suite, password, iv) {
-      var config3 = MODES[suite.toLowerCase()];
-      if (!config3) throw new TypeError("invalid suite type");
+      var config4 = MODES[suite.toLowerCase()];
+      if (!config4) throw new TypeError("invalid suite type");
       if (typeof iv === "string") iv = Buffer8.from(iv);
-      if (config3.mode !== "GCM" && iv.length !== config3.iv) throw new TypeError("invalid iv length " + iv.length);
+      if (config4.mode !== "GCM" && iv.length !== config4.iv) throw new TypeError("invalid iv length " + iv.length);
       if (typeof password === "string") password = Buffer8.from(password);
-      if (password.length !== config3.key / 8) throw new TypeError("invalid key length " + password.length);
-      if (config3.type === "stream") {
-        return new StreamCipher(config3.module, password, iv, true);
-      } else if (config3.type === "auth") {
-        return new AuthCipher(config3.module, password, iv, true);
+      if (password.length !== config4.key / 8) throw new TypeError("invalid key length " + password.length);
+      if (config4.type === "stream") {
+        return new StreamCipher(config4.module, password, iv, true);
+      } else if (config4.type === "auth") {
+        return new AuthCipher(config4.module, password, iv, true);
       }
-      return new Decipher(config3.module, password, iv);
+      return new Decipher(config4.module, password, iv);
     }
     function createDecipher(suite, password) {
-      var config3 = MODES[suite.toLowerCase()];
-      if (!config3) throw new TypeError("invalid suite type");
-      var keys = ebtk(password, false, config3.key, config3.iv);
+      var config4 = MODES[suite.toLowerCase()];
+      if (!config4) throw new TypeError("invalid suite type");
+      var keys = ebtk(password, false, config4.key, config4.iv);
       return createDecipheriv(suite, keys.key, keys.iv);
     }
     exports2.createDecipher = createDecipher;
@@ -43066,8 +43066,6 @@ var Codec = class _Codec {
   }
   unpackLimitedBytes(limit, required) {
     const size = this.unpackInt(required);
-    console.log("Unpacked size:", size);
-    console.log("Limit:", limit);
     if (size > limit) {
       this.error = errOversized;
       return new Uint8Array();
@@ -46877,6 +46875,8 @@ __export2(chain_exports, {
   BaseTxSize: () => BaseTxSize,
   DimensionsLen: () => DimensionsLen,
   FeeDimensions: () => FeeDimensions,
+  Result: () => Result,
+  StatefulBlock: () => StatefulBlock,
   Transaction: () => Transaction,
   dimensionFromBytes: () => dimensionFromBytes,
   dimensionToBytes: () => dimensionToBytes,
@@ -46922,79 +46922,21 @@ var BaseTx = class _BaseTx {
 };
 init_polyfills();
 init_polyfills();
-var import_big_integer = __toESM2(require_BigInteger(), 1);
-var FeeDimensions = 5;
-var DimensionsLen = UINT64_LEN * FeeDimensions;
-function dimensionToBytes(d2) {
-  const codec = Codec.newWriter(DimensionsLen, DimensionsLen);
-  for (let i = 0; i < FeeDimensions; i++) {
-    codec.packUint64(BigInt(d2[i]));
+function cummSize(arr) {
+  let size = 0;
+  for (const item of arr) {
+    size += item.size();
   }
-  return codec.toBytes();
+  return size;
 }
-function dimensionFromBytes(bytes3) {
-  const codec = Codec.newReader(bytes3, DimensionsLen);
-  const dimension = [];
-  for (let i = 0; i < FeeDimensions; i++) {
-    dimension.push(Number(codec.unpackUint64(true)));
-  }
-  return [dimension, codec.getError()];
+function bytesLen(bytes3) {
+  return INT_LEN + bytes3.length;
 }
-function mul64(a, b2) {
-  return BigInt(a) * BigInt(b2);
+function bytesLenSize(bytesSize) {
+  return INT_LEN + bytesSize;
 }
-function add64(a, b2) {
-  return a + b2;
-}
-function mulSum(a, b2) {
-  let val = 0n;
-  for (let i = 0; i < FeeDimensions; i++) {
-    try {
-      const v2 = mul64(a[i], b2[i]);
-      val = add64(val, v2);
-    } catch (err2) {
-      return [0n, err2];
-    }
-  }
-  return [val];
-}
-function estimateUnits(genesisInfo, actions3, authFactory) {
-  let bandwidth = BaseTxSize;
-  let stateKeysMaxChunks = [];
-  let computeOp = (0, import_big_integer.default)(genesisInfo.baseUnits);
-  let readsOp = (0, import_big_integer.default)(0);
-  let allocatesOp = (0, import_big_integer.default)(0);
-  let writesOp = (0, import_big_integer.default)(0);
-  bandwidth += UINT8_LEN;
-  actions3.forEach((action) => {
-    bandwidth += BYTE_LEN + action.size();
-    const actionStateKeysMaxChunks = action.stateKeysMaxChunks();
-    stateKeysMaxChunks = [...stateKeysMaxChunks, ...actionStateKeysMaxChunks];
-    computeOp = computeOp.add(action.computeUnits());
-  });
-  bandwidth += BYTE_LEN + authFactory.bandwidth();
-  const sponsorStateKeyMaxChunks = [STORAGE_BALANCE_CHUNKS];
-  stateKeysMaxChunks = [...stateKeysMaxChunks, ...sponsorStateKeyMaxChunks];
-  computeOp = computeOp.add(authFactory.computeUnits());
-  const compute = computeOp.valueOf();
-  for (const maxChunks of stateKeysMaxChunks) {
-    readsOp = readsOp.add(genesisInfo.storageKeyReadUnits);
-    allocatesOp = allocatesOp.add(genesisInfo.storageKeyAllocateUnits);
-    writesOp = writesOp.add(genesisInfo.storageKeyWriteUnits);
-    readsOp = readsOp.add(
-      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueReadUnits))
-    );
-    allocatesOp = allocatesOp.add(
-      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueAllocateUnits))
-    );
-    writesOp = writesOp.add(
-      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueWriteUnits))
-    );
-  }
-  const reads = readsOp.valueOf();
-  const allocates = allocatesOp.valueOf();
-  const writes = writesOp.valueOf();
-  return [bandwidth, compute, reads, allocates, writes];
+function stringLen(str2) {
+  return INT_LEN + str2.length;
 }
 init_polyfills();
 var import_lodash4 = __toESM2(require_lodash(), 1);
@@ -47100,7 +47042,7 @@ var Transaction = class _Transaction {
           new Error(`Invalid auth type: ${authTypeId}`)
         ];
       }
-      const [auth2, codecAuth] = fromBytesAuth(codec);
+      const [auth3, codecAuth] = fromBytesAuth(codec);
       if (codecAuth.getError()) {
         return [
           new _Transaction(base, []),
@@ -47108,7 +47050,7 @@ var Transaction = class _Transaction {
         ];
       }
       codec = codecAuth;
-      transaction.auth = auth2;
+      transaction.auth = auth3;
     }
     transaction.bytes = bytes3;
     return [transaction, codec.getError()];
@@ -47145,12 +47087,12 @@ var Transaction = class _Transaction {
       if (!ok) {
         return [new _Transaction(base, []), codec];
       }
-      const [auth2, codecAuth] = fromBytesAuth(codec);
+      const [auth3, codecAuth] = fromBytesAuth(codec);
       if (codecAuth.getError()) {
         return [new _Transaction(base, []), codec];
       }
       codec = codecAuth;
-      transaction.auth = auth2;
+      transaction.auth = auth3;
     }
     transaction.bytes = codec.toBytes();
     return [transaction, codec];
@@ -47171,10 +47113,279 @@ var Transaction = class _Transaction {
     return size;
   }
 };
+var StatefulBlock = class _StatefulBlock {
+  prnt;
+  tmstmp;
+  hght;
+  txs;
+  stateRoot;
+  size;
+  authCounts;
+  constructor(prnt, tmstmp, hght, txs, stateRoot, size, authCounts) {
+    this.prnt = prnt;
+    this.tmstmp = tmstmp;
+    this.hght = hght;
+    this.txs = txs;
+    this.stateRoot = stateRoot;
+    this.size = size;
+    this.authCounts = authCounts;
+  }
+  getSize() {
+    return this.size;
+  }
+  async id() {
+    const [blk, err2] = this.toBytes();
+    if (err2) {
+      return EMPTY_ID;
+    }
+    return Ve.fromBytes(ToID(blk))[0];
+  }
+  toBytes() {
+    const size = ID_LEN + UINT64_LEN + UINT64_LEN + UINT64_LEN + WINDOW_ARRAY_SIZE + cummSize(this.txs) + ID_LEN + UINT64_LEN + UINT64_LEN;
+    const codec = Codec.newWriter(size, NETWORK_SIZE_LIMIT);
+    codec.packID(this.prnt);
+    codec.packInt64(this.tmstmp);
+    codec.packUint64(this.hght);
+    codec.packInt(this.txs.length);
+    for (const tx of this.txs) {
+      const [txBytes, err2] = tx.toBytes();
+      if (err2) {
+        return [new Uint8Array(), err2];
+      }
+      codec.packFixedBytes(txBytes);
+      this.authCounts.set(
+        tx.auth.getTypeId(),
+        (this.authCounts.get(tx.auth.getTypeId()) || 0) + 1
+      );
+    }
+    codec.packID(this.stateRoot);
+    const bytes3 = codec.toBytes();
+    this.size = bytes3.length;
+    return [bytes3, codec.getError()];
+  }
+  static fromBytes(bytes3, actionRegistry, authRegistry) {
+    let codec = Codec.newReader(bytes3, NETWORK_SIZE_LIMIT);
+    const prnt = codec.unpackID(false);
+    const tmstmp = codec.unpackInt64(false);
+    const hght = codec.unpackUint64(false);
+    const txCount = codec.unpackInt(false);
+    const txs = [];
+    const authCounts = /* @__PURE__ */ new Map();
+    for (let i = 0; i < txCount; i++) {
+      const [tx, c] = Transaction.fromBytesCodec(
+        codec,
+        actionRegistry,
+        authRegistry
+      );
+      if (c.getError()) {
+        return [
+          new _StatefulBlock(
+            prnt,
+            tmstmp,
+            hght,
+            txs,
+            EMPTY_ID,
+            bytes3.length,
+            authCounts
+          ),
+          c
+        ];
+      }
+      codec = c;
+      txs.push(tx);
+      if (tx.auth) {
+        authCounts.set(
+          tx.auth.getTypeId(),
+          (authCounts.get(tx.auth.getTypeId()) || 0) + 1
+        );
+      }
+    }
+    const stateRoot = codec.unpackID(false);
+    return [
+      new _StatefulBlock(
+        prnt,
+        tmstmp,
+        hght,
+        txs,
+        stateRoot,
+        bytes3.length,
+        authCounts
+      ),
+      codec
+    ];
+  }
+};
+init_polyfills();
+init_polyfills();
+var import_big_integer = __toESM2(require_BigInteger(), 1);
+var FeeDimensions = 5;
+var DimensionsLen = UINT64_LEN * FeeDimensions;
+function dimensionToBytes(d2) {
+  const codec = Codec.newWriter(DimensionsLen, DimensionsLen);
+  for (let i = 0; i < FeeDimensions; i++) {
+    codec.packUint64(BigInt(d2[i]));
+  }
+  return codec.toBytes();
+}
+function dimensionFromBytes(bytes3) {
+  const codec = Codec.newReader(bytes3, DimensionsLen);
+  const dimension = [];
+  for (let i = 0; i < FeeDimensions; i++) {
+    dimension.push(Number(codec.unpackUint64(true)));
+  }
+  return [dimension, codec.getError()];
+}
+function mul64(a, b2) {
+  return BigInt(a) * BigInt(b2);
+}
+function add64(a, b2) {
+  return a + b2;
+}
+function mulSum(a, b2) {
+  let val = 0n;
+  for (let i = 0; i < FeeDimensions; i++) {
+    try {
+      const v2 = mul64(a[i], b2[i]);
+      val = add64(val, v2);
+    } catch (err2) {
+      return [0n, err2];
+    }
+  }
+  return [val];
+}
+function estimateUnits(genesisInfo, actions3, authFactory) {
+  let bandwidth = BaseTxSize;
+  let stateKeysMaxChunks = [];
+  let computeOp = (0, import_big_integer.default)(genesisInfo.baseUnits);
+  let readsOp = (0, import_big_integer.default)(0);
+  let allocatesOp = (0, import_big_integer.default)(0);
+  let writesOp = (0, import_big_integer.default)(0);
+  bandwidth += UINT8_LEN;
+  actions3.forEach((action) => {
+    bandwidth += BYTE_LEN + action.size();
+    const actionStateKeysMaxChunks = action.stateKeysMaxChunks();
+    stateKeysMaxChunks = [...stateKeysMaxChunks, ...actionStateKeysMaxChunks];
+    computeOp = computeOp.add(action.computeUnits());
+  });
+  bandwidth += BYTE_LEN + authFactory.bandwidth();
+  const sponsorStateKeyMaxChunks = [STORAGE_BALANCE_CHUNKS];
+  stateKeysMaxChunks = [...stateKeysMaxChunks, ...sponsorStateKeyMaxChunks];
+  computeOp = computeOp.add(authFactory.computeUnits());
+  const compute = computeOp.valueOf();
+  for (const maxChunks of stateKeysMaxChunks) {
+    readsOp = readsOp.add(genesisInfo.storageKeyReadUnits);
+    allocatesOp = allocatesOp.add(genesisInfo.storageKeyAllocateUnits);
+    writesOp = writesOp.add(genesisInfo.storageKeyWriteUnits);
+    readsOp = readsOp.add(
+      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueReadUnits))
+    );
+    allocatesOp = allocatesOp.add(
+      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueAllocateUnits))
+    );
+    writesOp = writesOp.add(
+      (0, import_big_integer.default)(maxChunks).multiply((0, import_big_integer.default)(genesisInfo.storageValueWriteUnits))
+    );
+  }
+  const reads = readsOp.valueOf();
+  const allocates = allocatesOp.valueOf();
+  const writes = writesOp.valueOf();
+  return [bandwidth, compute, reads, allocates, writes];
+}
+init_polyfills();
+var Result = class _Result {
+  success;
+  error;
+  outputs;
+  units;
+  fee;
+  constructor(success, error, outputs, units, fee) {
+    this.success = success;
+    this.error = error;
+    this.outputs = outputs;
+    this.units = units;
+    this.fee = fee;
+  }
+  size() {
+    let outputSize = UINT8_LEN;
+    for (const action of this.outputs) {
+      outputSize += UINT8_LEN;
+      for (const output3 of action) {
+        outputSize += bytesLen(output3);
+      }
+    }
+    return BOOL_LEN + bytesLen(this.error) + outputSize + DimensionsLen + UINT64_LEN;
+  }
+  toBytes(codec) {
+    const codecResult = codec;
+    codecResult.packBool(this.success);
+    codecResult.packBytes(this.error);
+    codecResult.packByte(this.outputs.length);
+    for (const outputs of this.outputs) {
+      codecResult.packByte(outputs.length);
+      for (const output3 of outputs) {
+        codecResult.packBytes(output3);
+      }
+    }
+    codecResult.packFixedBytes(dimensionToBytes(this.units));
+    codecResult.packUint64(this.fee);
+    return codecResult;
+  }
+  static resultsToBytes(src) {
+    const size = INT_LEN + cummSize(src);
+    let codec = Codec.newWriter(size, MaxInt);
+    codec.packInt(src.length);
+    for (const result of src) {
+      codec = result.toBytes(codec);
+    }
+    return [codec.toBytes(), codec.getError()];
+  }
+  static fromBytes(codec) {
+    const success = codec.unpackBool();
+    const error = codec.unpackLimitedBytes(MaxInt, false);
+    const numActions = codec.unpackByte();
+    const outputs = [];
+    for (let i = 0; i < numActions; i++) {
+      const numOutputs = codec.unpackByte();
+      const actionOutputs = [];
+      for (let j2 = 0; j2 < numOutputs; j2++) {
+        const output3 = codec.unpackLimitedBytes(MaxInt, false);
+        actionOutputs.push(output3);
+      }
+      outputs.push(actionOutputs);
+    }
+    const consumedRaw = codec.unpackFixedBytes(DimensionsLen);
+    const [units, err2] = dimensionFromBytes(consumedRaw);
+    if (err2) {
+      return [new _Result(false, new Uint8Array(), [], [], 0n), err2];
+    }
+    const fee = codec.unpackUint64(true);
+    return [new _Result(success, error, outputs, units, fee), codec.getError()];
+  }
+  static resultsFromBytes(bytes3) {
+    const codec = Codec.newReader(bytes3, MaxInt);
+    const items = codec.unpackInt(false);
+    const results = [];
+    for (let i = 0; i < items; i++) {
+      const [resultBytes, err2] = _Result.fromBytes(codec);
+      if (err2) {
+        return [[], err2];
+      }
+      results.push(resultBytes);
+    }
+    if (!codec.empty()) {
+      throw new Error("Invalid object");
+    }
+    return [results, codec.getError()];
+  }
+};
 var codec_exports = {};
 __export2(codec_exports, {
   Codec: () => Codec,
-  TypeParser: () => TypeParser
+  TypeParser: () => TypeParser,
+  bytesLen: () => bytesLen,
+  bytesLenSize: () => bytesLenSize,
+  cummSize: () => cummSize,
+  stringLen: () => stringLen
 });
 init_polyfills();
 init_polyfills();
@@ -47362,17 +47573,6 @@ __export2(pubsub_exports, {
 init_polyfills();
 init_polyfills();
 init_polyfills();
-function cummSize(arr) {
-  let size = 0;
-  for (const item of arr) {
-    size += item.size();
-  }
-  return size;
-}
-function bytesLen(bytes3) {
-  return INT_LEN + bytes3.length;
-}
-init_polyfills();
 var Timer = class {
   callback;
   timeoutId = null;
@@ -47431,7 +47631,7 @@ var MessageBuffer = class {
     await this.withLock(() => {
       const msgLength = msg.length;
       if (msgLength > this.maxSize) {
-        throw new Error("Message too large");
+        return new Error("Message too large");
       }
       if (this.pendingSize + msgLength > this.maxSize) {
         this.clearPending();
@@ -47442,6 +47642,7 @@ var MessageBuffer = class {
         this.timer.setTimeoutIn(this.timeout);
       }
     });
+    return void 0;
   }
   async clearPending() {
     await this.withLock(() => {
@@ -47503,13 +47704,13 @@ function parseBatchMessage(maxSize, msg) {
 init_polyfills();
 init_polyfills();
 var RpcService = class extends Api {
-  constructor(config3) {
+  constructor(config4) {
     super(
-      config3.baseApiUrl,
-      `/ext/bc/${config3.blockchainId}/${JSONRPC_ENDPOINT}`,
+      config4.baseApiUrl,
+      `/ext/bc/${config4.blockchainId}/${JSONRPC_ENDPOINT}`,
       COREAPI_METHOD_PREFIX
     );
-    this.config = config3;
+    this.config = config4;
   }
   ping() {
     return this.callRpc("ping");
@@ -47588,196 +47789,6 @@ var RpcService = class extends Api {
   }
 };
 init_polyfills();
-init_polyfills();
-var StatefulBlock = class _StatefulBlock {
-  prnt;
-  tmstmp;
-  hght;
-  txs;
-  stateRoot;
-  size;
-  authCounts;
-  constructor(prnt, tmstmp, hght, txs, stateRoot, size, authCounts) {
-    this.prnt = prnt;
-    this.tmstmp = tmstmp;
-    this.hght = hght;
-    this.txs = txs;
-    this.stateRoot = stateRoot;
-    this.size = size;
-    this.authCounts = authCounts;
-  }
-  getSize() {
-    return this.size;
-  }
-  async id() {
-    const [blk, err2] = this.toBytes();
-    if (err2) {
-      return EMPTY_ID;
-    }
-    return Ve.fromBytes(ToID(blk))[0];
-  }
-  toBytes() {
-    const size = ID_LEN + UINT64_LEN + UINT64_LEN + UINT64_LEN + WINDOW_ARRAY_SIZE + cummSize(this.txs) + ID_LEN + UINT64_LEN + UINT64_LEN;
-    const codec = Codec.newWriter(size, NETWORK_SIZE_LIMIT);
-    codec.packID(this.prnt);
-    codec.packInt64(this.tmstmp);
-    codec.packUint64(this.hght);
-    codec.packInt(this.txs.length);
-    for (const tx of this.txs) {
-      const [txBytes, err2] = tx.toBytes();
-      if (err2) {
-        return [new Uint8Array(), err2];
-      }
-      codec.packFixedBytes(txBytes);
-      this.authCounts.set(
-        tx.auth.getTypeId(),
-        (this.authCounts.get(tx.auth.getTypeId()) || 0) + 1
-      );
-    }
-    codec.packID(this.stateRoot);
-    const bytes3 = codec.toBytes();
-    this.size = bytes3.length;
-    return [bytes3, codec.getError()];
-  }
-  static fromBytes(bytes3, actionRegistry, authRegistry) {
-    let codec = Codec.newReader(bytes3, NETWORK_SIZE_LIMIT);
-    const prnt = codec.unpackID(false);
-    const tmstmp = codec.unpackInt64(false);
-    const hght = codec.unpackUint64(false);
-    const txCount = codec.unpackInt(false);
-    const txs = [];
-    const authCounts = /* @__PURE__ */ new Map();
-    for (let i = 0; i < txCount; i++) {
-      const [tx, c] = Transaction.fromBytesCodec(
-        codec,
-        actionRegistry,
-        authRegistry
-      );
-      if (c.getError()) {
-        return [
-          new _StatefulBlock(
-            prnt,
-            tmstmp,
-            hght,
-            txs,
-            EMPTY_ID,
-            bytes3.length,
-            authCounts
-          ),
-          c
-        ];
-      }
-      codec = c;
-      txs.push(tx);
-      if (tx.auth) {
-        authCounts.set(
-          tx.auth.getTypeId(),
-          (authCounts.get(tx.auth.getTypeId()) || 0) + 1
-        );
-      }
-    }
-    const stateRoot = codec.unpackID(false);
-    return [
-      new _StatefulBlock(
-        prnt,
-        tmstmp,
-        hght,
-        txs,
-        stateRoot,
-        bytes3.length,
-        authCounts
-      ),
-      codec
-    ];
-  }
-};
-init_polyfills();
-var Result = class _Result {
-  success;
-  error;
-  outputs;
-  units;
-  fee;
-  constructor(success, error, outputs, units, fee) {
-    this.success = success;
-    this.error = error;
-    this.outputs = outputs;
-    this.units = units;
-    this.fee = fee;
-  }
-  size() {
-    let outputSize = UINT8_LEN;
-    for (const action of this.outputs) {
-      outputSize += UINT8_LEN;
-      for (const output3 of action) {
-        outputSize += bytesLen(output3);
-      }
-    }
-    return BOOL_LEN + bytesLen(this.error) + outputSize + DimensionsLen + UINT64_LEN;
-  }
-  toBytes(codec) {
-    const codecResult = codec;
-    codecResult.packBool(this.success);
-    codecResult.packBytes(this.error);
-    codecResult.packByte(this.outputs.length);
-    for (const outputs of this.outputs) {
-      codecResult.packByte(outputs.length);
-      for (const output3 of outputs) {
-        codecResult.packBytes(output3);
-      }
-    }
-    codecResult.packFixedBytes(dimensionToBytes(this.units));
-    codecResult.packUint64(this.fee);
-    return codecResult;
-  }
-  static resultsToBytes(src) {
-    const size = INT_LEN + cummSize(src);
-    let codec = Codec.newWriter(size, MaxInt);
-    codec.packInt(src.length);
-    for (const result of src) {
-      codec = result.toBytes(codec);
-    }
-    return [codec.toBytes(), codec.getError()];
-  }
-  static fromBytes(codec) {
-    const success = codec.unpackBool();
-    const error = codec.unpackLimitedBytes(MaxInt, false);
-    const numActions = codec.unpackByte();
-    const outputs = [];
-    for (let i = 0; i < numActions; i++) {
-      const numOutputs = codec.unpackByte();
-      const actionOutputs = [];
-      for (let j2 = 0; j2 < numOutputs; j2++) {
-        const output3 = codec.unpackLimitedBytes(MaxInt, false);
-        actionOutputs.push(output3);
-      }
-      outputs.push(actionOutputs);
-    }
-    const consumedRaw = codec.unpackFixedBytes(DimensionsLen);
-    const [units, err2] = dimensionFromBytes(consumedRaw);
-    if (err2) {
-      return [new _Result(false, new Uint8Array(), [], [], 0n), err2];
-    }
-    const fee = codec.unpackUint64(true);
-    return [new _Result(success, error, outputs, units, fee), codec.getError()];
-  }
-  static resultsFromBytes(bytes3) {
-    const codec = Codec.newReader(bytes3, MaxInt);
-    const items = codec.unpackInt(false);
-    const results = [];
-    for (let i = 0; i < items; i++) {
-      const [resultBytes, err2] = _Result.fromBytes(codec);
-      if (err2) {
-        return [[], err2];
-      }
-      results.push(resultBytes);
-    }
-    if (!codec.empty()) {
-      throw new Error("Invalid object");
-    }
-    return [results, codec.getError()];
-  }
-};
 var BlockMode = 0;
 var TxMode = 1;
 var WebSocketService = class {
@@ -47790,9 +47801,9 @@ var WebSocketService = class {
   startedClose = false;
   closed = false;
   err = null;
-  constructor(config3) {
+  constructor(config4) {
     this.uri = this.getWebSocketUri(
-      config3.baseApiUrl + `/ext/bc/${config3.blockchainId}/${WEBSOCKET_ENDPOINT}`
+      config4.baseApiUrl + `/ext/bc/${config4.blockchainId}/${WEBSOCKET_ENDPOINT}`
     );
     this.mb = new MessageBuffer(NETWORK_SIZE_LIMIT, 1e3 * 10);
   }
@@ -47866,9 +47877,9 @@ var WebSocketService = class {
   }
   async registerBlocks() {
     if (this.closed) {
-      throw new Error("Connection is closed");
+      return new Error("Connection is closed");
     }
-    await this.mb.send(new Uint8Array([BlockMode]));
+    return await this.mb.send(new Uint8Array([BlockMode]));
   }
   async listenBlock(actionRegistry, authRegistry) {
     console.log("WebSocketService.listenBlock called");
@@ -47877,23 +47888,22 @@ var WebSocketService = class {
       if (msg) {
         return this.unpackBlockMessage(msg, actionRegistry, authRegistry);
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw this.err;
   }
   async registerTx(tx) {
     console.log("WebSocketService.registerTx called with transaction:", tx);
     if (this.closed) {
-      throw new Error("Connection is closed");
+      return new Error("Connection is closed");
     }
     const [txBytes, err2] = tx.toBytes();
     if (err2) {
-      throw err2;
+      return err2;
     }
     const msg = new Uint8Array(1 + txBytes.length);
     msg.set([TxMode], 0);
     msg.set(txBytes, 1);
-    await this.mb.send(msg);
+    return await this.mb.send(msg);
   }
   async listenTx() {
     console.log("WebSocketService.listenTx called");
@@ -47902,7 +47912,6 @@ var WebSocketService = class {
       if (msg) {
         return this.unpackTxMessage(msg);
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw this.err;
   }
@@ -47940,22 +47949,22 @@ var WebSocketService = class {
     if (!codec.empty()) {
       return Promise.reject(new Error("Invalid object"));
     }
-    return Promise.resolve([block, results, prices]);
+    return Promise.resolve({ block, results, prices, err: void 0 });
   }
   async unpackTxMessage(msg) {
     const codec = Codec.newReader(msg, MaxInt);
     const txId = codec.unpackID(true);
     const hasError = codec.unpackBool();
     if (hasError) {
-      const error = new Error(codec.unpackString(true));
-      return Promise.resolve([txId, error, void 0, void 0]);
+      const dErr = new Error(codec.unpackString(true));
+      return Promise.resolve({ txId, dErr, result: void 0, err: void 0 });
     }
     const [result, err2] = Result.fromBytes(codec);
     if (err2) {
       return Promise.reject(err2);
     }
     const finalError = codec.getError();
-    return Promise.resolve([txId, void 0, result, finalError]);
+    return Promise.resolve({ txId, dErr: void 0, result, err: finalError });
   }
 };
 var HyperchainSDK = class {
@@ -48221,14 +48230,10 @@ var NUKLAI_VMAPI_METHOD_PREFIX = "nuklaivm";
 var services_exports2 = {};
 __export(services_exports2, {
   RpcService: () => RpcService2,
-  rpc: () => rpc_exports
+  WebSocketService: () => WebSocketService2
 });
 
 // src/services/rpc.ts
-var rpc_exports = {};
-__export(rpc_exports, {
-  RpcService: () => RpcService2
-});
 var RpcService2 = class extends common_exports.Api {
   constructor(configNuklai) {
     super(
@@ -48304,8 +48309,8 @@ var RpcService2 = class extends common_exports.Api {
   }
   async sendTransferTransaction(to2, asset, amount, memo, authFactory, hyperApiService, actionRegistry, authRegistry) {
     try {
-      const auth2 = authFactory.sign(new Uint8Array(0));
-      const fromAddress = auth2.address();
+      const auth3 = authFactory.sign(new Uint8Array(0));
+      const fromAddress = auth3.address();
       const decimals = DECIMALS2;
       const amountInUnits = utils_exports2.parseBalance(amount, decimals);
       const balanceResponse = await this.getBalance({
@@ -48397,10 +48402,74 @@ var RpcService2 = class extends common_exports.Api {
   }
 };
 
+// src/services/websocket.ts
+var WebSocketService2 = class extends services_exports.WebSocketService {
+  rpcService;
+  constructor(config4) {
+    super(config4);
+    this.rpcService = new RpcService2(config4);
+  }
+  async sendTransferTransactionAndWait(to2, asset, amount, memo, authFactory, hyperApiService, actionRegistry, authRegistry) {
+    try {
+      const auth3 = authFactory.sign(new Uint8Array(0));
+      const fromAddress = auth3.address();
+      const decimals = DECIMALS2;
+      const amountInUnits = utils_exports2.parseBalance(amount, decimals);
+      const balanceResponse = await this.rpcService.getBalance({
+        address: fromAddress.toString(),
+        asset
+      });
+      if (utils_exports2.parseBalance(balanceResponse.amount, decimals) < amountInUnits) {
+        throw new Error("Insufficient balance");
+      }
+      const transfer = new Transfer2(to2, asset, amountInUnits, memo);
+      const genesisInfo = await this.rpcService.getGenesisInfo();
+      let { txSigned, err: err2 } = await hyperApiService.generateTransaction(
+        genesisInfo.genesis,
+        actionRegistry,
+        authRegistry,
+        [transfer],
+        authFactory
+      );
+      if (err2) {
+        throw err2;
+      }
+      err2 = await this.registerTx(txSigned);
+      if (err2) {
+        throw err2;
+      }
+      let res;
+      let resultTxID = null;
+      while (!resultTxID) {
+        const { txId, dErr, result, err: err3 } = await this.listenTx();
+        if (dErr) {
+          throw dErr;
+        }
+        if (err3) {
+          throw err3;
+        }
+        if (txId.toString() === txSigned.id().toString()) {
+          resultTxID = txId;
+          res = result;
+          break;
+        }
+      }
+      return txSigned.id().toString();
+    } catch (error) {
+      console.error(
+        'Failed to create and submit transaction for "Transfer" type',
+        error
+      );
+      throw error;
+    }
+  }
+};
+
 // src/sdk.ts
 var NuklaiSDK = class extends HyperchainSDK {
-  // Nuklaivm service
+  // Nuklaivm services
   rpcServiceNuklai;
+  wsServiceNuklai;
   constructor(nodeConfig) {
     const defaultSDKConfig = {
       baseApiUrl: MAINNET_PUBLIC_API_BASE_URL2,
@@ -48408,6 +48477,7 @@ var NuklaiSDK = class extends HyperchainSDK {
     };
     super({ ...defaultSDKConfig, ...nodeConfig });
     this.rpcServiceNuklai = new RpcService2(this.nodeConfig);
+    this.wsServiceNuklai = new WebSocketService2(this.nodeConfig);
     this.actionRegistry.register(
       CREATEASSET_ID2,
       CreateAsset.fromBytesCodec,

@@ -1,3 +1,3 @@
 export * from './rpc';
-export * as rpc from './rpc';
+export * from './websocket';
 //# sourceMappingURL=index.js.map
