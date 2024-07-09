@@ -50127,7 +50127,7 @@ var WebSocketService = class {
     );
     this.mb = new MessageBuffer(NETWORK_SIZE_LIMIT, 1e3 * 10);
   }
-  connect() {
+  async connect() {
     console.log("WebSocketService.connect called, connecting to:", this.uri);
     this.conn = new WebSocket(this.uri);
     this.conn.onopen = () => {
@@ -50146,7 +50146,7 @@ var WebSocketService = class {
   }
   getWebSocketUri(apiUrl) {
     let uri = apiUrl.replace(/http:\/\//g, "ws://");
-    uri = apiUrl.replace(/https:\/\//g, "wss://");
+    uri = uri.replace(/https:\/\//g, "wss://");
     if (!uri.startsWith("ws")) {
       uri = "ws://" + uri;
     }
