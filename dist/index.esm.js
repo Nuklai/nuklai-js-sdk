@@ -50785,10 +50785,9 @@ var WebSocketService2 = class extends services_exports.WebSocketService {
       if (err2) {
         throw err2;
       }
-      let res;
       let resultTxID = null;
       while (!resultTxID) {
-        const { txId, dErr, result, err: err3 } = await this.listenTx();
+        const { txId, dErr, err: err3 } = await this.listenTx();
         if (dErr) {
           throw dErr;
         }
@@ -50797,7 +50796,6 @@ var WebSocketService2 = class extends services_exports.WebSocketService {
         }
         if (txId.toString() === txSigned.id().toString()) {
           resultTxID = txId;
-          res = result;
           break;
         }
       }

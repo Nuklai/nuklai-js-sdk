@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { Id } from '@avalabs/avalanchejs'
 import { auth, chain, config, services, utils } from '@nuklai/hyperchain-sdk'
 import { Transfer } from 'actions/transfer'
@@ -62,11 +65,10 @@ export class WebSocketService extends services.WebSocketService {
         throw err
       }
 
-      let res: chain.Result
       let resultTxID: Id | null = null
 
       while (!resultTxID) {
-        const { txId, dErr, result, err } = await this.listenTx()
+        const { txId, dErr, err } = await this.listenTx()
         if (dErr) {
           throw dErr
         }
@@ -75,7 +77,6 @@ export class WebSocketService extends services.WebSocketService {
         }
         if (txId.toString() === txSigned.id().toString()) {
           resultTxID = txId
-          res = result as chain.Result
           break
         }
       }

@@ -1,3 +1,5 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
 import { services, utils } from '@nuklai/hyperchain-sdk';
 import { Transfer } from 'actions/transfer';
 import { DECIMALS } from 'constants/nuklaivm';
@@ -33,10 +35,9 @@ export class WebSocketService extends services.WebSocketService {
             if (err) {
                 throw err;
             }
-            let res;
             let resultTxID = null;
             while (!resultTxID) {
-                const { txId, dErr, result, err } = await this.listenTx();
+                const { txId, dErr, err } = await this.listenTx();
                 if (dErr) {
                     throw dErr;
                 }
@@ -45,7 +46,6 @@ export class WebSocketService extends services.WebSocketService {
                 }
                 if (txId.toString() === txSigned.id().toString()) {
                     resultTxID = txId;
-                    res = result;
                     break;
                 }
             }
