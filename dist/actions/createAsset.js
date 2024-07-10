@@ -33,6 +33,16 @@ export class CreateAsset {
     stateKeysMaxChunks() {
         return [STORAGE_ASSET_CHUNKS];
     }
+    toJSON() {
+        return {
+            symbol: new TextDecoder().decode(this.symbol),
+            decimals: this.decimals,
+            metadata: new TextDecoder().decode(this.metadata)
+        };
+    }
+    toString() {
+        return JSON.stringify(this.toJSON());
+    }
     toBytes() {
         const codec = utils.Codec.newWriter(this.size(), this.size());
         codec.packBytes(this.symbol);

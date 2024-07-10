@@ -43192,6 +43192,17 @@ var Transfer = class _Transfer {
   stateKeysMaxChunks() {
     return [STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS];
   }
+  toJSON() {
+    return {
+      to: this.to.toString(),
+      asset: this.asset.toString(),
+      value: this.value.toString(),
+      memo: new TextDecoder().decode(this.memo)
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
   toBytes() {
     const codec = Codec.newWriter(this.size(), this.size());
     codec.packAddress(this.to);
@@ -46174,6 +46185,18 @@ var BLS = class _BLS {
   size() {
     return BlsAuthSize;
   }
+  toJSON() {
+    return {
+      signer: _BLS.publicKeyToHex(this.signer),
+      signature: import_buffer3.Buffer.from(ki.signatureToBytes(this.signature)).toString(
+        "hex"
+      ),
+      address: this.address().toString()
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
   toBytes() {
     const size = this.size();
     const codec = Codec.newWriter(size, size);
@@ -46751,6 +46774,16 @@ var ED25519 = class _ED25519 {
   size() {
     return Ed25519AuthSize;
   }
+  toJSON() {
+    return {
+      signer: _ED25519.publicKeyToHex(this.signer),
+      signature: import_buffer5.Buffer.from(this.signature).toString("hex"),
+      addr: this.address().toString()
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
   toBytes() {
     const size = this.size();
     const codec = Codec.newWriter(size, size);
@@ -46898,6 +46931,16 @@ var BaseTx = class _BaseTx {
   size() {
     return BaseTxSize;
   }
+  toJSON() {
+    return {
+      timestamp: this.timestamp.toString(),
+      chainId: this.chainId.toString(),
+      maxFee: this.maxFee.toString()
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
   toBytes() {
     const codec = Codec.newWriter(this.size(), this.size());
     codec.packInt64(this.timestamp);
@@ -46971,6 +47014,16 @@ var Transaction = class _Transaction {
       return [this, err2];
     }
     return _Transaction.fromBytes(this.bytes, actionRegistry, authRegistry);
+  }
+  toJSON() {
+    return {
+      base: this.base.toJSON(),
+      actions: this.actions.map((action) => action.toJSON()),
+      auth: this.auth ? this.auth.toJSON() : null
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
   }
   toBytes() {
     if (this.bytes.length > 0) {
@@ -47140,6 +47193,20 @@ var StatefulBlock = class _StatefulBlock {
     }
     return Ve.fromBytes(ToID(blk))[0];
   }
+  toJSON() {
+    return {
+      prnt: this.prnt.toString(),
+      tmstmp: this.tmstmp.toString(),
+      hght: this.hght.toString(),
+      txs: this.txs.map((tx) => tx.toJSON()),
+      stateRoot: this.stateRoot.toString(),
+      size: this.size,
+      authCounts: Array.from(this.authCounts.entries())
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON(), null, 2);
+  }
   toBytes() {
     const size = ID_LEN + UINT64_LEN + UINT64_LEN + UINT64_LEN + WINDOW_ARRAY_SIZE + cummSize(this.txs) + ID_LEN + UINT64_LEN + UINT64_LEN;
     const codec = Codec.newWriter(size, NETWORK_SIZE_LIMIT);
@@ -47164,13 +47231,22 @@ var StatefulBlock = class _StatefulBlock {
     return [bytes3, codec.getError()];
   }
   static fromBytes(bytes3, actionRegistry, authRegistry) {
+    const block = new _StatefulBlock(
+      EMPTY_ID,
+      BigInt(0),
+      BigInt(0),
+      [],
+      EMPTY_ID,
+      0,
+      /* @__PURE__ */ new Map()
+    );
     let codec = Codec.newReader(bytes3, NETWORK_SIZE_LIMIT);
-    const prnt = codec.unpackID(false);
-    const tmstmp = codec.unpackInt64(false);
-    const hght = codec.unpackUint64(false);
+    block.size = bytes3.length;
+    block.prnt = codec.unpackID(false);
+    block.tmstmp = codec.unpackInt64(false);
+    block.hght = codec.unpackUint64(false);
     const txCount = codec.unpackInt(false);
-    const txs = [];
-    const authCounts = /* @__PURE__ */ new Map();
+    block.authCounts = /* @__PURE__ */ new Map();
     for (let i = 0; i < txCount; i++) {
       const [tx, c] = Transaction.fromBytesCodec(
         codec,
@@ -47178,41 +47254,19 @@ var StatefulBlock = class _StatefulBlock {
         authRegistry
       );
       if (c.getError()) {
-        return [
-          new _StatefulBlock(
-            prnt,
-            tmstmp,
-            hght,
-            txs,
-            EMPTY_ID,
-            bytes3.length,
-            authCounts
-          ),
-          c
-        ];
+        return [block, c.getError()];
       }
       codec = c;
-      txs.push(tx);
+      block.txs.push(tx);
       if (tx.auth) {
-        authCounts.set(
+        block.authCounts.set(
           tx.auth.getTypeId(),
-          (authCounts.get(tx.auth.getTypeId()) || 0) + 1
+          (block.authCounts.get(tx.auth.getTypeId()) || 0) + 1
         );
       }
     }
-    const stateRoot = codec.unpackID(false);
-    return [
-      new _StatefulBlock(
-        prnt,
-        tmstmp,
-        hght,
-        txs,
-        stateRoot,
-        bytes3.length,
-        authCounts
-      ),
-      codec
-    ];
+    block.stateRoot = codec.unpackID(false);
+    return [block, codec.getError()];
   }
 };
 init_polyfills();
@@ -47315,6 +47369,26 @@ var Result = class _Result {
     }
     return BOOL_LEN + bytesLen(this.error) + outputSize + DimensionsLen + UINT64_LEN;
   }
+  toJSON() {
+    return {
+      success: this.success,
+      error: new TextDecoder().decode(this.error),
+      outputs: this.outputs.map(
+        (action) => action.map((output3) => Array.from(output3))
+      ),
+      units: {
+        Bandwidth: this.units[0],
+        Compute: this.units[1],
+        "Storage (Read)": this.units[2],
+        "Storage (Allocate)": this.units[3],
+        "Storage (Write)": this.units[4]
+      },
+      fee: this.fee.toString()
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON(), null, 2);
+  }
   toBytes(codec) {
     const codecResult = codec;
     codecResult.packBool(this.success);
@@ -47366,11 +47440,11 @@ var Result = class _Result {
     const items = codec.unpackInt(false);
     const results = [];
     for (let i = 0; i < items; i++) {
-      const [resultBytes, err2] = _Result.fromBytes(codec);
+      const [result, err2] = _Result.fromBytes(codec);
       if (err2) {
         return [[], err2];
       }
-      results.push(resultBytes);
+      results.push(result);
     }
     if (!codec.empty()) {
       throw new Error("Invalid object");
@@ -47809,10 +47883,10 @@ var WebSocketService = class {
     this.mb = new MessageBuffer(NETWORK_SIZE_LIMIT, 1e3 * 10);
   }
   async connect() {
-    console.log("WebSocketService.connect called, connecting to:", this.uri);
+    console.debug("WebSocketService.connect called, connecting to:", this.uri);
     this.conn = new WebSocket(this.uri);
     this.conn.onopen = () => {
-      console.log("WebSocket connection opened");
+      console.debug("WebSocket connection opened");
       this.readLoop();
       this.writeLoop();
     };
@@ -47821,7 +47895,7 @@ var WebSocketService = class {
       this.close();
     };
     this.conn.onclose = () => {
-      console.log("WebSocket connection closed");
+      console.debug("WebSocket connection closed");
       this.close();
     };
   }
@@ -47890,10 +47964,12 @@ var WebSocketService = class {
     if (this.closed) {
       return new Error("Connection is closed");
     }
-    return await this.mb.send(new Uint8Array([BlockMode]));
+    const msg = new Uint8Array(1);
+    msg.set([BlockMode], 0);
+    return await this.mb.send(msg);
   }
   async listenBlock(actionRegistry, authRegistry) {
-    console.log("WebSocketService.listenBlock called");
+    console.debug("WebSocketService.listenBlock called");
     while (!this.readStopped) {
       const msg = this.pendingBlocks.shift();
       if (msg) {
@@ -47904,7 +47980,7 @@ var WebSocketService = class {
     throw this.err;
   }
   async registerTx(tx) {
-    console.log("WebSocketService.registerTx called with transaction:", tx);
+    console.debug("WebSocketService.registerTx called with transaction:", tx);
     if (this.closed) {
       return new Error("Connection is closed");
     }
@@ -47918,7 +47994,7 @@ var WebSocketService = class {
     return await this.mb.send(msg);
   }
   async listenTx() {
-    console.log("WebSocketService.listenTx called");
+    console.debug("WebSocketService.listenTx called");
     while (!this.readStopped) {
       const msg = this.pendingTxs.shift();
       if (msg) {
@@ -47929,7 +48005,7 @@ var WebSocketService = class {
     throw this.err;
   }
   async close() {
-    console.log("WebSocketService.close called");
+    console.debug("WebSocketService.close called");
     if (!this.startedClose) {
       this.startedClose = true;
       await this.mb.close();
@@ -47943,15 +48019,14 @@ var WebSocketService = class {
   unpackBlockMessage(msg, actionRegistry, authRegistry) {
     let codec = Codec.newReader(msg, MaxInt);
     const blkMessage = codec.unpackBytes(true);
-    const [block, c] = StatefulBlock.fromBytes(
+    const [block, err2] = StatefulBlock.fromBytes(
       blkMessage,
       actionRegistry,
       authRegistry
     );
-    if (c.getError()) {
-      return Promise.reject(c.getError());
+    if (err2) {
+      return Promise.reject(err2);
     }
-    codec = c;
     const resultsMessage = codec.unpackBytes(true);
     const [results, errResults] = Result.resultsFromBytes(resultsMessage);
     if (errResults) {
@@ -48108,6 +48183,16 @@ var CreateAsset = class _CreateAsset {
   stateKeysMaxChunks() {
     return [STORAGE_ASSET_CHUNKS2];
   }
+  toJSON() {
+    return {
+      symbol: new TextDecoder().decode(this.symbol),
+      decimals: this.decimals,
+      metadata: new TextDecoder().decode(this.metadata)
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
   toBytes() {
     const codec = utils_exports2.Codec.newWriter(this.size(), this.size());
     codec.packBytes(this.symbol);
@@ -48163,6 +48248,16 @@ var MintAsset = class _MintAsset {
   }
   stateKeysMaxChunks() {
     return [STORAGE_ASSET_CHUNKS2, STORAGE_BALANCE_CHUNKS2];
+  }
+  toJSON() {
+    return {
+      to: this.to.toString(),
+      asset: this.asset.toString(),
+      value: this.value.toString()
+    };
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
   }
   toBytes() {
     const codec = utils_exports2.Codec.newWriter(this.size(), this.size());

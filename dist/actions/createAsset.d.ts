@@ -9,6 +9,8 @@ export declare class CreateAsset implements actions.Action {
     size(): number;
     computeUnits(): number;
     stateKeysMaxChunks(): number[];
+    toJSON(): object;
+    toString(): string;
     toBytes(): Uint8Array;
     static fromBytes(bytes: Uint8Array): [CreateAsset, Error?];
     static fromBytesCodec(codec: utils.Codec): [CreateAsset, utils.Codec];

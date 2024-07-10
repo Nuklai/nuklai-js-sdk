@@ -41,6 +41,18 @@ export class MintAsset implements actions.Action {
     return [STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS]
   }
 
+  toJSON(): object {
+    return {
+      to: this.to.toString(),
+      asset: this.asset.toString(),
+      value: this.value.toString()
+    }
+  }
+
+  toString(): string {
+    return JSON.stringify(this.toJSON())
+  }
+
   toBytes(): Uint8Array {
     const codec = utils.Codec.newWriter(this.size(), this.size())
     codec.packAddress(this.to)

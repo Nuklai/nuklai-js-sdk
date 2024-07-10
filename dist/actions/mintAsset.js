@@ -25,6 +25,16 @@ export class MintAsset {
     stateKeysMaxChunks() {
         return [STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS];
     }
+    toJSON() {
+        return {
+            to: this.to.toString(),
+            asset: this.asset.toString(),
+            value: this.value.toString()
+        };
+    }
+    toString() {
+        return JSON.stringify(this.toJSON());
+    }
     toBytes() {
         const codec = utils.Codec.newWriter(this.size(), this.size());
         codec.packAddress(this.to);

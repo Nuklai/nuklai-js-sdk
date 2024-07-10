@@ -52,6 +52,18 @@ export class CreateAsset implements actions.Action {
     return [STORAGE_ASSET_CHUNKS]
   }
 
+  toJSON(): object {
+    return {
+      symbol: new TextDecoder().decode(this.symbol),
+      decimals: this.decimals,
+      metadata: new TextDecoder().decode(this.metadata)
+    }
+  }
+
+  toString(): string {
+    return JSON.stringify(this.toJSON())
+  }
+
   toBytes(): Uint8Array {
     const codec = utils.Codec.newWriter(this.size(), this.size())
     codec.packBytes(this.symbol)

@@ -10,6 +10,8 @@ export declare class MintAsset implements actions.Action {
     size(): number;
     computeUnits(): number;
     stateKeysMaxChunks(): number[];
+    toJSON(): object;
+    toString(): string;
     toBytes(): Uint8Array;
     static fromBytes(bytes: Uint8Array): [MintAsset, Error?];
     static fromBytesCodec(codec: utils.Codec): [MintAsset, utils.Codec];
