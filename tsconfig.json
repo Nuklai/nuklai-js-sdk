@@ -4,6 +4,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "declaration": true,
+    "declarationMap": true,
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
@@ -16,6 +17,6 @@
     "sourceMap": true,
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"] // Exclude test files if any
+  "include": ["src/**/*", "./polyfills.js"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }
