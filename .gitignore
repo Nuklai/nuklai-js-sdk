@@ -128,3 +128,6 @@ out
 .yarn/install-state.gz
 .pnp.*
 dist/
+
+# custom
+test.mjs

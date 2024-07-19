@@ -5,7 +5,7 @@ import { NuklaiSDK } from '../dist/index.esm.js'
 
 const sdk = new NuklaiSDK({
   baseApiUrl: 'http://api-devnet.nuklaivm-dev.net:9650',
-  blockchainId: 'zepWp9PbeU9HLHebQ8gXkvxBYH5Bz4v8SoWXE6kyjjwNaMJfC'
+  blockchainId: 'DPqCib879gKLxtL7Wao6WTh5hNUYFFBZSL9otsLAZ6wKPJuXb'
 })
 
 async function testSDK() {
