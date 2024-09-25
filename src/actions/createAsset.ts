@@ -1,32 +1,40 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
+import { actions, consts, codec, utils } from '@nuklai/hyperchain-sdk'
 import {
   CREATEASSET_COMPUTE_UNITS,
   CREATEASSET_ID,
-  MAX_MEMO_SIZE,
   MAX_METADATA_SIZE,
   MAX_SYMBOL_SIZE,
   STORAGE_ASSET_CHUNKS
-} from '../constants/nuklaivm'
-
-export const CreateAssetTxSize =
-  consts.INT_LEN +
-  MAX_SYMBOL_SIZE +
-  consts.BYTE_LEN +
-  consts.INT_LEN +
-  MAX_MEMO_SIZE
+} from '../constants'
 
 export class CreateAsset implements actions.Action {
+  public assetType: number
+  public name: Uint8Array
   public symbol: Uint8Array
   public decimals: number
   public metadata: Uint8Array
+  public uri: Uint8Array
+  public maxSupply: bigint
 
-  constructor(symbol: string, decimals: number, metadata: string) {
+  constructor(
+      assetType: number,
+      name: string,
+      symbol: string,
+      decimals: number,
+      metadata: string,
+      uri: string,
+      maxSupply: bigint,
+  ) {
+    this.assetType = assetType
+    this.name = new TextEncoder().encode(name)
     this.symbol = new TextEncoder().encode(symbol)
     this.decimals = decimals
     this.metadata = new TextEncoder().encode(metadata)
+    this.uri = new TextEncoder().encode(uri)
+    this.maxSupply = maxSupply
   }
 
   getTypeId(): number {
@@ -54,9 +62,13 @@ export class CreateAsset implements actions.Action {
 
   toJSON(): object {
     return {
+      assetType: this.assetType,
+      name: new TextDecoder().decode(this.name),
       symbol: new TextDecoder().decode(this.symbol),
       decimals: this.decimals,
-      metadata: new TextDecoder().decode(this.metadata)
+      metadata: new TextDecoder().decode(this.metadata),
+      uri: new TextDecoder().decode(this.uri),
+      maxSupply: this.maxSupply.toString(),
     }
   }
 
@@ -64,41 +76,36 @@ export class CreateAsset implements actions.Action {
     return JSON.stringify(this.toJSON())
   }
 
+  static fromBytesCodec(codec: utils.Codec): [CreateAsset, utils.Codec] {
+    const assetType = codec.unpackByte()
+    const name = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
+    const symbol = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE, true)
+    const decimals = codec.unpackByte()
+    const metadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
+    const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
+    const maxSupply = codec.unpackUint64(false)
+
+    const action = new CreateAsset(
+        assetType,
+        new TextDecoder().decode(name),
+        new TextDecoder().decode(symbol),
+        decimals,
+        new TextDecoder().decode(metadata),
+        new TextDecoder().decode(uri),
+        maxSupply
+    )
+    return [action, codec]
+  }
+
   toBytes(): Uint8Array {
     const codec = utils.Codec.newWriter(this.size(), this.size())
+    codec.packByte(this.assetType)
+    codec.packBytes(this.name)
     codec.packBytes(this.symbol)
     codec.packByte(this.decimals)
     codec.packBytes(this.metadata)
-    const bytes = codec.toBytes()
-    return bytes
-  }
-
-  static fromBytes(bytes: Uint8Array): [CreateAsset, Error?] {
-    const codec = utils.Codec.newReader(bytes, bytes.length)
-    // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
-    const symbolBytes = codec.unpackLimitedBytes(MAX_SYMBOL_SIZE, true)
-    const symbol = new TextDecoder().decode(symbolBytes)
-    const decimals = codec.unpackByte()
-    // Ensure the metadata is unpacked as fixed bytes of MAX_METADATA_SIZE
-    const metadataBytes = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
-    const metadata = new TextDecoder().decode(metadataBytes)
-    const action = new CreateAsset(symbol, decimals, metadata)
-    return [action, codec.getError()]
-  }
-
-  static fromBytesCodec(codec: utils.Codec): [CreateAsset, utils.Codec] {
-    const codecResult = codec
-    // Ensure the symbol is unpacked as fixed bytes of MAX_SYMBOL_SIZE
-    const symbolBytes = codecResult.unpackLimitedBytes(MAX_SYMBOL_SIZE, true)
-    const symbol = new TextDecoder().decode(symbolBytes)
-    const decimals = codecResult.unpackByte()
-    // Ensure the metadata is unpacked as fixed bytes of MAX_METADATA_SIZE
-    const metadataBytes = codecResult.unpackLimitedBytes(
-      MAX_METADATA_SIZE,
-      true
-    )
-    const metadata = new TextDecoder().decode(metadataBytes)
-    const action = new CreateAsset(symbol, decimals, metadata)
-    return [action, codecResult]
+    codec.packBytes(this.uri)
+    codec.packUint64(this.maxSupply)
+    return codec.toBytes()
   }
 }

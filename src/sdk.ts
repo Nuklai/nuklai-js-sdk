@@ -4,6 +4,11 @@
 import { HyperchainSDK, config } from '@nuklai/hyperchain-sdk'
 import { CreateAsset } from './actions/createAsset'
 import { MintAsset } from './actions/mintAsset'
+import { Transfer } from './actions/transfer'
+import { MintAssetFT } from './actions/MintAssetFT'
+import { MintAssetNFT } from './actions/MintAssetNFT'
+import { BurnAssetFT} from './actions/BurnAssetFT'
+import { BurnAssetNFT } from './actions/BurnAssetNFT'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID

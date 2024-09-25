@@ -18,16 +18,23 @@ export const BLS_COMPUTE_UNITS = 10
 export const TRANSFER_ID = 0
 export const CREATEASSET_ID = 1
 export const MINTASSET_ID = 2
+export const MINTASSET_FT_ID = 3
+export const MINTASSET_NFT_ID = 4
+export const BURNASSET_FT_ID = 5
+export const BURNASSET_NFT_ID = 6
+
 // Action Units
 export const TRANSFER_COMPUTE_UNITS = 1
 export const CREATEASSET_COMPUTE_UNITS = 5
 export const MINTASSET_COMPUTE_UNITS = 5
+export const BURNASSET_COMPUTE_UNITS = 5
 
 // Storage Chunks
 export const STORAGE_BALANCE_CHUNKS = 1
 export const STORAGE_ASSET_CHUNKS = 5
 export const REGISTER_VALIDATOR_STAKE_CHUNKS = 5
 export const DELEGATE_USER_STAKE_CHUNKS = 3
+export const STORAGE_ASSET_NFT_CHUNKS = 5
 
 export const MAX_SYMBOL_SIZE = 8
 export const MAX_MEMO_SIZE = 256
