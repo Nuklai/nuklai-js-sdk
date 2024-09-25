@@ -23,6 +23,11 @@ export const MINTASSET_NFT_ID = 4
 export const BURNASSET_FT_ID = 5
 export const BURNASSET_NFT_ID = 6
 
+// Asset Types
+export const ASSET_FUNGIBLE_TOKEN_ID = 0
+export const ASSET_NON_FUNGIBLE_TOKEN_ID = 1
+export const ASSET_DATASET_TOKEN_ID = 2
+
 // Action Units
 export const TRANSFER_COMPUTE_UNITS = 1
 export const CREATEASSET_COMPUTE_UNITS = 5

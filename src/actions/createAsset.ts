@@ -7,7 +7,10 @@ import {
   CREATEASSET_ID,
   MAX_METADATA_SIZE,
   MAX_SYMBOL_SIZE,
-  STORAGE_ASSET_CHUNKS
+  STORAGE_ASSET_CHUNKS,
+  ASSET_FUNGIBLE_TOKEN_ID,
+  ASSET_NON_FUNGIBLE_TOKEN_ID,
+  ASSET_DATASET_TOKEN_ID,
 } from '../constants'
 
 export class CreateAsset implements actions.Action {
@@ -18,6 +21,7 @@ export class CreateAsset implements actions.Action {
   public metadata: Uint8Array
   public uri: Uint8Array
   public maxSupply: bigint
+  public parentNFTMetadata?: Uint8Array
 
   constructor(
       assetType: number,
@@ -27,7 +31,14 @@ export class CreateAsset implements actions.Action {
       metadata: string,
       uri: string,
       maxSupply: bigint,
+      parentNFTMetadata?: string
   ) {
+    if (assetType !== ASSET_FUNGIBLE_TOKEN_ID &&
+        assetType !== ASSET_NON_FUNGIBLE_TOKEN_ID &&
+        assetType !== ASSET_DATASET_TOKEN_ID) {
+      throw new Error('Invalid asset type')
+    }
+
     this.assetType = assetType
     this.name = new TextEncoder().encode(name)
     this.symbol = new TextEncoder().encode(symbol)
@@ -35,6 +46,9 @@ export class CreateAsset implements actions.Action {
     this.metadata = new TextEncoder().encode(metadata)
     this.uri = new TextEncoder().encode(uri)
     this.maxSupply = maxSupply
+    if (assetType === ASSET_DATASET_TOKEN_ID && parentNFTMetadata) {
+      this.parentNFTMetadata = new TextEncoder().encode(parentNFTMetadata)
+    }
   }
 
   getTypeId(): number {
@@ -42,14 +56,19 @@ export class CreateAsset implements actions.Action {
   }
 
   size(): number {
-    // We have to add INT_LEN because when packing bytes, we pack the length of the bytes
-    return (
-      consts.INT_LEN +
-      this.symbol.length +
-      consts.BYTE_LEN +
-      consts.INT_LEN +
-      this.metadata.length
-    )
+    let size = consts.BYTE_LEN + // assetType
+        consts.INT_LEN + this.name.length +
+        consts.INT_LEN + this.symbol.length +
+        consts.BYTE_LEN + // decimals
+        consts.INT_LEN + this.metadata.length +
+        consts.INT_LEN + this.uri.length +
+        consts.LONG_LEN // maxSupply
+
+    if (this.assetType === ASSET_DATASET_TOKEN_ID && this.parentNFTMetadata) {
+      size += consts.INT_LEN + this.parentNFTMetadata.length
+    }
+
+    return size
   }
 
   computeUnits(): number {
@@ -61,7 +80,7 @@ export class CreateAsset implements actions.Action {
   }
 
   toJSON(): object {
-    return {
+    const json: any = {
       assetType: this.assetType,
       name: new TextDecoder().decode(this.name),
       symbol: new TextDecoder().decode(this.symbol),
@@ -70,6 +89,10 @@ export class CreateAsset implements actions.Action {
       uri: new TextDecoder().decode(this.uri),
       maxSupply: this.maxSupply.toString(),
     }
+    if (this.assetType === ASSET_DATASET_TOKEN_ID && this.parentNFTMetadata) {
+      json.parentNFTMetadata = new TextDecoder().decode(this.parentNFTMetadata)
+    }
+    return json
   }
 
   toString(): string {
@@ -85,6 +108,11 @@ export class CreateAsset implements actions.Action {
     const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
     const maxSupply = codec.unpackUint64(false)
 
+    let parentNFTMetadata: Uint8Array | undefined
+    if (assetType === ASSET_DATASET_TOKEN_ID) {
+      parentNFTMetadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
+    }
+
     const action = new CreateAsset(
         assetType,
         new TextDecoder().decode(name),
@@ -92,7 +120,8 @@ export class CreateAsset implements actions.Action {
         decimals,
         new TextDecoder().decode(metadata),
         new TextDecoder().decode(uri),
-        maxSupply
+        maxSupply,
+        parentNFTMetadata ? new TextDecoder().decode(parentNFTMetadata) : undefined
     )
     return [action, codec]
   }
@@ -106,6 +135,11 @@ export class CreateAsset implements actions.Action {
     codec.packBytes(this.metadata)
     codec.packBytes(this.uri)
     codec.packUint64(this.maxSupply)
+
+    if (this.assetType === ASSET_DATASET_TOKEN_ID && this.parentNFTMetadata) {
+      codec.packBytes(this.parentNFTMetadata)
+    }
+
     return codec.toBytes()
   }
 }
