@@ -25,7 +25,9 @@ import {
   GetUserStakeResponse,
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
-  GetValidatorsResponse
+  GetValidatorsResponse,
+  GetNFTInfoParams,
+  GetNFTInfoResponse,
 } from '../common/models'
 import {
   NUKLAI_VMAPI_METHOD_PREFIX,
@@ -266,5 +268,34 @@ export class RpcService extends common.Api {
       )
       throw error
     }
+  }
+
+  async getFungibleTokenBalance(
+      getBalanceParams: GetBalanceParams
+  ): Promise<GetBalanceResponse> {
+    const params = getBalanceParams
+    params.asset = utils.toAssetID(params.asset).toString()
+    const result = await this.callRpc<GetBalanceResponse>('balance', params)
+    result.amount = utils.formatBalance(result.amount, DECIMALS)
+
+    return result
+  }
+
+  async getNonFungibleTokenBalance(
+      getBalanceParams: GetBalanceParams
+  ): Promise<GetBalanceResponse> {
+    const params = getBalanceParams
+    params.asset = utils.toAssetID(params.asset).toString()
+    const result = await this.callRpc<GetBalanceResponse>('nftBalance', params)
+    // NFT balance should be in a count format, so we don't need to format it.
+    return result
+  }
+
+  async getNFTInfo(
+      getNFTInfoParams: GetNFTInfoParams
+  ): Promise<GetNFTInfoResponse> {
+    const params = getNFTInfoParams
+    params.nftID = utils.toAssetID(params.nftID).toString()
+    return this.callRpc<GetNFTInfoResponse>('nftInfo', params)
   }
 }

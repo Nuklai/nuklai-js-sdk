@@ -109,3 +109,15 @@ export type GetTransactionInfoResponse = {
   units: Uint8Array
   fee: number
 }
+
+export interface GetNFTInfoParams {
+  nftID: string
+}
+
+export interface GetNFTInfoResponse {
+  assetID: string
+  tokenID: string
+  owner: string
+  metadata: string
+  uri: string
+}
