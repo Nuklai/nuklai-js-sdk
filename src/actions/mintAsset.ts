@@ -30,7 +30,7 @@ export class MintAsset implements actions.Action {
   }
 
   size(): number {
-    return consts.ADDRESS_LEN + consts.ID_LEN + consts.UINT64_LEN
+    return MintAssetTxSize
   }
 
   computeUnits(): number {
