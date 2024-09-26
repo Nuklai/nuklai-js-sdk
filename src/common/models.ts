@@ -121,3 +121,13 @@ export interface GetNFTInfoResponse {
   metadata: string
   uri: string
 }
+
+export interface BurnAssetFTParams {
+  asset: string
+  amount: number
+}
+
+export interface BurnAssetNFTParams {
+  asset: string
+  nftID: string
+}

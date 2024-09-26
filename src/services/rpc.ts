@@ -12,6 +12,8 @@ import {
 import { CreateAsset } from '../actions/createAsset'
 import { MintAsset } from '../actions/mintAsset'
 import { Transfer } from '../actions/transfer'
+import { BurnAssetFT} from "../actions/BurnAssetFT";
+import { BurnAssetNFT } from "../actions/BurnAssetNFT";
 import {
   GetAssetInfoParams,
   GetAssetInfoResponse,
@@ -29,10 +31,7 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
 } from '../common/models'
-import {
-  NUKLAI_VMAPI_METHOD_PREFIX,
-  NUKLAI_VMAPI_PATH
-} from '../constants/endpoints'
+import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import { DECIMALS } from '../constants/nuklaivm'
 
 export class RpcService extends common.Api {
@@ -305,5 +304,78 @@ export class RpcService extends common.Api {
     const params = getNFTInfoParams
     params.nftID = utils.toAssetID(params.nftID).toString()
     return this.callRpc<GetNFTInfoResponse>('nftInfo', params)
+  }
+
+  async sendBurnAssetFTTransaction(
+      asset: string,
+      amount: number,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    try {
+      const amountInUnits = utils.parseBalance(amount, DECIMALS)
+      const burnAssetFT: BurnAssetFT = new BurnAssetFT(asset, amountInUnits)
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const { submit, txSigned, err } =
+          await hyperApiService.generateTransaction(
+              genesisInfo.genesis,
+              actionRegistry,
+              authRegistry,
+              [burnAssetFT],
+              authFactory
+          )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      return txSigned.id().toString()
+    } catch (error) {
+      console.error(
+          'Failed to create and submit transaction for "BurnAssetFT" type',
+          error
+      )
+      throw error
+    }
+  }
+
+  async sendBurnAssetNFTTransaction(
+      asset: string,
+      nftID: string,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    try {
+      const burnAssetNFT: BurnAssetNFT = new BurnAssetNFT(asset, nftID)
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const { submit, txSigned, err } =
+          await hyperApiService.generateTransaction(
+              genesisInfo.genesis,
+              actionRegistry,
+              authRegistry,
+              [burnAssetNFT],
+              authFactory
+          )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      return txSigned.id().toString()
+    } catch (error) {
+      console.error(
+          'Failed to create and submit transaction for "BurnAssetNFT" type',
+          error
+      )
+      throw error
+    }
   }
 }
