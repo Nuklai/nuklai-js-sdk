@@ -19,15 +19,15 @@ import {
   GetBalanceResponse,
   GetEmissionInfoResponse,
   GetGenesisInfoResponse,
+  GetNFTInfoParams,
+  GetNFTInfoResponse,
   GetTransactionInfoParams,
   GetTransactionInfoResponse,
   GetUserStakeParams,
   GetUserStakeResponse,
+  GetValidatorsResponse,
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
-  GetValidatorsResponse,
-  GetNFTInfoParams,
-  GetNFTInfoResponse,
 } from '../common/models'
 import {
   NUKLAI_VMAPI_METHOD_PREFIX,
@@ -185,30 +185,40 @@ export class RpcService extends common.Api {
   }
 
   async sendCreateAssetTransaction(
-    symbol: string,
-    decimals: number,
-    metadata: string,
-    authFactory: auth.AuthFactory,
-    hyperApiService: services.RpcService,
-    actionRegistry: chain.ActionRegistry,
-    authRegistry: chain.AuthRegistry
+      assetType: number,
+      name: string,
+      symbol: string,
+      decimals: number,
+      metadata: string,
+      uri: string,
+      maxSupply: bigint,
+      parentNFTMetadata: string | undefined,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
   ): Promise<{ txID: string; assetID: string }> {
     try {
       const createAsset: CreateAsset = new CreateAsset(
-        symbol,
-        decimals,
-        metadata
+          assetType,
+          name,
+          symbol,
+          decimals,
+          metadata,
+          uri,
+          maxSupply,
+          parentNFTMetadata
       )
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
       const { submit, txSigned, err } =
-        await hyperApiService.generateTransaction(
-          genesisInfo.genesis,
-          actionRegistry,
-          authRegistry,
-          [createAsset],
-          authFactory
-        )
+          await hyperApiService.generateTransaction(
+              genesisInfo.genesis,
+              actionRegistry,
+              authRegistry,
+              [createAsset],
+              authFactory
+          )
       if (err) {
         throw err
       }
@@ -223,8 +233,8 @@ export class RpcService extends common.Api {
       }
     } catch (error) {
       console.error(
-        'Failed to create and submit transaction for "CreateAsset" type',
-        error
+          'Failed to create and submit transaction for "CreateAsset" type',
+          error
       )
       throw error
     }
@@ -240,8 +250,7 @@ export class RpcService extends common.Api {
     authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      const decimals = DECIMALS
-      const amountInUnits = utils.parseBalance(amount, decimals)
+      const amountInUnits = utils.parseBalance(amount, DECIMALS)
 
       const mintAsset: MintAsset = new MintAsset(to, asset, amountInUnits)
 
@@ -286,9 +295,8 @@ export class RpcService extends common.Api {
   ): Promise<GetBalanceResponse> {
     const params = getBalanceParams
     params.asset = utils.toAssetID(params.asset).toString()
-    const result = await this.callRpc<GetBalanceResponse>('nftBalance', params)
     // NFT balance should be in a count format, so we don't need to format it.
-    return result
+    return await this.callRpc<GetBalanceResponse>('nftBalance', params)
   }
 
   async getNFTInfo(
