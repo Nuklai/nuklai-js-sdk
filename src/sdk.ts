@@ -8,7 +8,7 @@ import { MintAssetFT } from './actions/MintAssetFT'
 import { MintAssetNFT } from './actions/MintAssetNFT'
 import { BurnAssetFT } from './actions/BurnAssetFT'
 import { BurnAssetNFT } from './actions/BurnAssetNFT'
-import { MintAsset } from './actions/mintAsset'
+import { MintDataset } from './actions/MintDataset'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -17,9 +17,10 @@ import {
   CREATEASSET_ID,
   MINTASSET_FT_ID,
   MINTASSET_NFT_ID,
+  MINTDATASET_ID,
   BURNASSET_FT_ID,
   BURNASSET_NFT_ID,
-  TRANSFER_ID, MINTASSET_ID
+  TRANSFER_ID,
 } from './constants/nuklaivm'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
@@ -62,8 +63,8 @@ export class NuklaiSDK extends HyperchainSDK {
         false
     )
     this.actionRegistry.register(
-        MINTASSET_ID,
-        MintAsset.fromBytesCodec,
+      MINTDATASET_ID,
+        MintDataset.fromBytesCodec,
         false
     )
     this.actionRegistry.register(

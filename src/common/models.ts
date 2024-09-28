@@ -131,3 +131,65 @@ export interface BurnAssetNFTParams {
   asset: string
   nftID: string
 }
+
+export interface GetDatasetInfoParams {
+  datasetID: string;
+}
+
+export interface GetDatasetInfoResponse {
+  name: string;
+  description: string;
+  categories: string;
+  licenseName: string;
+  licenseSymbol: string;
+  licenseURL: string;
+  metadata: string;
+  isCommunityDataset: boolean;
+  // These are part of the metadata.
+  saleID: string;
+  baseAsset: string;
+  basePrice: number;
+  revenueModelDataShare: number;
+  revenueModelMetadataShare: number;
+  revenueModelDataOwnerCut: number;
+  revenueModelMetadataOwnerCut: number;
+  owner: string;
+}
+
+export interface GetDatasetAssetInfoResponse {
+  assetType: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  metadata: string;
+  uri: string;
+  totalSupply: number;
+  maxSupply: number;
+  admin: string;
+  mintActor: string;
+  pauseUnpauseActor: string;
+  freezeUnfreezeActor: string;
+  enableDisableKYCAccountActor: string;
+}
+
+export interface GetDatasetBalanceParams {
+  address: string;
+  assetID: string;
+}
+
+export interface GetDatasetBalanceResponse {
+  balance: number;
+  symbol: string;
+}
+
+export interface GetDatasetNFTInfoParams {
+  nftID: string;
+}
+
+export interface GetDatasetNFTInfoResponse {
+  collectionID: string;
+  uniqueID: number;
+  uri: string;
+  metadata: string;
+  ownerAddress: string;
+}

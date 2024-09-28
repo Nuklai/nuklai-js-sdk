@@ -17,11 +17,11 @@ export const BLS_COMPUTE_UNITS = 10
 // Action TypeIDs
 export const TRANSFER_ID = 0
 export const CREATEASSET_ID = 1
-export const MINTASSET_ID = 2
-export const MINTASSET_FT_ID = 3
-export const MINTASSET_NFT_ID = 4
-export const BURNASSET_FT_ID = 5
-export const BURNASSET_NFT_ID = 6
+export const MINTASSET_FT_ID = 2
+export const MINTASSET_NFT_ID = 3
+export const BURNASSET_FT_ID = 4
+export const BURNASSET_NFT_ID = 5
+export const MINTDATASET_ID = 6
 
 // Asset Types
 export const ASSET_FUNGIBLE_TOKEN_ID = 0
@@ -33,6 +33,7 @@ export const TRANSFER_COMPUTE_UNITS = 1
 export const CREATEASSET_COMPUTE_UNITS = 5
 export const MINTASSET_COMPUTE_UNITS = 5
 export const BURNASSET_COMPUTE_UNITS = 5
+export const MINTDATASET_COMPUTE_UNITS = 10
 
 // Storage Chunks
 export const STORAGE_BALANCE_CHUNKS = 1
