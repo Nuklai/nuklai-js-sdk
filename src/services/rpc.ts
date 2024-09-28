@@ -43,7 +43,7 @@ import {
   GetValidatorStakeResponse,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
-import { DECIMALS } from '../constants/nuklaivm'
+import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
 
 export class RpcService extends common.Api {
   constructor(protected configNuklai: config.NodeConfig) {
@@ -262,9 +262,9 @@ export class RpcService extends common.Api {
     }
   }
 
-  async mintDataset(
-      assetID: string,
+  async createDataset(
       name: string,
+      symbol: string,
       description: string,
       categories: string,
       licenseName: string,
@@ -276,8 +276,24 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<{ txID: string; datasetID: string; assetID: string; nftID: string }> {
     try {
+      const { txID: assetTxID, assetID } = await this.createAsset(
+          2, // assetType for dataset
+          name,
+          symbol,
+          0, // decimals
+          metadata,
+          "", // uri
+          BigInt(0), // maxSupply
+          undefined, // parentNFTMetadata
+          authFactory,
+          hyperApiService,
+          actionRegistry,
+          authRegistry
+      );
+
+      //Next, mint the dataset
       const mintDataset: MintDataset = new MintDataset(
           assetID,
           name,
@@ -290,7 +306,7 @@ export class RpcService extends common.Api {
           isCommunityDataset
       )
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
@@ -304,13 +320,19 @@ export class RpcService extends common.Api {
 
       await submit()
 
-      return txSigned.id().toString()
+      const datasetTxID = txSigned.id().toString();
+      const datasetID = utils.createActionID(txSigned.id(), 0).toString();
+      const nftID = utils.createActionID(txSigned.id(), 1).toString(); // Assuming the NFT is minted as the second action
+
+      return {
+        txID: datasetTxID,
+        datasetID,
+        assetID,
+        nftID,
+      };
     } catch (error) {
-      console.error(
-        'Failed to create and submit transaction for "MintDataset" type',
-        error
-      )
-      throw error
+      console.error('Failed to create dataset', error);
+      throw error;
     }
   }
 
@@ -388,16 +410,12 @@ export class RpcService extends common.Api {
 
       return txSigned.id().toString()
     } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "MintAssetNFT" type',
-          error
-      )
+      console.error('Failed to create and submit transaction for "MintAssetNFT" type', error)
       throw error
     }
   }
 
   async mintDatasetWithParentNFT(
-      to: string,
       parentNFTID: string,
       name: string,
       description: string,
@@ -411,11 +429,11 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<{ txID: string; datasetID: string; nftID: string }> {
+  ): Promise<{ txID: string; datasetID: string; assetID: string }> {
     try {
-      const parentNFTInfo = await this.getNFTInfo({ nftID: parentNFTID })
+      const parentNFTInfo = await this.getNFTInfo({ nftID: parentNFTID });
       if (!parentNFTInfo) {
-        throw new Error('Invalid parent NFT ID')
+        throw new Error('Invalid parent NFT ID');
       }
 
       const mintDataset: MintDataset = new MintDataset(
@@ -427,34 +445,35 @@ export class RpcService extends common.Api {
           licenseSymbol,
           licenseURL,
           metadata,
-          isCommunityDataset
-      )
+          isCommunityDataset,
+          parentNFTID
+      );
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
           authRegistry,
           [mintDataset],
           authFactory
-      )
+      );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
-      const txID = txSigned.id().toString()
-      const datasetID = utils.createActionID(txSigned.id(), 0).toString()
+      const txID = txSigned.id().toString();
+      const datasetID = utils.createActionID(txSigned.id(), 0).toString();
 
       return {
         txID,
         datasetID,
-        nftID: parentNFTID
-      }
+        assetID: parentNFTInfo.assetID,
+      };
     } catch (error) {
-      console.error('Failed to create and submit transaction for "MintDatasetWithParentNFT" type', error)
-      throw error
+      console.error('Failed to mint dataset with parent NFT', error);
+      throw error;
     }
   }
 

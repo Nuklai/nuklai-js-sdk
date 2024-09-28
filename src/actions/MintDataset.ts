@@ -25,6 +25,7 @@ export class MintDataset implements actions.Action {
   public licenseURL: Uint8Array
   public metadata: Uint8Array
   public isCommunityDataset: boolean
+  public parentNFTID?: Id
 
   constructor(
       assetID: string,
@@ -35,7 +36,8 @@ export class MintDataset implements actions.Action {
       licenseSymbol: string,
       licenseURL: string,
       metadata: string,
-      isCommunityDataset: boolean
+      isCommunityDataset: boolean,
+      parentNFTID?: string
   ) {
     this.assetID = utils.toAssetID(assetID)
     this.name = new TextEncoder().encode(name)
@@ -46,6 +48,7 @@ export class MintDataset implements actions.Action {
     this.licenseURL = new TextEncoder().encode(licenseURL)
     this.metadata = new TextEncoder().encode(metadata)
     this.isCommunityDataset = isCommunityDataset
+    this.parentNFTID = parentNFTID ? utils.toAssetID(parentNFTID) : undefined
   }
 
   getTypeId(): number {
@@ -62,7 +65,8 @@ export class MintDataset implements actions.Action {
         codec.bytesLen(this.licenseSymbol) +
         codec.bytesLen(this.licenseURL) +
         codec.bytesLen(this.metadata) +
-        consts.BOOL_LEN
+        consts.BOOL_LEN +
+        (this.parentNFTID ? consts.ID_LEN : 0)
     )
   }
 
@@ -84,7 +88,8 @@ export class MintDataset implements actions.Action {
       licenseSymbol: new TextDecoder().decode(this.licenseSymbol),
       licenseURL: new TextDecoder().decode(this.licenseURL),
       metadata: new TextDecoder().decode(this.metadata),
-      isCommunityDataset: this.isCommunityDataset
+      isCommunityDataset: this.isCommunityDataset,
+      parentNFTID: this.parentNFTID ? this.parentNFTID.toString() : undefined
     }
   }
 
@@ -103,6 +108,9 @@ export class MintDataset implements actions.Action {
     codec.packBytes(this.licenseURL)
     codec.packBytes(this.metadata)
     codec.packBool(this.isCommunityDataset)
+    if (this.parentNFTID) {
+      codec.packID(this.parentNFTID)
+    }
     return codec.toBytes()
   }
 
@@ -117,6 +125,10 @@ export class MintDataset implements actions.Action {
     const licenseURL = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
     const metadata = codec.unpackLimitedBytes(MAX_DATASET_METADATA_SIZE, true)
     const isCommunityDataset = codec.unpackBool()
+    let parentNFTID: string | undefined
+    if (codec.getOffset() < bytes.length) {
+      parentNFTID = codec.unpackID(false).toString()
+    }
 
     const action = new MintDataset(
         assetID.toString(),
@@ -127,7 +139,8 @@ export class MintDataset implements actions.Action {
         new TextDecoder().decode(licenseSymbol),
         new TextDecoder().decode(licenseURL),
         new TextDecoder().decode(metadata),
-        isCommunityDataset
+        isCommunityDataset,
+        parentNFTID
     )
 
     return [action, codec.getError()]
@@ -143,6 +156,10 @@ export class MintDataset implements actions.Action {
     const licenseURL = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
     const metadata = codec.unpackLimitedBytes(MAX_DATASET_METADATA_SIZE, true)
     const isCommunityDataset = codec.unpackBool()
+    let parentNFTID: string | undefined
+    if (codec.getOffset() < codec.toBytes().length) {
+      parentNFTID = codec.unpackID(false).toString()
+    }
 
     const action = new MintDataset(
         assetID.toString(),
@@ -153,7 +170,8 @@ export class MintDataset implements actions.Action {
         new TextDecoder().decode(licenseSymbol),
         new TextDecoder().decode(licenseURL),
         new TextDecoder().decode(metadata),
-        isCommunityDataset
+        isCommunityDataset,
+        parentNFTID
     )
 
     return [action, codec]
