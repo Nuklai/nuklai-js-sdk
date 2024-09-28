@@ -22,6 +22,8 @@ export const MINTASSET_NFT_ID = 3
 export const BURNASSET_FT_ID = 4
 export const BURNASSET_NFT_ID = 5
 export const MINTDATASET_ID = 6
+export const UPDATEDATASET_ID = 7
+export const UPDATEASSET_ID = 8
 
 // Asset Types
 export const ASSET_FUNGIBLE_TOKEN_ID = 0
@@ -34,10 +36,13 @@ export const CREATEASSET_COMPUTE_UNITS = 5
 export const MINTASSET_COMPUTE_UNITS = 5
 export const BURNASSET_COMPUTE_UNITS = 5
 export const MINTDATASET_COMPUTE_UNITS = 10
+export const UPDATEDATASET_COMPUTE_UNITS = 5
+export const UPDATEASSET_COMPUTE_UNITS = 5
 
 // Storage Chunks
 export const STORAGE_BALANCE_CHUNKS = 1
 export const STORAGE_ASSET_CHUNKS = 5
+export const STORAGE_DATASET_CHUNKS = 5
 export const REGISTER_VALIDATOR_STAKE_CHUNKS = 5
 export const DELEGATE_USER_STAKE_CHUNKS = 3
 export const STORAGE_ASSET_NFT_CHUNKS = 5
@@ -45,4 +50,6 @@ export const STORAGE_ASSET_NFT_CHUNKS = 5
 export const MAX_SYMBOL_SIZE = 8
 export const MAX_MEMO_SIZE = 256
 export const MAX_METADATA_SIZE = 256
+export const MAX_TEXT_SIZE = 256
+export const MAX_DATASET_METADATA_SIZE = 1024
 export const MAX_DECIMALS = 9

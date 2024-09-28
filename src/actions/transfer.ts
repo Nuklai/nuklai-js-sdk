@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, utils, consts} from '@nuklai/hyperchain-sdk'
+import { actions, utils, consts } from '@nuklai/hyperchain-sdk'
 import { Id } from '@avalabs/avalanchejs'
 
 export class Transfer extends actions.Transfer {
@@ -16,10 +16,14 @@ export class Transfer extends actions.Transfer {
     }
   }
 
+  size(): number {
+    return super.size() + (this.nftID ? consts.ID_LEN : 0)
+  }
+
   toBytes(): Uint8Array {
     const parentBytes = super.toBytes()
     if (this.nftID) {
-      const codec = utils.Codec.newWriter(parentBytes.length + consts.ID_LEN, parentBytes.length + consts.ID_LEN)
+      const codec = utils.Codec.newWriter(this.size(), this.size())
       codec.packBytes(parentBytes)
       codec.packID(this.nftID)
       return codec.toBytes()
@@ -36,13 +40,13 @@ export class Transfer extends actions.Transfer {
 
     const codec = utils.Codec.newReader(bytes, bytes.length)
 
-    // unpacking all fields of the parent transfer
-    codec.unpackAddress() // this is for to
-    codec.unpackID(false) // this is for asset.
-    codec.unpackUint64(false) // this is for value.
-    codec.unpackBytes(false) // this is for memo.
+    // Unpack all fields of the parent transfer
+    codec.unpackAddress() // to
+    codec.unpackID(false) // asset
+    codec.unpackUint64(false) // value
+    codec.unpackBytes(false) // memo
 
-    // for nft assets:
+    // For NFT transfers:
     let nftID: Id | undefined
     if (codec.getOffset() < bytes.length) {
       nftID = codec.unpackID(false)
@@ -52,8 +56,16 @@ export class Transfer extends actions.Transfer {
         parentTransfer.to.toString(),
         parentTransfer.asset.toString(),
         parentTransfer.value,
-        parentTransfer.memo.toString(),
+        new TextDecoder().decode(parentTransfer.memo),
         nftID?.toString()
     ), undefined]
+  }
+
+  toJSON(): object {
+    const json = super.toJSON() as any
+    if (this.nftID) {
+      json.nftID = this.nftID.toString()
+    }
+    return json
   }
 }

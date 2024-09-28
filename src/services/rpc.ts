@@ -16,6 +16,8 @@ import { MintAssetNFT } from '../actions/MintAssetNFT';
 import { Transfer } from '../actions/transfer'
 import { BurnAssetFT } from '../actions/BurnAssetFT';
 import { BurnAssetNFT } from '../actions/BurnAssetNFT';
+import { UpdateAsset } from '../actions/UpdateAsset'
+import { UpdateDataset } from '../actions/UpdateDataset'
 import {
   GetAssetInfoParams,
   GetAssetInfoResponse,
@@ -136,18 +138,18 @@ export class RpcService extends common.Api {
     return this.callRpc<GetUserStakeResponse>('userStake', getUserStakeParams)
   }
 
-  async sendTransferTransaction(
-    to: string,
-    asset: string,
-    amount: number,
-    memo: string,
-    authFactory: auth.AuthFactory,
-    hyperApiService: services.RpcService,
-    actionRegistry: chain.ActionRegistry,
-    authRegistry: chain.AuthRegistry
+  async transfer(
+      to: string,
+      asset: string,
+      amount: number,
+      memo: string,
+      nftID: string | undefined,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      // Generate the from address using the private key
       const auth = authFactory.sign(new Uint8Array(0))
       const fromAddress = auth.address()
 
@@ -165,11 +167,10 @@ export class RpcService extends common.Api {
         throw new Error('Insufficient balance')
       }
 
-      const transfer: Transfer = new Transfer(to, asset, amountInUnits, memo)
+      const transfer: Transfer = new Transfer(to, asset, amountInUnits, memo, nftID)
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-        await hyperApiService.generateTransaction(
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
           authRegistry,
@@ -192,7 +193,20 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendCreateAssetTransaction(
+  async transferNFT(
+      to: string,
+      asset: string,
+      nftID: string,
+      memo: string,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    return this.transfer(to, asset, 1, memo, nftID, authFactory, hyperApiService, actionRegistry, authRegistry)
+  }
+
+  async createAsset(
       assetType: number,
       name: string,
       symbol: string,
@@ -248,38 +262,42 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendMintDatasetTransaction(
-    to: string,
-    assetID: string,
-    name: string,
-    description: string,
-    metadata: string,
-    isCommunityDataset: boolean,
-    authFactory: auth.AuthFactory,
-    hyperApiService: services.RpcService,
-    actionRegistry: chain.ActionRegistry,
-    authRegistry: chain.AuthRegistry
+  async mintDataset(
+      assetID: string,
+      name: string,
+      description: string,
+      categories: string,
+      licenseName: string,
+      licenseSymbol: string,
+      licenseURL: string,
+      metadata: string,
+      isCommunityDataset: boolean,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-
       const mintDataset: MintDataset = new MintDataset(
-          to,
           assetID,
           name,
           description,
+          categories,
+          licenseName,
+          licenseSymbol,
+          licenseURL,
           metadata,
           isCommunityDataset
       )
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-        await hyperApiService.generateTransaction(
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
           authRegistry,
           [mintDataset],
           authFactory
-        )
+      )
       if (err) {
         throw err
       }
@@ -296,7 +314,7 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendMintFTAssetTransaction(
+  async mintFTAsset(
       to: string,
       asset: string,
       amount: number,
@@ -334,7 +352,7 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendMintNFTAssetTransaction(
+  async mintNFTAsset(
       to: string,
       asset: string,
       uniqueID: number,
@@ -355,14 +373,13 @@ export class RpcService extends common.Api {
       )
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [mintAssetNFT],
-              authFactory
-          )
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [mintAssetNFT],
+          authFactory
+      )
       if (err) {
         throw err
       }
@@ -379,11 +396,15 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendMintDatasetWithParentNFTTransaction(
+  async mintDatasetWithParentNFT(
       to: string,
       parentNFTID: string,
       name: string,
       description: string,
+      categories: string,
+      licenseName: string,
+      licenseSymbol: string,
+      licenseURL: string,
       metadata: string,
       isCommunityDataset: boolean,
       authFactory: auth.AuthFactory,
@@ -392,31 +413,31 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
   ): Promise<{ txID: string; datasetID: string; nftID: string }> {
     try {
-      // Validate the parent NFT
       const parentNFTInfo = await this.getNFTInfo({ nftID: parentNFTID })
       if (!parentNFTInfo) {
         throw new Error('Invalid parent NFT ID')
       }
 
       const mintDataset: MintDataset = new MintDataset(
-          to,
           parentNFTInfo.assetID,
           name,
           description,
+          categories,
+          licenseName,
+          licenseSymbol,
+          licenseURL,
           metadata,
-          isCommunityDataset,
-          parentNFTID
+          isCommunityDataset
       )
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [mintDataset],
-              authFactory
-          )
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [mintDataset],
+          authFactory
+      )
       if (err) {
         throw err
       }
@@ -432,10 +453,109 @@ export class RpcService extends common.Api {
         nftID: parentNFTID
       }
     } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "MintDatasetWithParentNFT" type',
-          error
+      console.error('Failed to create and submit transaction for "MintDatasetWithParentNFT" type', error)
+      throw error
+    }
+  }
+
+  async updateAsset(
+      asset: string,
+      name: string,
+      symbol: string,
+      metadata: string,
+      uri: string,
+      maxSupply: bigint,
+      admin: string,
+      mintActor: string,
+      pauseUnpauseActor: string,
+      freezeUnfreezeActor: string,
+      enableDisableKYCAccountActor: string,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    try {
+      const updateAsset: UpdateAsset = new UpdateAsset(
+          asset,
+          name,
+          symbol,
+          metadata,
+          uri,
+          maxSupply,
+          admin,
+          mintActor,
+          pauseUnpauseActor,
+          freezeUnfreezeActor,
+          enableDisableKYCAccountActor
       )
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [updateAsset],
+          authFactory
+      )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      return txSigned.id().toString()
+    } catch (error) {
+      console.error('Failed to create and submit transaction for "UpdateAsset" type', error)
+      throw error
+    }
+  }
+
+  async updateDataset(
+      datasetID: string,
+      name: string,
+      description: string,
+      categories: string,
+      licenseName: string,
+      licenseSymbol: string,
+      licenseURL: string,
+      metadata: string,
+      isCommunityDataset: boolean,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    try {
+      const updateDataset: UpdateDataset = new UpdateDataset(
+          datasetID,
+          name,
+          description,
+          categories,
+          licenseName,
+          licenseSymbol,
+          licenseURL,
+          metadata,
+          isCommunityDataset
+      )
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [updateDataset],
+          authFactory
+      )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      return txSigned.id().toString()
+    } catch (error) {
+      console.error('Failed to create and submit transaction for "UpdateDataset" type', error)
       throw error
     }
   }
@@ -500,7 +620,7 @@ export class RpcService extends common.Api {
     return this.callRpc<GetNFTInfoResponse>('nftInfo', params)
   }
 
-  async sendBurnAssetFTTransaction(
+  async burnFTAsset(
       asset: string,
       amount: number,
       authFactory: auth.AuthFactory,
@@ -537,7 +657,7 @@ export class RpcService extends common.Api {
     }
   }
 
-  async sendBurnAssetNFTTransaction(
+  async burnNFTAsset(
       asset: string,
       nftID: string,
       authFactory: auth.AuthFactory,

@@ -9,6 +9,8 @@ import { MintAssetNFT } from './actions/MintAssetNFT'
 import { BurnAssetFT } from './actions/BurnAssetFT'
 import { BurnAssetNFT } from './actions/BurnAssetNFT'
 import { MintDataset } from './actions/MintDataset'
+import { UpdateAsset } from './actions/UpdateAsset'
+import { UpdateDataset } from './actions/UpdateDataset'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -21,9 +23,38 @@ import {
   BURNASSET_FT_ID,
   BURNASSET_NFT_ID,
   TRANSFER_ID,
+  UPDATEASSET_ID,
+  UPDATEDATASET_ID,
+  DECIMALS,
+  HRP,
+  SYMBOL
 } from './constants/nuklaivm'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
+
+export {
+  CreateAsset,
+  Transfer,
+  MintAssetFT,
+  MintAssetNFT,
+  BurnAssetFT,
+  BurnAssetNFT,
+  MintDataset,
+  UpdateAsset,
+  UpdateDataset,
+  CREATEASSET_ID,
+  MINTASSET_FT_ID,
+  MINTASSET_NFT_ID,
+  MINTDATASET_ID,
+  BURNASSET_FT_ID,
+  BURNASSET_NFT_ID,
+  TRANSFER_ID,
+  UPDATEASSET_ID,
+  UPDATEDATASET_ID,
+  DECIMALS,
+  HRP,
+  SYMBOL
+}
 
 export class NuklaiSDK extends HyperchainSDK {
   // Nuklaivm services
@@ -35,7 +66,7 @@ export class NuklaiSDK extends HyperchainSDK {
       baseApiUrl: MAINNET_PUBLIC_API_BASE_URL,
       blockchainId: NUKLAI_CHAIN_ID
     }
-    super({ ...defaultSDKConfig, ...nodeConfig } as config.NodeConfig)
+    super({...defaultSDKConfig, ...nodeConfig} as config.NodeConfig)
 
     // Nuklaivm services
     this.rpcServiceNuklai = new RpcService(this.nodeConfig)
@@ -63,7 +94,7 @@ export class NuklaiSDK extends HyperchainSDK {
         false
     )
     this.actionRegistry.register(
-      MINTDATASET_ID,
+        MINTDATASET_ID,
         MintDataset.fromBytesCodec,
         false
     )
@@ -75,6 +106,16 @@ export class NuklaiSDK extends HyperchainSDK {
     this.actionRegistry.register(
         BURNASSET_NFT_ID,
         BurnAssetNFT.fromBytesCodec,
+        false
+    )
+    this.actionRegistry.register(
+        UPDATEASSET_ID,
+        UpdateAsset.fromBytesCodec,
+        false
+    )
+    this.actionRegistry.register(
+        UPDATEDATASET_ID,
+        UpdateDataset.fromBytesCodec,
         false
     )
   }
