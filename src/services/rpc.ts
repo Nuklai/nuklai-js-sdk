@@ -279,7 +279,7 @@ export class RpcService extends common.Api {
   ): Promise<{ txID: string; datasetID: string; assetID: string; nftID: string }> {
     try {
       const { txID: assetTxID, assetID } = await this.createAsset(
-          2, // assetType for dataset
+          ASSET_DATASET_TOKEN_ID, // assetType for dataset
           name,
           symbol,
           0, // decimals
