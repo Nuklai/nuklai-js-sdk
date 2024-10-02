@@ -73,50 +73,34 @@ export class NuklaiSDK extends HyperchainSDK {
     this.wsServiceNuklai = new WebSocketService(this.nodeConfig)
 
     // Custom Registry
-    this.actionRegistry.register(
-        CREATEASSET_ID,
-        CreateAsset.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        TRANSFER_ID,
-        Transfer.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        MINTASSET_FT_ID,
-        MintAssetFT.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        MINTASSET_NFT_ID,
-        MintAssetNFT.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        MINTDATASET_ID,
-        MintDataset.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        BURNASSET_FT_ID,
-        BurnAssetFT.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        BURNASSET_NFT_ID,
-        BurnAssetNFT.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        UPDATEASSET_ID,
-        UpdateAsset.fromBytesCodec,
-        false
-    )
-    this.actionRegistry.register(
-        UPDATEDATASET_ID,
-        UpdateDataset.fromBytesCodec,
-        false
-    )
+    this.registerCustomActions()
+  }
+
+  private registerCustomActions() {
+    const actionsToRegister = [
+      { id: CREATEASSET_ID, action: CreateAsset },
+      { id: MINTASSET_FT_ID, action: MintAssetFT },
+      { id: MINTASSET_NFT_ID, action: MintAssetNFT },
+      { id: MINTDATASET_ID, action: MintDataset },
+      { id: BURNASSET_FT_ID, action: BurnAssetFT },
+      { id: BURNASSET_NFT_ID, action: BurnAssetNFT },
+      { id: UPDATEASSET_ID, action: UpdateAsset },
+      { id: UPDATEDATASET_ID, action: UpdateDataset },
+      { id: TRANSFER_ID, action: Transfer },
+    ];
+
+    actionsToRegister.forEach(({ id, action }) => {
+      const [, isRegistered] = this.actionRegistry.lookupIndex(id);
+      if (!isRegistered) {
+        console.log(`Registering action: ${action.name} with ID: ${id}`);
+        try {
+          this.actionRegistry.register(id, action.fromBytesCodec, false);
+        } catch (error) {
+          console.error(`Error registering action ${action.name}:`, error);
+        }
+      } else {
+        console.log(`Action with ID ${id} already registered, skipping.`);
+      }
+    });
   }
 }
