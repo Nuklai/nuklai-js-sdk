@@ -1,23 +1,16 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import {
-  auth,
-  chain,
-  common,
-  config,
-  services,
-  utils
-} from '@nuklai/hyperchain-sdk'
+import { auth, chain, common, config, services, utils } from '@nuklai/hyperchain-sdk'
 import { CreateAsset } from '../actions/createAsset'
 import { MintDataset } from '../actions/MintDataset'
-import { MintAssetFT } from '../actions/MintAssetFT';
-import { MintAssetNFT } from '../actions/MintAssetNFT';
+import { MintAssetFT } from "../actions/MintAssetFT"
+import { MintAssetNFT } from "../actions/MintAssetNFT"
 import { Transfer } from '../actions/transfer'
-import { BurnAssetFT } from '../actions/BurnAssetFT';
-import { BurnAssetNFT } from '../actions/BurnAssetNFT';
-import { UpdateAsset } from '../actions/UpdateAsset'
-import { UpdateDataset } from '../actions/UpdateDataset'
+import { BurnAssetFT } from "../actions/BurnAssetFT"
+import { BurnAssetNFT } from "../actions/BurnAssetNFT"
+import { UpdateAsset } from "../actions/UpdateAsset"
+import { UpdateDataset } from "../actions/UpdateDataset"
 import {
   GetAssetInfoParams,
   GetAssetInfoResponse,
@@ -221,6 +214,17 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
   ): Promise<{ txID: string; assetID: string }> {
     try {
+      console.log('Creating asset with parameters:', {
+        assetType,
+        name,
+        symbol,
+        decimals,
+        metadata,
+        uri,
+        maxSupply: maxSupply.toString(),
+        parentNFTMetadata
+      });
+
       const createAsset: CreateAsset = new CreateAsset(
           assetType,
           name,
@@ -230,9 +234,15 @@ export class RpcService extends common.Api {
           uri,
           maxSupply,
           parentNFTMetadata
-      )
+      );
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      console.log('CreateAsset object created:', createAsset);
+      console.log('CreateAsset size:', createAsset.size());
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
+      console.log('Genesis info retrieved:', genesisInfo);
+
+      console.log('Generating transaction...');
       const { submit, txSigned, err } =
           await hyperApiService.generateTransaction(
               genesisInfo.genesis,
@@ -242,22 +252,24 @@ export class RpcService extends common.Api {
               authFactory
           )
       if (err) {
+        console.error('Error generating transaction:', err);
         throw err
       }
 
+      console.log('Transaction generated successfully. Submitting...');
       await submit()
 
       const txID = txSigned.id().toString()
+      const assetID = utils.createActionID(txSigned.id(), 0).toString()
 
-      return {
-        txID,
-        assetID: utils.createActionID(txSigned.id(), 0).toString()
-      }
+      console.log('Asset created successfully:', { txID, assetID });
+      return { txID, assetID }
     } catch (error) {
       console.error(
           'Failed to create and submit transaction for "CreateAsset" type',
           error
       )
+      console.error('Error stack:', (error as Error).stack);
       throw error
     }
   }
@@ -278,6 +290,7 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
   ): Promise<{ txID: string; datasetID: string; assetID: string; nftID: string }> {
     try {
+      // First, create the asset
       const { txID: assetTxID, assetID } = await this.createAsset(
           ASSET_DATASET_TOKEN_ID, // assetType for dataset
           name,
@@ -304,7 +317,7 @@ export class RpcService extends common.Api {
           licenseURL,
           metadata,
           isCommunityDataset
-      )
+      );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
@@ -313,12 +326,12 @@ export class RpcService extends common.Api {
           authRegistry,
           [mintDataset],
           authFactory
-      )
+      );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
       const datasetTxID = txSigned.id().toString();
       const datasetID = utils.createActionID(txSigned.id(), 0).toString();

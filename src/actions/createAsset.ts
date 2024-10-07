@@ -33,21 +33,15 @@ export class CreateAsset implements actions.Action {
       maxSupply: bigint,
       parentNFTMetadata?: string
   ) {
-    if (assetType !== ASSET_FUNGIBLE_TOKEN_ID &&
-        assetType !== ASSET_NON_FUNGIBLE_TOKEN_ID &&
-        assetType !== ASSET_DATASET_TOKEN_ID) {
-      throw new Error('Invalid asset type')
-    }
-
-    this.assetType = assetType
-    this.name = new TextEncoder().encode(name)
-    this.symbol = new TextEncoder().encode(symbol)
-    this.decimals = decimals
-    this.metadata = new TextEncoder().encode(metadata)
-    this.uri = new TextEncoder().encode(uri)
-    this.maxSupply = maxSupply
-    if (assetType === ASSET_DATASET_TOKEN_ID && parentNFTMetadata) {
-      this.parentNFTMetadata = new TextEncoder().encode(parentNFTMetadata)
+    this.assetType = assetType;
+    this.name = new TextEncoder().encode(name.slice(0, 64)); // Limit name to 64 bytes
+    this.symbol = new TextEncoder().encode(symbol.slice(0, 8)); // Limit symbol to 8 bytes
+    this.decimals = decimals;
+    this.metadata = new TextEncoder().encode(metadata.slice(0, 256)); // Limit metadata to 256 bytes
+    this.uri = new TextEncoder().encode(uri.slice(0, 128)); // Limit URI to 128 bytes
+    this.maxSupply = maxSupply;
+    if (parentNFTMetadata) {
+      this.parentNFTMetadata = new TextEncoder().encode(parentNFTMetadata.slice(0, 256)); // Limit parentNFTMetadata to 256 bytes
     }
   }
 
@@ -62,13 +56,13 @@ export class CreateAsset implements actions.Action {
         consts.BYTE_LEN + // decimals
         consts.INT_LEN + this.metadata.length +
         consts.INT_LEN + this.uri.length +
-        consts.LONG_LEN // maxSupply
+        consts.LONG_LEN; // maxSupply
 
-    if (this.assetType === ASSET_DATASET_TOKEN_ID && this.parentNFTMetadata) {
-      size += consts.INT_LEN + this.parentNFTMetadata.length
+    if (this.parentNFTMetadata) {
+      size += consts.INT_LEN + this.parentNFTMetadata.length;
     }
 
-    return size
+    return size;
   }
 
   computeUnits(): number {
