@@ -11,6 +11,8 @@ import { BurnAssetNFT } from './actions/BurnAssetNFT'
 import { MintDataset } from './actions/MintDataset'
 import { UpdateAsset } from './actions/UpdateAsset'
 import { UpdateDataset } from './actions/UpdateDataset'
+import { InitiateContributeDataset } from "./actions/InitiateContributeDataset";
+import { CompleteContributeDataset } from "./actions/CompleteContributeDataset";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -27,7 +29,9 @@ import {
   UPDATEDATASET_ID,
   DECIMALS,
   HRP,
-  SYMBOL
+  SYMBOL,
+  INITIATE_CONTRIBUTE_DATASET_ID,
+  COMPLETE_CONTRIBUTE_DATASET_ID,
 } from './constants/nuklaivm'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
@@ -42,6 +46,8 @@ export {
   MintDataset,
   UpdateAsset,
   UpdateDataset,
+  InitiateContributeDataset,
+  CompleteContributeDataset,
   CREATEASSET_ID,
   MINTASSET_FT_ID,
   MINTASSET_NFT_ID,
@@ -53,7 +59,9 @@ export {
   UPDATEDATASET_ID,
   DECIMALS,
   HRP,
-  SYMBOL
+  SYMBOL,
+  INITIATE_CONTRIBUTE_DATASET_ID,
+  COMPLETE_CONTRIBUTE_DATASET_ID,
 }
 
 export class NuklaiSDK extends HyperchainSDK {
@@ -87,6 +95,8 @@ export class NuklaiSDK extends HyperchainSDK {
       { id: UPDATEASSET_ID, action: UpdateAsset },
       { id: UPDATEDATASET_ID, action: UpdateDataset },
       { id: TRANSFER_ID, action: Transfer },
+      { id: INITIATE_CONTRIBUTE_DATASET_ID, action: InitiateContributeDataset },
+      { id: COMPLETE_CONTRIBUTE_DATASET_ID, action: CompleteContributeDataset },
     ];
 
     actionsToRegister.forEach(({ id, action }) => {

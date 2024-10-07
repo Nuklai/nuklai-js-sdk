@@ -53,3 +53,8 @@ export const MAX_METADATA_SIZE = 256
 export const MAX_TEXT_SIZE = 256
 export const MAX_DATASET_METADATA_SIZE = 1024
 export const MAX_DECIMALS = 9
+
+export const INITIATE_CONTRIBUTE_DATASET_ID = 9 // Assign the next available ID
+export const COMPLETE_CONTRIBUTE_DATASET_ID = 10 // Assign the next available ID
+export const INITIATE_CONTRIBUTE_DATASET_COMPUTE_UNITS = 15
+export const COMPLETE_CONTRIBUTE_DATASET_COMPUTE_UNITS = 5

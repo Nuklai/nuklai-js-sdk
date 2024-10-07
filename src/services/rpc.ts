@@ -33,7 +33,7 @@ import {
   GetUserStakeResponse,
   GetValidatorsResponse,
   GetValidatorStakeParams,
-  GetValidatorStakeResponse,
+  GetValidatorStakeResponse, PendingContributionsResponse,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
@@ -642,6 +642,11 @@ export class RpcService extends common.Api {
       assetInfo,
       balance,
     }
+  }
+
+
+  async getPendingContributions(datasetID: string): Promise<PendingContributionsResponse> {
+    return this.callRpc<PendingContributionsResponse>('pendingContributions', { datasetID })
   }
 
   async getNFTInfo(
