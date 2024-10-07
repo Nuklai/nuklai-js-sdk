@@ -203,3 +203,28 @@ export interface PendingContributionInfo {
 export interface PendingContributionsResponse {
   contributions: PendingContributionInfo[];
 }
+
+export interface GetDatasetMarketplaceInfoResponse {
+  datasetName: string;
+  datasetDescription: string;
+  isCommunityDataset: boolean;
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  pricePerBlock: string;
+  datasetOwner: string;
+  totalSubscriptions: string;
+  totalRevenue: string;
+  lastClaimedBlock: string;
+  paymentRemaining: string;
+  paymentClaimed: string;
+  marketplaceAssetInfo: {
+    assetType: string;
+    assetName: string;
+    assetSymbol: string;
+    assetURI: string;
+    totalSupply: string;
+    maxSupply: string;
+    owner: string;
+  };
+  metadata: Record<string, string>;
+}
