@@ -193,3 +193,13 @@ export interface GetDatasetNFTInfoResponse {
   metadata: string;
   ownerAddress: string;
 }
+
+export interface PendingContributionInfo {
+  contributor: string;
+  dataLocation: string;
+  dataIdentifier: string;
+}
+
+export interface PendingContributionsResponse {
+  contributions: PendingContributionInfo[];
+}
