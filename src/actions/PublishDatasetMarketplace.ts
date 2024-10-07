@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import {actions, consts, utils} from "@nuklai/hyperchain-sdk";
 import { Id } from "@avalabs/avalanchejs";
 import {

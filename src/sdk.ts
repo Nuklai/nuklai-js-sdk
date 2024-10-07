@@ -13,6 +13,7 @@ import { UpdateAsset } from './actions/UpdateAsset'
 import { UpdateDataset } from './actions/UpdateDataset'
 import { InitiateContributeDataset } from "./actions/InitiateContributeDataset";
 import { CompleteContributeDataset } from "./actions/CompleteContributeDataset";
+import { PublishDatasetMarketplace } from "./actions/PublishDatasetMarketplace";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -32,6 +33,7 @@ import {
   SYMBOL,
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
+  PUBLISH_DATASET_MARKETPLACE_ID,
 } from './constants/nuklaivm'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
@@ -48,6 +50,7 @@ export {
   UpdateDataset,
   InitiateContributeDataset,
   CompleteContributeDataset,
+  PublishDatasetMarketplace,
   CREATEASSET_ID,
   MINTASSET_FT_ID,
   MINTASSET_NFT_ID,
@@ -62,6 +65,7 @@ export {
   SYMBOL,
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
+  PUBLISH_DATASET_MARKETPLACE_ID,
 }
 
 export class NuklaiSDK extends HyperchainSDK {
@@ -97,6 +101,7 @@ export class NuklaiSDK extends HyperchainSDK {
       { id: TRANSFER_ID, action: Transfer },
       { id: INITIATE_CONTRIBUTE_DATASET_ID, action: InitiateContributeDataset },
       { id: COMPLETE_CONTRIBUTE_DATASET_ID, action: CompleteContributeDataset },
+      { id: PUBLISH_DATASET_MARKETPLACE_ID, action: PublishDatasetMarketplace},
     ];
 
     actionsToRegister.forEach(({ id, action }) => {
