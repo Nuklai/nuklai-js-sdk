@@ -746,7 +746,7 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      const initiateAction = new InitiateContributeDataset(datasetID, dataLocation, dataIdentifier, dataCoordinates);
+      const initiateAction = new InitiateContributeDataset(datasetID, dataLocation, dataIdentifier);
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
       const { submit, txSigned, err } =
