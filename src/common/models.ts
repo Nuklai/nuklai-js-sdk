@@ -166,9 +166,9 @@ export interface GetDatasetAssetInfoResponse {
   totalSupply: number;
   maxSupply: number;
   admin: string;
-  mintActor: string;
-  pauseUnpauseActor: string;
-  freezeUnfreezeActor: string;
+  mintAdmin: string;
+  pauseUnpauseAdmin: string;
+  freezeUnfreezeAdmin: string;
   enableDisableKYCAccountActor: string;
 }
 
