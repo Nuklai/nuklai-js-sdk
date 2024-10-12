@@ -228,3 +228,14 @@ export interface GetDatasetMarketplaceInfoResponse {
   };
   metadata: Record<string, string>;
 }
+
+export interface CompleteContributeDatasetResult {
+  txID: string;
+  collateralAssetID: string;
+  collateralAmountRefunded: bigint;
+  datasetID: string;
+  datasetChildNftID: string;
+  to: string;
+  dataLocation: string;
+  dataIdentifier: string;
+}

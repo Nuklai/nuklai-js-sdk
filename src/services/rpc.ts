@@ -37,7 +37,7 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
   PendingContributionsResponse,
-  GetDatasetMarketplaceInfoResponse,
+  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
@@ -663,6 +663,11 @@ export class RpcService extends common.Api {
     return this.callRpc<GetNFTInfoResponse>('nftInfo', params)
   }
 
+  async checkNFTOwnership(nftID: string, address: string): Promise<boolean> {
+    const nftInfo = await this.getNFTInfo({ nftID })
+    return nftInfo.owner === address
+  }
+
   async burnFTAsset(
       asset: string,
       amount: number,
@@ -740,17 +745,24 @@ export class RpcService extends common.Api {
       datasetID: string,
       dataLocation: string,
       dataIdentifier: string,
+      collateralAssetID: string,
+      collateralAmount: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      const initiateAction = new InitiateContributeDataset(datasetID, dataLocation, dataIdentifier);
+      const initiateAction = new InitiateContributeDataset(
+          datasetID,
+          dataLocation,
+          dataIdentifier,
+          collateralAssetID,
+          collateralAmount,
+      );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-        await hyperApiService.generateTransaction(
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
           authRegistry,
@@ -770,6 +782,62 @@ export class RpcService extends common.Api {
             error
         )
         throw error
+    }
+  }
+
+  async completeContributeDataset(
+      datasetID: string,
+      contributor: string,
+      uniqueNFTIDForContributor: bigint,
+      collateralAssetID: string,
+      collateralAmount: bigint,
+      dataLocation: string,
+      dataIdentifier: string,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<CompleteContributeDatasetResult> {
+    try {
+      const completeAction = new CompleteContributeDataset(
+          datasetID,
+          contributor,
+          uniqueNFTIDForContributor,
+          collateralAssetID,
+          collateralAmount,
+          dataLocation,
+          dataIdentifier
+      )
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [completeAction],
+          authFactory
+      )
+      if (err) {
+        throw err
+      }
+
+      await submit()
+
+      const result: CompleteContributeDatasetResult = {
+        txID: txSigned.id().toString(),
+        collateralAssetID: collateralAssetID,
+        collateralAmountRefunded: collateralAmount,
+        datasetID: datasetID,
+        datasetChildNftID: utils.createActionID(txSigned.id(), 1).toString(),
+        to: contributor,
+        dataLocation: dataLocation,
+        dataIdentifier: dataIdentifier
+      }
+
+      return result
+    } catch (error) {
+      console.error('Failed to complete dataset contribution', error)
+      throw error
     }
   }
 

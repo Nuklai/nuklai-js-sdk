@@ -16,15 +16,27 @@ export class CompleteContributeDataset implements actions.Action {
     public datasetID: Id
     public contributor: utils.Address
     public uniqueNFTIDForContributor: bigint
+    public collateralAssetID: Id
+    public collateralAmount: bigint
+    public dataLocation: Uint8Array
+    public dataIdentifier: Uint8Array
 
     constructor(
         datasetID: string,
         contributor: string,
-        uniqueNFTIDForContributor: bigint
+        uniqueNFTIDForContributor: bigint,
+        collateralAssetID: string,
+        collateralAmount: bigint,
+        dataLocation: string,
+        dataIdentifier: string
     ) {
         this.datasetID = utils.toAssetID(datasetID)
         this.contributor = utils.Address.fromString(contributor)
         this.uniqueNFTIDForContributor = uniqueNFTIDForContributor
+        this.collateralAssetID = utils.toAssetID(collateralAssetID)
+        this.collateralAmount = collateralAmount
+        this.dataLocation = new TextEncoder().encode(dataLocation)
+        this.dataIdentifier = new TextEncoder().encode(dataIdentifier)
     }
 
     getTypeId(): number {
@@ -32,7 +44,9 @@ export class CompleteContributeDataset implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN + consts.ADDRESS_LEN + consts.UINT64_LEN
+        return consts.ID_LEN * 2 + consts.ADDRESS_LEN + consts.UINT64_LEN * 2 +
+            consts.INT_LEN + this.dataLocation.length +
+            consts.INT_LEN + this.dataIdentifier.length
     }
 
     computeUnits(): number {
@@ -54,7 +68,11 @@ export class CompleteContributeDataset implements actions.Action {
         return {
             datasetID: this.datasetID.toString(),
             contributor: this.contributor.toString(),
-            uniqueNFTIDForContributor: this.uniqueNFTIDForContributor.toString()
+            uniqueNFTIDForContributor: this.uniqueNFTIDForContributor.toString(),
+            collateralAssetID: this.collateralAssetID.toString(),
+            collateralAmount: this.collateralAmount.toString(),
+            dataLocation: new TextDecoder().decode(this.dataLocation),
+            dataIdentifier: new TextDecoder().decode(this.dataIdentifier)
         }
     }
 
@@ -67,6 +85,10 @@ export class CompleteContributeDataset implements actions.Action {
         codec.packID(this.datasetID)
         codec.packAddress(this.contributor)
         codec.packUint64(this.uniqueNFTIDForContributor)
+        codec.packID(this.collateralAssetID)
+        codec.packUint64(this.collateralAmount)
+        codec.packBytes(this.dataLocation)
+        codec.packBytes(this.dataIdentifier)
         return codec.toBytes()
     }
 
@@ -74,11 +96,19 @@ export class CompleteContributeDataset implements actions.Action {
         const datasetID = codec.unpackID(true)
         const contributor = codec.unpackAddress()
         const uniqueNFTIDForContributor = codec.unpackUint64(true)
+        const collateralAssetID = codec.unpackID(false)
+        const collateralAmount = codec.unpackUint64(true)
+        const dataLocation = codec.unpackLimitedBytes(consts.MAX_METADATA_SIZE, true)
+        const dataIdentifier = codec.unpackLimitedBytes(consts.MAX_METADATA_SIZE, true)
 
         const action = new CompleteContributeDataset(
             datasetID.toString(),
             contributor.toString(),
-            uniqueNFTIDForContributor
+            uniqueNFTIDForContributor,
+            collateralAssetID.toString(),
+            collateralAmount,
+            new TextDecoder().decode(dataLocation),
+            new TextDecoder().decode(dataIdentifier)
         )
         return [action, codec]
     }
