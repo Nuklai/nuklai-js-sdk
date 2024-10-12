@@ -37,10 +37,13 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
   PendingContributionsResponse,
+  GetDatasetMarketplaceInfoResponse,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
 import {PublishDatasetMarketplace} from "../actions/PublishDatasetMarketplace";
+import {ClaimMarketplacePayment} from "../actions/ClaimMarketplacePayment";
+import {SubscribeDatasetMarketplace} from "../actions/SubscribeDatasetMarketplace";
 
 export class RpcService extends common.Api {
   constructor(protected configNuklai: config.NodeConfig) {
@@ -212,7 +215,7 @@ export class RpcService extends common.Api {
       uri: string,
       maxSupply: bigint,
       parentNFTMetadata: string | undefined,
-      authFactory: auth.AuthFactory,
+      authFactory: auth.AuthFactory, 
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
@@ -743,7 +746,7 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      const initiateAction = new InitiateContributeDataset(datasetID, dataLocation, dataIdentifier);
+      const initiateAction = new InitiateContributeDataset(datasetID, dataLocation, dataIdentifier, dataCoordinates);
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
       const { submit, txSigned, err } =
