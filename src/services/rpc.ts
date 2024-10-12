@@ -37,7 +37,7 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
   PendingContributionsResponse,
-  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult,
+  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
@@ -751,14 +751,14 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+    ): Promise<InitiateContributeDatasetResult> {
     try {
       const initiateAction = new InitiateContributeDataset(
           datasetID,
           dataLocation,
           dataIdentifier,
           collateralAssetID,
-          collateralAmount,
+          collateralAmount
       );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
@@ -775,13 +775,19 @@ export class RpcService extends common.Api {
 
       await submit()
 
-      return txSigned.id().toString()
+      const result: InitiateContributeDatasetResult = {
+        txID: txSigned.id().toString(),
+        collateralAssetID: collateralAssetID,
+        collateralAmountRefunded: collateralAmount
+      };
+
+      return result;
     } catch (error) {
-        console.error(
-            'Failed to create and submit transaction for "InitiateContributeDataset" type',
-            error
-        )
-        throw error
+      console.error(
+          'Failed to create and submit transaction for "InitiateContributeDataset" type',
+          error
+      )
+      throw error
     }
   }
 

@@ -239,3 +239,9 @@ export interface CompleteContributeDatasetResult {
   dataLocation: string;
   dataIdentifier: string;
 }
+
+export interface InitiateContributeDatasetResult {
+  txID: string;
+  collateralAssetID: string;
+  collateralAmountRefunded: bigint;
+}
