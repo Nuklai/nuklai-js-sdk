@@ -204,6 +204,17 @@ export interface PendingContributionsResponse {
   contributions: PendingContributionInfo[];
 }
 
+export interface GetPublishTransactionParams {
+  txID: string;
+}
+
+export interface GetPublishTransactionResponse {
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  datasetPricePerBlock: string;
+  publisher: string;
+}
+
 export interface GetDatasetMarketplaceInfoResponse {
   datasetName: string;
   datasetDescription: string;
@@ -244,4 +255,11 @@ export interface InitiateContributeDatasetResult {
   txID: string;
   collateralAssetID: string;
   collateralAmountRefunded: bigint;
+}
+
+export interface PublishDatasetMarketplaceResult {
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  datasetPricePerBlock: string;
+  publisher: string;
 }

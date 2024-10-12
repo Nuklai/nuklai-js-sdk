@@ -37,7 +37,7 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
   PendingContributionsResponse,
-  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult,
+  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult, PublishDatasetMarketplaceResult, GetPublishTransactionResponse, GetPublishTransactionParams,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
@@ -923,6 +923,9 @@ export class RpcService extends common.Api {
     return this.callRpc<GetDatasetMarketplaceInfoResponse>('datasetMarketplaceInfo', { datasetID })
   }
 
+  async getPublishTransactionResponse(params: GetPublishTransactionParams): Promise<GetPublishTransactionResponse> {
+    return this.callRpc<GetPublishTransactionResponse>('publishTx', params);
+  }
 
   async publishDatasetToMarketplace(
       datasetID: string,
@@ -932,7 +935,7 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<PublishDatasetMarketplaceResult> {
     try {
       const publishAction = new PublishDatasetMarketplace(datasetID, baseAssetID, basePrice);
 
@@ -950,7 +953,11 @@ export class RpcService extends common.Api {
             throw err
       }
 
-      return txSigned.id().toString()
+      await submit()
+
+      const txResult = await this.getPublishTransactionResponse({ txID: txSigned.id().toString() })
+
+      return txResult;
     } catch (error) {
       console.error(
           'Failed to create and submit transaction for "PublishDatasetToMarketplace" type',
