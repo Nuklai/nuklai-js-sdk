@@ -16,15 +16,21 @@ export class InitiateContributeDataset implements actions.Action {
     public datasetID: Id
     public dataLocation: Uint8Array
     public dataIdentifier: Uint8Array
+    public collateralAssetID: Id
+    public collateralAmount: bigint
 
     constructor(
         datasetID: string,
         dataLocation: string,
-        dataIdentifier: string
+        dataIdentifier: string,
+        collateralAssetID: string,
+        collateralAmount: bigint
     ) {
         this.datasetID = utils.toAssetID(datasetID)
         this.dataLocation = new TextEncoder().encode(dataLocation)
         this.dataIdentifier = new TextEncoder().encode(dataIdentifier)
+        this.collateralAssetID = utils.toAssetID(collateralAssetID)
+        this.collateralAmount = collateralAmount
     }
 
     getTypeId(): number {
@@ -32,9 +38,10 @@ export class InitiateContributeDataset implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN +
+        return consts.ID_LEN * 2 +
             consts.INT_LEN + this.dataLocation.length +
-            consts.INT_LEN + this.dataIdentifier.length
+            consts.INT_LEN + this.dataIdentifier.length +
+            consts.UINT64_LEN
     }
 
     computeUnits(): number {
@@ -49,7 +56,9 @@ export class InitiateContributeDataset implements actions.Action {
         return {
             datasetID: this.datasetID.toString(),
             dataLocation: new TextDecoder().decode(this.dataLocation),
-            dataIdentifier: new TextDecoder().decode(this.dataIdentifier)
+            dataIdentifier: new TextDecoder().decode(this.dataIdentifier),
+            collateralAssetID: this.collateralAssetID.toString(),
+            collateralAmount: this.collateralAmount.toString()
         }
     }
 
@@ -62,6 +71,8 @@ export class InitiateContributeDataset implements actions.Action {
         codec.packID(this.datasetID)
         codec.packBytes(this.dataLocation)
         codec.packBytes(this.dataIdentifier)
+        codec.packID(this.collateralAssetID)
+        codec.packUint64(this.collateralAmount)
         return codec.toBytes()
     }
 
@@ -69,11 +80,15 @@ export class InitiateContributeDataset implements actions.Action {
         const datasetID = codec.unpackID(true)
         const dataLocation = codec.unpackLimitedBytes(MAX_TEXT_SIZE, false)
         const dataIdentifier = codec.unpackLimitedBytes(MAX_METADATA_SIZE - MAX_TEXT_SIZE, true)
+        const collateralAssetID = codec.unpackID(false)
+        const collateralAmount = codec.unpackUint64(true)
 
         const action = new InitiateContributeDataset(
             datasetID.toString(),
             new TextDecoder().decode(dataLocation),
-            new TextDecoder().decode(dataIdentifier)
+            new TextDecoder().decode(dataIdentifier),
+            collateralAssetID.toString(),
+            collateralAmount
         )
         return [action, codec]
     }
