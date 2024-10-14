@@ -83,6 +83,43 @@ async function testSDK() {
         const fullDatasetInfo = await sdk.rpcServiceNuklai.getFullDatasetInfo(datasetID)
         console.log('Full Dataset Info:', fullDatasetInfo)
 
+        // Get Pending Contributions
+        console.log('Getting Pending Contributions....');
+        const pendingContributions = await sdk.rpcServiceNuklai.getPendingContributions(datasetID)
+        console.log('Pending Contributions: ', pendingContributions);
+
+        // Initiate Contribute Dataset
+        console.log('Initiating Dataset Contribution...')
+        const initiateContributeResult = await sdk.rpcServiceNuklai.initiateContributeDataset(
+            datasetID,
+            'dataLocation123',
+            'dataIdentifier123',
+            'NAI',
+            BigInt(1000000000000000000), // 1 NAI as collateral
+            authFactory,
+            sdk.rpcService,
+            sdk.actionRegistry,
+            sdk.authRegistry
+        )
+        console.log('Initiate Contribute Result:', initiateContributeResult)
+
+        // Complete Contribute Dataset
+        console.log('Completing Dataset Contribution...')
+        const completeContributeResult = await sdk.rpcServiceNuklai.completeContributeDataset(
+            datasetID,
+            'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+            BigInt(1),
+            'NAI',
+            BigInt(1000000000000000000), // 1 NAI as collateral
+            'dataLocation123',
+            'dataIdentifier123',
+            authFactory,
+            sdk.rpcService,
+            sdk.actionRegistry,
+            sdk.authRegistry
+        )
+        console.log('Complete Contribute Result:', completeContributeResult)
+
     } catch (error) {
         console.error('Error during Dataset operations:', error)
     }
