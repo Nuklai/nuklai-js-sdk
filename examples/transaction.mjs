@@ -29,7 +29,7 @@ async function testSDK() {
       'ed25519',
       '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
     )
-    const txID = await sdk.rpcServiceNuklai.sendTransferTransaction(
+    const txID = await sdk.rpcServiceNuklai.transfer(
       'nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz', // receiver address
       'NAI', // asset ID
       0.0001, // amount
@@ -53,7 +53,7 @@ async function testSDK() {
       '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
     )
     let { txID, assetID } =
-      await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+      await sdk.rpcServiceNuklai.createAsset(
         'TEST', // symbol
         1, // decimals
         'Test token', // metadata
@@ -73,7 +73,7 @@ async function testSDK() {
     console.log('Newly created Asset:', JSON.stringify(assetInfo, null, 2))
 
     console.log('Minting Asset...')
-    txID = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
+    txID = await sdk.rpcServiceNuklai.mintFTAsset(
       'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx', // receiver address
       assetID, // asset ID
       10, // amount to mint
@@ -90,6 +90,14 @@ async function testSDK() {
     }
     assetInfo = await sdk.rpcServiceNuklai.getAssetInfo(params)
     console.log('Newly minted Asset:', JSON.stringify(assetInfo, null, 2))
+
+    // Get Transaction Info
+    console.log('Getting Transaction Info...')
+    const txInfo = await sdk.rpcServiceNuklai.getTransactionInfo({
+      txID: txID // Replace with an actual transaction ID
+    })
+    console.log('Transaction Info:', JSON.stringify(txInfo, null, 2))
+
   } catch (error) {
     console.error('Failed to create & mint asset:', error)
   }
