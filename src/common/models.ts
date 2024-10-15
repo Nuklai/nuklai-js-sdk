@@ -109,3 +109,157 @@ export type GetTransactionInfoResponse = {
   units: Uint8Array
   fee: number
 }
+
+export interface GetNFTInfoParams {
+  nftID: string
+}
+
+export interface GetNFTInfoResponse {
+  assetID: string
+  tokenID: string
+  owner: string
+  metadata: string
+  uri: string
+}
+
+export interface BurnAssetFTParams {
+  asset: string
+  amount: number
+}
+
+export interface BurnAssetNFTParams {
+  asset: string
+  nftID: string
+}
+
+export interface GetDatasetInfoParams {
+  datasetID: string;
+}
+
+export interface GetDatasetInfoResponse {
+  name: string;
+  description: string;
+  categories: string;
+  licenseName: string;
+  licenseSymbol: string;
+  licenseURL: string;
+  metadata: string;
+  isCommunityDataset: boolean;
+  // These are part of the metadata.
+  saleID: string;
+  baseAsset: string;
+  basePrice: number;
+  revenueModelDataShare: number;
+  revenueModelMetadataShare: number;
+  revenueModelDataOwnerCut: number;
+  revenueModelMetadataOwnerCut: number;
+  owner: string;
+}
+
+export interface GetDatasetAssetInfoResponse {
+  assetType: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  metadata: string;
+  uri: string;
+  totalSupply: number;
+  maxSupply: number;
+  admin: string;
+  mintAdmin: string;
+  pauseUnpauseAdmin: string;
+  freezeUnfreezeAdmin: string;
+  enableDisableKYCAccountActor: string;
+}
+
+export interface GetDatasetBalanceParams {
+  address: string;
+  assetID: string;
+}
+
+export interface GetDatasetBalanceResponse {
+  balance: number;
+  symbol: string;
+}
+
+export interface GetDatasetNFTInfoParams {
+  nftID: string;
+}
+
+export interface GetDatasetNFTInfoResponse {
+  collectionID: string;
+  uniqueID: number;
+  uri: string;
+  metadata: string;
+  ownerAddress: string;
+}
+
+export interface PendingContributionInfo {
+  contributor: string;
+  dataLocation: string;
+  dataIdentifier: string;
+}
+
+export interface PendingContributionsResponse {
+  contributions: PendingContributionInfo[];
+}
+
+export interface GetPublishTransactionParams {
+  txID: string;
+}
+
+export interface GetPublishTransactionResponse {
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  datasetPricePerBlock: string;
+  publisher: string;
+}
+
+export interface GetDatasetMarketplaceInfoResponse {
+  datasetName: string;
+  datasetDescription: string;
+  isCommunityDataset: boolean;
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  pricePerBlock: string;
+  datasetOwner: string;
+  totalSubscriptions: string;
+  totalRevenue: string;
+  lastClaimedBlock: string;
+  paymentRemaining: string;
+  paymentClaimed: string;
+  marketplaceAssetInfo: {
+    assetType: string;
+    assetName: string;
+    assetSymbol: string;
+    assetURI: string;
+    totalSupply: string;
+    maxSupply: string;
+    owner: string;
+  };
+  metadata: Record<string, string>;
+}
+
+export interface CompleteContributeDatasetResult {
+  txID: string;
+  collateralAssetID: string;
+  collateralAmountRefunded: bigint;
+  datasetID: string;
+  datasetChildNftID: string;
+  to: string;
+  dataLocation: string;
+  dataIdentifier: string;
+}
+
+export interface InitiateContributeDatasetResult {
+  txID: string;
+  collateralAssetID: string;
+  collateralAmountRefunded: bigint;
+}
+
+export interface PublishDatasetMarketplaceResult {
+  marketplaceAssetID: string;
+  assetForPayment: string;
+  datasetPricePerBlock: string;
+  publisher: string;
+}

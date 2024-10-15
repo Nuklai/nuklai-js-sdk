@@ -12,6 +12,9 @@ The Nuklai SDK provides a modular and comprehensive interface for interacting wi
 - **Transaction Management**: Submit and fetch details about transactions.
 - **Asset Management**: Query and manage blockchain assets.
 - **Emission Details**: Access emission information, validator details, and staking functionalities.
+- **Asset Management**: Create, mint, and burn fungible tokens, non-fungible tokens (NFTs), and dataset tokens.
+- **Balance Checking**: Query balances for both fungible and non-fungible tokens.
+- **NFT Information**: Retrieve detailed information about specific NFTs.
 
 ## Installation
 
@@ -147,14 +150,14 @@ console.log('Transaction ID:', txID)
 ### Create a New Asset
 
 ```js
-const { txID, assetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
-  'TEST', // symbol
-  1, // decimals
-  'Test token', // metadata
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
+const {txID, assetID} = await sdk.rpcServiceNuklai.createAsset(
+    'TEST', // symbol
+    1, // decimals
+    'Test token', // metadata
+    authFactory,
+    sdk.rpcService,
+    sdk.actionRegistry,
+    sdk.authRegistry
 )
 console.log('Create Asset Transaction ID:', txID)
 console.log('Asset ID:', assetID)
@@ -211,6 +214,131 @@ const connectAndListen = async () => {
 }
 connectAndListen()
 await sdk.wsServiceNuklai.close()
+```
+
+### Create Different Types of Assets
+
+```javascript
+// Create Fungible Token (FT)
+const { txID: ftTxID, assetID: ftAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+  ASSET_FUNGIBLE_TOKEN_ID,
+  'Fungible Token',
+  'FT',
+  18,
+  'Test Fungible Token',
+  'https://example.com/ft',
+  BigInt(1000000000000000000000000), // 1 million tokens
+  undefined,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+
+// Create Non-Fungible Token (NFT)
+const { txID: nftTxID, assetID: nftAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+  ASSET_NON_FUNGIBLE_TOKEN_ID,
+  'Non-Fungible Token',
+  'NFT',
+  0,
+  'Test Non-Fungible Token',
+  'https://example.com/nft',
+  BigInt(1000), // 1000 NFTs max
+  undefined,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+
+// Create Dataset Token
+const { txID: datasetTxID, assetID: datasetAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
+  ASSET_DATASET_TOKEN_ID,
+  'Dataset Token',
+  'DT',
+  0,
+  'Test Dataset Token',
+  'https://example.com/dataset',
+  BigInt(1),
+  'Parent NFT Metadata',
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+```
+
+### Mint Tokens
+
+```javascript
+// Mint Fungible Token (FT)
+const ftMintTxID = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
+  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+  ftAssetID,
+  1000,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+
+// Mint Non-Fungible Token (NFT)
+const nftMintTxID = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
+  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+  nftAssetID,
+  1,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+```
+
+### Check Token Balances
+
+```javascript
+// Check Fungible Token Balance
+const ftBalance = await sdk.getFungibleTokenBalance(
+  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+  ftAssetID
+)
+
+// Check Non-Fungible Token Balance
+const nftBalance = await sdk.getNonFungibleTokenBalance(
+  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
+  nftAssetID
+)
+```
+
+### Get NFT Information
+
+```javascript
+const nftInfo = await sdk.getNFTInfo(nftAssetID)
+console.log('NFT Info:', nftInfo)
+```
+
+### Burn Tokens
+
+```javascript
+// Burn Fungible Token (FT)
+const ftBurnTxID = await sdk.rpcServiceNuklai.sendBurnAssetFTTransaction(
+  ftAssetID,
+  100,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
+
+// Burn Non-Fungible Token (NFT)
+const nftBurnTxID = await sdk.rpcServiceNuklai.sendBurnAssetNFTTransaction(
+  nftAssetID,
+  nftInfo.tokenID,
+  authFactory,
+  sdk.rpcService,
+  sdk.actionRegistry,
+  sdk.authRegistry
+)
 ```
 
 ## Publish
