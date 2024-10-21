@@ -1,90 +1,82 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { Address } from "@avalabs/avalanchego-utils";
-import { Action, Codec } from "@nuklai/nuklai-sdk";
+import { actions, consts, utils } from "@nuklai/hyperchain-sdk";
 import {
-  MINTASSET_FT_COMPUTE_UNITS,
-  MINTASSET_FT_ID,
+  MINT_ASSET_COMPUTE_UNITS,
+  MINT_ASSET_FT_ID,
   STORAGE_ASSET_CHUNKS,
   STORAGE_BALANCE_CHUNKS,
 } from "../constants";
 
-export class MintAssetFT implements Action {
-  public assetAddress: Address;
-  public value: bigint;
-  public to: Address;
+export const MintAssetFTTxSize =
+  consts.ADDRESS_LEN + // to
+  consts.ADDRESS_LEN + // assetAddress
+  consts.UINT64_LEN; // value
 
-  constructor(assetAddress: string, value: bigint, to: string) {
-    this.assetAddress = Address.fromString(assetAddress);
+export class MintAssetFT implements actions.Action {
+  public to: utils.Address;
+  public assetAddress: utils.Address;
+  public value: bigint;
+
+  constructor(to: string, assetAddress: string, value: bigint) {
+    this.to = utils.Address.fromString(to);
+    this.assetAddress = utils.Address.fromString(assetAddress);
     this.value = value;
-    this.to = Address.fromString(to);
   }
 
   getTypeId(): number {
-    return MINTASSET_FT_ID;
+    return MINT_ASSET_FT_ID;
+  }
+
+  size(): number {
+    return MintAssetFTTxSize;
   }
 
   computeUnits(): number {
-    return MINTASSET_FT_COMPUTE_UNITS;
-  }
-
-  static unmarshal(codec: Codec): MintAssetFT {
-    const assetAddress = codec.unpackAddress();
-    const value = codec.unpackUint64(false);
-    const to = codec.unpackAddress();
-    return new MintAssetFT(assetAddress.toString(), value, to.toString());
-  }
-
-  toJSON(): object {
-    return {
-      assetAddress: this.assetAddress.toString(),
-      value: this.value.toString(),
-      to: this.to.toString(),
-    };
-  }
-
-  toString(): string {
-    return JSON.stringify(this.toJSON());
+    return MINT_ASSET_COMPUTE_UNITS;
   }
 
   stateKeysMaxChunks(): number[] {
     return [STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS];
   }
-}
-
-export class MintAssetFTResult {
-  public oldBalance: bigint;
-  public newBalance: bigint;
-
-  constructor(oldBalance: bigint, newBalance: bigint) {
-    this.oldBalance = oldBalance;
-    this.newBalance = newBalance;
-  }
-
-  getTypeId(): number {
-    return MINTASSET_FT_ID;
-  }
-
-  marshal(codec: Codec): void {
-    codec.packUint64(this.oldBalance);
-    codec.packUint64(this.newBalance);
-  }
-
-  static unmarshal(codec: Codec): MintAssetFTResult {
-    const oldBalance = codec.unpackUint64(false);
-    const newBalance = codec.unpackUint64(true);
-    return new MintAssetFTResult(oldBalance, newBalance);
-  }
 
   toJSON(): object {
     return {
-      oldBalance: this.oldBalance.toString(),
-      newBalance: this.newBalance.toString(),
+      to: this.to.toString(),
+      assetAddress: this.assetAddress.toString(),
+      value: this.value.toString(),
     };
   }
 
   toString(): string {
     return JSON.stringify(this.toJSON());
+  }
+
+  toBytes(): Uint8Array {
+    const codec = utils.Codec.newWriter(this.size(), this.size());
+    codec.packAddress(this.to);
+    codec.packAddress(this.assetAddress);
+    codec.packUint64(this.value);
+    return codec.toBytes();
+  }
+
+  static fromBytes(bytes: Uint8Array): [MintAssetFT | null, Error | null] {
+    const codec = utils.Codec.newReader(bytes, bytes.length);
+    const to = codec.unpackAddress();
+    const assetAddress = codec.unpackAddress();
+    const value = codec.unpackUint64(true);
+
+    const error = codec.getError();
+    if (error) {
+      return [null, error];
+    }
+
+    const action = new MintAssetFT(
+      to.toString(),
+      assetAddress.toString(),
+      value
+    );
+    return [action, null];
   }
 }

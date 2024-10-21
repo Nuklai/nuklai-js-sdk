@@ -3,6 +3,7 @@
 
 import { auth, chain, common, config, services, utils } from '@nuklai/hyperchain-sdk'
 import { CreateAsset } from '../actions/createAsset'
+import { CreateAssetFT } from "../actions/CreateAssetFT";
 import { MintDataset } from '../actions/MintDataset'
 import { MintAssetFT } from "../actions/MintAssetFT"
 import { MintAssetNFT } from "../actions/MintAssetNFT"
@@ -281,6 +282,59 @@ export class RpcService extends common.Api {
     }
   }
 
+  async createFTAsset(
+      name: string,
+      symbol: string,
+      decimals: number,
+      metadata: string,
+      maxSupply: bigint,
+      mintAdmin: string,
+      pauseUnpauseAdmin: string,
+      freezeUnfreezeAdmin: string,
+      enableDisableKYCAccountAdmin: string,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<string> {
+    try {
+      const createAssetFT = new CreateAssetFT(
+          name,
+          symbol,
+          decimals,
+          metadata,
+          maxSupply,
+          mintAdmin,
+          pauseUnpauseAdmin,
+          freezeUnfreezeAdmin,
+          enableDisableKYCAccountAdmin
+      );
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
+      const { submit, txSigned, err } =
+          await hyperApiService.generateTransaction(
+              genesisInfo.genesis,
+              actionRegistry,
+              authRegistry,
+              [createAssetFT],
+              authFactory
+          );
+      if (err) {
+        throw err;
+      }
+
+      await submit();
+
+      return txSigned.id().toString();
+    } catch (error) {
+      console.error(
+          'Failed to create and submit transaction for "CreateAssetFT" type',
+          error
+      );
+      throw error;
+    }
+  }
+
   async createDataset(
       name: string,
       symbol: string,
@@ -358,7 +412,7 @@ export class RpcService extends common.Api {
 
   async mintFTAsset(
       to: string,
-      asset: string,
+      assetAddress: string,
       amount: number,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
@@ -367,7 +421,7 @@ export class RpcService extends common.Api {
   ): Promise<string> {
     try {
       const amountInUnits = utils.parseBalance(amount, DECIMALS)
-      const mintAssetFT: MintAssetFT = new MintAssetFT(to, asset, amountInUnits)
+      const mintAssetFT: MintAssetFT = new MintAssetFT(to, assetAddress, amountInUnits)
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
       const { submit, txSigned, err } =
@@ -395,38 +449,30 @@ export class RpcService extends common.Api {
   }
 
   async mintNFTAsset(
-      to: string,
-      asset: string,
-      uniqueID: number,
-      uri: string,
+      assetAddress: string,
       metadata: string,
+      to: string,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
   ): Promise<string> {
     try {
-      const mintAssetNFT: MintAssetNFT = new MintAssetNFT(
-          to,
-          asset,
-          BigInt(uniqueID),
-          uri,
-          metadata
-      )
+      const mintAssetNFT: MintAssetNFT = new MintAssetNFT(assetAddress, metadata, to);
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
           genesisInfo.genesis,
           actionRegistry,
           authRegistry,
           [mintAssetNFT],
           authFactory
-      )
+      );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
       return txSigned.id().toString()
     } catch (error) {
@@ -753,6 +799,7 @@ export class RpcService extends common.Api {
       authRegistry: chain.AuthRegistry
     ): Promise<InitiateContributeDatasetResult> {
     try {
+
       const initiateAction = new InitiateContributeDataset(
           datasetID,
           dataLocation,
@@ -955,6 +1002,7 @@ export class RpcService extends common.Api {
 
       await submit()
 
+      // Fetch the published transaction response
       const txResult = await this.getPublishTransactionResponse({ txID: txSigned.id().toString() })
 
       return txResult;

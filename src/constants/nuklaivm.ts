@@ -9,6 +9,7 @@ export const DECIMALS = 9
 export const ED25519_ID = 0
 export const SECP256R1_ID = 1
 export const BLS_ID = 2
+
 // Auth Units
 export const ED25519_COMPUTE_UNITS = 5
 export const SECP256R1_COMPUTE_UNITS = 10
