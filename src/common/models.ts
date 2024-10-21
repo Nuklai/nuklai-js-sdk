@@ -170,6 +170,31 @@ export interface BurnAssetNFTParams {
   assetNftAddress: string;
 }
 
+export interface CreateFTAssetResult {
+  assetAddress: string;
+  assetBalance: string;
+  datasetParentNftAddress?: string;
+}
+
+export interface MintAssetFTResult {
+  oldBalance: string;
+  newBalance: string;
+}
+
+export interface MintAssetNFTResult {
+  assetNftAddress: string;
+  oldBalance: string;
+  newBalance: string;
+}
+
+export interface GetCreateAssetParams {
+  txID: string;
+}
+
+export interface GetMintAssetParams {
+  txID: string;
+}
+
 export interface CreateDatasetResult {
   datasetAddress: string;
   datasetParentNftAddress: string;
@@ -192,6 +217,7 @@ export interface GetDatasetInfoResponse {
   licenseURL: string;
   metadata: string;
   isCommunityDataset: boolean;
+  // These are part of the metadata.
   saleID: string;
   baseAsset: string;
   basePrice: number;

@@ -221,6 +221,10 @@ export class RpcService extends common.Api {
     return this.transfer(to, nftAddress, 1n, memo, authFactory, hyperApiService, actionRegistry, authRegistry);
   }
 
+  async getCreateAssetResponse(params: GetCreateAssetParams): Promise<CreateFTAssetResult> {
+    return this.callRpc<CreateFTAssetResult>('createAssetTx', params);
+  }
+
   async createFTAsset(
       name: string,
       symbol: string,
@@ -235,7 +239,7 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<CreateFTAssetResult> {
     try {
       const createAssetFT = new CreateAssetFT(
           name,
@@ -250,26 +254,24 @@ export class RpcService extends common.Api {
       );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [createAssetFT],
-              authFactory
-          );
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [createAssetFT],
+          authFactory
+      );
       if (err) {
         throw err;
       }
 
       await submit();
 
-      return txSigned.id().toString();
+      const txResult = await this.getCreateAssetResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
     } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "CreateAssetFT" type',
-          error
-      );
+      console.error('Failed to create and submit transaction for "CreateAssetFT" type', error);
       throw error;
     }
   }
@@ -386,42 +388,47 @@ export class RpcService extends common.Api {
     }
   }
 
+  async getMintAssetFTResponse(params: GetMintAssetParams): Promise<MintAssetFTResult> {
+    return this.callRpc<MintAssetFTResult>('mintAssetFTTx', params);
+  }
+
   async mintFTAsset(
       to: string,
       assetAddress: string,
-      amount: number,
+      amount: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<MintAssetFTResult> {
     try {
-      const amountInUnits = utils.parseBalance(amount, DECIMALS)
-      const mintAssetFT: MintAssetFT = new MintAssetFT(to, assetAddress, amountInUnits)
+      const mintAssetFT = new MintAssetFT(to, assetAddress, amount);
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [mintAssetFT],
-              authFactory
-          )
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [mintAssetFT],
+          authFactory
+      );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
-      return txSigned.id().toString()
+      const txResult = await this.getMintAssetFTResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
     } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "MintAssetFT" type',
-          error
-      )
-      throw error
+      console.error('Failed to create and submit transaction for "MintAssetFT" type', error);
+      throw error;
     }
+  }
+
+  async getMintAssetNFTResponse(params: GetMintAssetParams): Promise<MintAssetNFTResult> {
+    return this.callRpc<MintAssetNFTResult>('mintAssetNFTTx', params);
   }
 
   async mintNFTAsset(
@@ -432,9 +439,9 @@ export class RpcService extends common.Api {
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<MintAssetNFTResult> {
     try {
-      const mintAssetNFT: MintAssetNFT = new MintAssetNFT(assetAddress, metadata, to);
+      const mintAssetNFT = new MintAssetNFT(assetAddress, metadata, to);
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
@@ -450,10 +457,12 @@ export class RpcService extends common.Api {
 
       await submit();
 
-      return txSigned.id().toString()
+      const txResult = await this.getMintAssetNFTResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
     } catch (error) {
-      console.error('Failed to create and submit transaction for "MintAssetNFT" type', error)
-      throw error
+      console.error('Failed to create and submit transaction for "MintAssetNFT" type', error);
+      throw error;
     }
   }
 
