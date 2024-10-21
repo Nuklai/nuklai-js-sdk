@@ -110,6 +110,15 @@ export type GetTransactionInfoResponse = {
   fee: number
 }
 
+export interface TransferResult {
+  senderBalance: string;
+  receiverBalance: string;
+}
+
+export interface GetTransferParams {
+  txID: string;
+}
+
 export interface GetNFTInfoParams {
   nftID: string
 }
@@ -131,14 +140,18 @@ export interface GetBurnAssetFTParams {
   txID: string;
 }
 
-export interface BurnAssetFTParams {
-  asset: string
-  amount: number
+export interface BurnAssetNFTResult {
+  oldBalance: string;
+  newBalance: string;
+}
+
+export interface GetBurnAssetNFTParams {
+  txID: string;
 }
 
 export interface BurnAssetNFTParams {
-  asset: string
-  nftID: string
+  assetAddress: string;
+  assetNftAddress: string;
 }
 
 export interface GetDatasetInfoParams {

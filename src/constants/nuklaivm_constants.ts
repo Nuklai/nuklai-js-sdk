@@ -7,11 +7,13 @@ export const SYMBOL = 'NAI'
 export const DECIMALS = 9
 
 // Action TypeIDs
+export const TRANSFER_ID = 0
 export const CREATE_ASSET_ID = 1
 export const MINT_ASSET_FT_ID = 2
 export const MINT_ASSET_NFT_ID = 3
 export const CREATE_DATASET_ID = 4
 export const BURNASSET_FT_ID = 5
+export const BURNASSET_NFT_ID = 6
 export const UPDATE_DATASET_ID = 7
 export const UPDATE_ASSET_ID = 8
 export const INITIATE_CONTRIBUTE_DATASET_ID = 9
@@ -37,6 +39,7 @@ export const INITIATE_CONTRIBUTE_DATASET_COMPUTE_UNITS = 15
 export const COMPLETE_CONTRIBUTE_DATASET_COMPUTE_UNITS = 5
 export const SUBSCRIBE_DATASET_MARKETPLACE_COMPUTE_UNITS = 10
 export const CLAIM_MARKETPLACE_PAYMENT_COMPUTE_UNITS = 5
+export const TRANSFER_COMPUTE_UNITS = 1
 
 // Storage Chunks
 export const STORAGE_ASSET_CHUNKS = 5

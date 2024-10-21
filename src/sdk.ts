@@ -38,7 +38,7 @@ import {
   PUBLISH_DATASET_MARKETPLACE_ID,
   SUBSCRIBE_DATASET_MARKETPLACE_ID,
   CLAIM_MARKETPLACE_PAYMENT_ID
-} from './constants/nuklaivm'
+} from './constants'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
 
