@@ -14,6 +14,8 @@ import { UpdateDataset } from './actions/UpdateDataset'
 import { InitiateContributeDataset } from "./actions/InitiateContributeDataset";
 import { CompleteContributeDataset } from "./actions/CompleteContributeDataset";
 import { PublishDatasetMarketplace } from "./actions/PublishDatasetMarketplace";
+import { SubscribeDatasetMarketplace } from "./actions/SubscribeDatasetMarketplace";
+import { ClaimMarketplacePayment } from "./actions/ClaimMarketplacePayment";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
@@ -34,6 +36,8 @@ import {
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
   PUBLISH_DATASET_MARKETPLACE_ID,
+  SUBSCRIBE_DATASET_MARKETPLACE_ID,
+  CLAIM_MARKETPLACE_PAYMENT_ID
 } from './constants/nuklaivm'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
@@ -51,6 +55,8 @@ export {
   InitiateContributeDataset,
   CompleteContributeDataset,
   PublishDatasetMarketplace,
+  SubscribeDatasetMarketplace,
+  ClaimMarketplacePayment,
   CREATEASSET_ID,
   MINTASSET_FT_ID,
   MINTASSET_NFT_ID,
@@ -66,6 +72,8 @@ export {
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
   PUBLISH_DATASET_MARKETPLACE_ID,
+  SUBSCRIBE_DATASET_MARKETPLACE_ID,
+  CLAIM_MARKETPLACE_PAYMENT_ID,
 }
 
 export class NuklaiSDK extends HyperchainSDK {
@@ -102,6 +110,8 @@ export class NuklaiSDK extends HyperchainSDK {
       { id: INITIATE_CONTRIBUTE_DATASET_ID, action: InitiateContributeDataset },
       { id: COMPLETE_CONTRIBUTE_DATASET_ID, action: CompleteContributeDataset },
       { id: PUBLISH_DATASET_MARKETPLACE_ID, action: PublishDatasetMarketplace},
+      { id: SUBSCRIBE_DATASET_MARKETPLACE_ID, action: SubscribeDatasetMarketplace },
+      { id: CLAIM_MARKETPLACE_PAYMENT_ID, action: ClaimMarketplacePayment },
     ];
 
     actionsToRegister.forEach(({ id, action }) => {
