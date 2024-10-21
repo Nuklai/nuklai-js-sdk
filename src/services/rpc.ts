@@ -42,7 +42,7 @@ import {
   GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult, PublishDatasetMarketplaceResult, GetPublishTransactionResponse, GetPublishTransactionParams,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
-import {ASSET_DATASET_TOKEN_ID, DECIMALS} from '../constants/nuklaivm'
+import { DECIMALS } from '../constants'
 import {PublishDatasetMarketplace} from "../actions/PublishDatasetMarketplace";
 import {ClaimMarketplacePayment} from "../actions/ClaimMarketplacePayment";
 import {SubscribeDatasetMarketplace} from "../actions/SubscribeDatasetMarketplace";
@@ -340,6 +340,12 @@ export class RpcService extends common.Api {
     assetAddress: string,
       name: string,
       name: string,
+      name: string,
+      symbol: string,
+    name: string,
+      symbol: string,
+    name: string,
+      name: string,
       symbol: string,
     name: string,
       symbol: string,
@@ -422,81 +428,6 @@ export class RpcService extends common.Api {
     }
   }
 
-  // async createDataset(
-  //     name: string,
-  //     symbol: string,
-  //     description: string,
-  //     categories: string,
-  //     licenseName: string,
-  //     licenseSymbol: string,
-  //     licenseURL: string,
-  //     metadata: string,
-  //     isCommunityDataset: boolean,
-  //     authFactory: auth.AuthFactory,
-  //     hyperApiService: services.RpcService,
-  //     actionRegistry: chain.ActionRegistry,
-  //     authRegistry: chain.AuthRegistry
-  // ): Promise<{ txID: string; datasetID: string; assetID: string; nftID: string }> {
-  //   try {
-  //     // First, create the asset
-  //     const { txID: assetTxID, assetID } = await this.createAsset(
-  //         ASSET_DATASET_TOKEN_ID, // assetType for dataset
-  //         name,
-  //         symbol,
-  //         0, // decimals
-  //         metadata,
-  //         "", // uri
-  //         BigInt(0), // maxSupply
-  //         undefined, // parentNFTMetadata
-  //         authFactory,
-  //         hyperApiService,
-  //         actionRegistry,
-  //         authRegistry
-  //     );
-
-  //     // Now, mint the dataset
-  //     const mintDataset: MintDataset = new MintDataset(
-  //         assetID,
-  //         name,
-  //         description,
-  //         categories,
-  //         licenseName,
-  //         licenseSymbol,
-  //         licenseURL,
-  //         metadata,
-  //         isCommunityDataset
-  //     );
-
-  //     const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
-  //     const { submit, txSigned, err } = await hyperApiService.generateTransaction(
-  //         genesisInfo.genesis,
-  //         actionRegistry,
-  //         authRegistry,
-  //         [mintDataset],
-  //         authFactory
-  //     );
-  //     if (err) {
-  //       throw err;
-  //     }
-
-  //     await submit();
-
-  //     const datasetTxID = txSigned.id().toString();
-  //     const datasetID = utils.createActionID(txSigned.id(), 0).toString();
-  //     const nftID = utils.createActionID(txSigned.id(), 1).toString(); // Assuming the NFT is minted as the second action
-
-  //     return {
-  //       txID: datasetTxID,
-  //       datasetID,
-  //       assetID,
-  //       nftID,
-  //     };
-  //   } catch (error) {
-  //     console.error('Failed to create dataset', error);
-  //     throw error;
-  //   }
-  // }
-
   async mintFTAsset(
       to: string,
       assetAddress: string,
@@ -569,17 +500,16 @@ export class RpcService extends common.Api {
   }
 
   async updateAsset(
-      asset: string,
+      assetAddress: string,
       name: string,
       symbol: string,
       metadata: string,
-      uri: string,
       maxSupply: bigint,
-      admin: string,
-      mintActor: string,
-      pauseUnpauseActor: string,
-      freezeUnfreezeActor: string,
-      enableDisableKYCAccountActor: string,
+      owner: string,
+      mintAdmin: string,
+      pauseUnpauseAdmin: string,
+      freezeUnfreezeAdmin: string,
+      enableDisableKYCAccountAdmin: string,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
@@ -587,17 +517,16 @@ export class RpcService extends common.Api {
   ): Promise<string> {
     try {
       const updateAsset: UpdateAsset = new UpdateAsset(
-          asset,
+          assetAddress,
           name,
           symbol,
           metadata,
-          uri,
           maxSupply,
-          admin,
-          mintActor,
-          pauseUnpauseActor,
-          freezeUnfreezeActor,
-          enableDisableKYCAccountActor
+          owner,
+          mintAdmin,
+          pauseUnpauseAdmin,
+          freezeUnfreezeAdmin,
+          enableDisableKYCAccountAdmin
       )
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()

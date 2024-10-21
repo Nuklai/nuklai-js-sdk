@@ -5,7 +5,7 @@ import { Id } from '@avalabs/avalanchejs'
 import { auth, chain, config, services, utils } from '@nuklai/hyperchain-sdk'
 import { Transfer } from 'actions/transfer'
 import { GetBalanceParams, GetGenesisInfoResponse } from 'common/models'
-import { DECIMALS } from 'constants/nuklaivm'
+import { DECIMALS } from 'constants/'
 import { RpcService } from './rpc'
 
 export class WebSocketService extends services.WebSocketService {
