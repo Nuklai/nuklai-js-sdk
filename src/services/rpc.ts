@@ -49,12 +49,15 @@ import {
   BurnAssetNFTResult,
   BurnAssetNFTParams,
   TransferResult, GetTransferParams, CreateDatasetResult, GetCreateDatasetParams,
+  CreateAssetNFTResult,
+  GetCreateAssetNFTParams,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import { DECIMALS } from '../constants'
 import {PublishDatasetMarketplace} from "../actions/PublishDatasetMarketplace";
 import {ClaimMarketplacePayment} from "../actions/ClaimMarketplacePayment";
 import {SubscribeDatasetMarketplace} from "../actions/SubscribeDatasetMarketplace";
+import { CreateAssetNFT } from 'actions'
 
 export class RpcService extends common.Api {
   constructor(protected configNuklai: config.NodeConfig) {
@@ -255,6 +258,62 @@ export class RpcService extends common.Api {
       console.error(
           'Failed to create and submit transaction for "CreateAssetFT" type',
           error
+      );
+      throw error;
+    }
+  }
+
+  async getCreateAssetNFTResponse(params: GetCreateAssetNFTParams): Promise<CreateAssetNFTResult> {
+    return this.callRpc<CreateAssetNFTResult>('createAssetNFTTx', params);
+  }
+
+  async createNFTAsset(
+    name: string,
+    symbol: string,
+    metadata: string,
+    maxSupply: bigint,
+    mintAdmin: string,
+    pauseUnpauseAdmin: string,
+    freezeUnfreezeAdmin: string,
+    enableDisableKYCAccountAdmin: string,
+    authFactory: auth.AuthFactory,
+    hyperApiService: services.RpcService,
+    actionRegistry: chain.ActionRegistry,
+    authRegistry: chain.AuthRegistry
+  ): Promise<CreateAssetNFTResult> {
+    try {
+      const createAssetNFT = new CreateAssetNFT(
+        name,
+        symbol,
+        metadata,
+        maxSupply,
+        mintAdmin,
+        pauseUnpauseAdmin,
+        freezeUnfreezeAdmin,
+        enableDisableKYCAccountAdmin,
+      );
+
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+        genesisInfo.genesis,
+        actionRegistry,
+        authRegistry,
+        [createAssetNFT],
+        authFactory,
+      );
+      if (err) {
+        throw err;
+      }
+
+      await submit();
+
+      const txResult = this.getCreateAssetNFTResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
+    } catch (error) {
+      console.error(
+        'Failed to create and submit transaction for "CreateAssetNFT" type.',
+        error
       );
       throw error;
     }

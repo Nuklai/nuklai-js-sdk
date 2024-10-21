@@ -145,6 +145,22 @@ export interface BurnAssetNFTResult {
   newBalance: string;
 }
 
+export interface CreateAssetNFTResult {
+  assetID: string;
+  name: string;
+  symbol: string;
+  metadata: string;
+  maxSupply: string;
+  mintAdmin: string;
+  pauseUnpauseAdmin: string;
+  freezeUnfreezeAdmin: string;
+  enableDisableKYCAccountAdmin: string;
+}
+
+export interface GetCreateAssetNFTParams {
+  txID: string;
+}
+
 export interface GetBurnAssetNFTParams {
   txID: string;
 }
