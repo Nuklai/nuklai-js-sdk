@@ -2,17 +2,19 @@
 // See the file LICENSE for licensing terms.
 
 import { auth, chain, common, config, services, utils } from '@nuklai/hyperchain-sdk'
-import { CreateAssetFT } from "../actions/CreateAssetFT"
-import { CreateDataset } from 'actions/CreateDataset'
-import { MintAssetFT } from "../actions/MintAssetFT"
-import { MintAssetNFT } from "../actions/MintAssetNFT"
-import { Transfer } from '../actions/transfer'
-import { BurnAssetFT } from "../actions/BurnAssetFT"
-import { BurnAssetNFT } from "../actions/BurnAssetNFT"
-import { UpdateAsset } from "../actions/UpdateAsset"
-import { UpdateDataset } from "../actions/UpdateDataset"
-import { InitiateContributeDataset } from "../actions/InitiateContributeDataset";
-import { CompleteContributeDataset } from "../actions/CompleteContributeDataset";
+
+import {
+  CreateAssetFT, CreateAssetNFT, BurnAssetNFT, BurnAssetFT, MintAssetNFT, MintAssetFT, CreateDataset,
+    Transfer,
+    UpdateAsset,
+    UpdateDataset,
+    InitiateContributeDataset,
+    CompleteContributeDataset,
+    PublishDatasetMarketplace,
+    SubscribeDatasetMarketplace,
+    ClaimMarketplacePayment,
+} from "../actions";
+
 import {
   GetAssetInfoParams,
   GetAssetInfoResponse,
@@ -37,27 +39,36 @@ import {
   GetValidatorStakeParams,
   GetValidatorStakeResponse,
   PendingContributionsResponse,
-  GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult, PublishDatasetMarketplaceResult, GetPublishTransactionResponse, GetPublishTransactionParams,
+  GetDatasetMarketplaceInfoResponse,
+  CompleteContributeDatasetResult,
+  InitiateContributeDatasetResult,
+  PublishDatasetMarketplaceResult,
+  GetPublishTransactionResponse,
+  GetPublishTransactionParams,
   SubscribeDatasetMarketplaceResult,
   GetSubscribeTransactionParams,
   GetInitiateContributeTransactionParams,
-  GetCompleteContributeTransactionParams, GetClaimMarketplacePaymentParams,
+  GetCompleteContributeTransactionParams,
+  GetClaimMarketplacePaymentParams,
   ClaimMarketplacePaymentResult,
   GetBurnAssetFTParams,
   BurnAssetFTResult,
   GetBurnAssetNFTParams,
   BurnAssetNFTResult,
   BurnAssetNFTParams,
-  TransferResult, GetTransferParams, CreateDatasetResult, GetCreateDatasetParams,
+  TransferResult,
+  GetTransferParams,
+  CreateDatasetResult,
+  GetCreateDatasetParams,
   CreateAssetNFTResult,
   GetCreateAssetNFTParams,
-} from '../common/models'
-import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
-import { DECIMALS } from '../constants'
-import {PublishDatasetMarketplace} from "../actions/PublishDatasetMarketplace";
-import {ClaimMarketplacePayment} from "../actions/ClaimMarketplacePayment";
-import {SubscribeDatasetMarketplace} from "../actions/SubscribeDatasetMarketplace";
-import { CreateAssetNFT } from 'actions'
+  MintAssetFTResult,
+  GetMintAssetParams,
+  MintAssetNFTResult,
+  CreateFTAssetResult,
+  GetCreateAssetParams,
+} from '../common'
+import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH, DECIMALS } from '../constants';
 
 export class RpcService extends common.Api {
   constructor(protected configNuklai: config.NodeConfig) {
