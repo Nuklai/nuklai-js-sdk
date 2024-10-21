@@ -927,16 +927,20 @@ export class RpcService extends common.Api {
   }
 
   async publishDatasetToMarketplace(
-      datasetID: string,
-      baseAssetID: string,
-      basePrice: bigint,
+    datasetAddress: string,
+    paymentAssetAddress: string,
+    datasetPricePerBlock: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
   ): Promise<PublishDatasetMarketplaceResult> {
     try {
-      const publishAction = new PublishDatasetMarketplace(datasetID, baseAssetID, basePrice);
+      const publishAction = new PublishDatasetMarketplace(
+        datasetAddress,
+        paymentAssetAddress,
+        datasetPricePerBlock
+    );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
 

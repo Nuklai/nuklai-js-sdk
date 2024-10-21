@@ -12,6 +12,7 @@ export const MINT_ASSET_NFT_ID = 3
 export const CREATE_DATASET_ID = 4
 export const UPDATE_DATASET_ID = 7
 export const UPDATE_ASSET_ID = 8
+export const PUBLISH_DATASET_MARKETPLACE_ID = 11
 
 // Asset Types
 export const ASSET_FUNGIBLE_TOKEN_ID = 0
@@ -24,6 +25,7 @@ export const MINT_ASSET_COMPUTE_UNITS = 5
 export const CREATE_DATASET_COMPUTE_UNITS = 100
 export const UPDATE_ASSET_COMPUTE_UNITS = 15
 export const UPDATE_DATASET_COMPUTE_UNITS = 5
+export const PUBLISH_DATASET_MARKETPLACE_COMPUTE_UNITS = 5
 
 // Storage Chunks
 export const STORAGE_ASSET_CHUNKS = 5
