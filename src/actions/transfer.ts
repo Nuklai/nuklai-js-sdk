@@ -1,8 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, utils, consts } from '@nuklai/hyperchain-sdk';
-import { Address } from "@nuklai/hyperchain-sdk/dist/utils";
+import { actions, utils } from '@nuklai/hyperchain-sdk';
 import {
   TRANSFER_COMPUTE_UNITS,
   TRANSFER_ID,
@@ -14,14 +13,14 @@ import {
 } from '../constants';
 
 export class Transfer implements actions.Action {
-  public to: Address;
-  public assetAddress: Address;
+  public to: utils.Address;
+  public assetAddress: utils.Address;
   public value: bigint;
   public memo: string;
 
   constructor(to: string, assetAddress: string, value: bigint, memo: string) {
-    this.to = Address.fromString(to);
-    this.assetAddress = Address.fromString(assetAddress);
+    this.to = utils.Address.fromString(to);
+    this.assetAddress = utils.Address.fromString(assetAddress);
     this.value = value;
     this.memo = memo;
 

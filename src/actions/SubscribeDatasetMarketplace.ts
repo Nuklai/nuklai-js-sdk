@@ -2,7 +2,6 @@
 // See the file LICENSE for licensing terms.
 
 import { actions, utils, consts } from "@nuklai/hyperchain-sdk";
-import { Address } from "@nuklai/hyperchain-sdk/dist/utils";
 import {
     SUBSCRIBE_DATASET_MARKETPLACE_COMPUTE_UNITS,
     SUBSCRIBE_DATASET_MARKETPLACE_ID,
@@ -12,8 +11,8 @@ import {
 } from '../constants'
 
 export class SubscribeDatasetMarketplace implements actions.Action {
-    public marketplaceAssetAddress: Address
-    public paymentAssetAddress: Address
+    public marketplaceAssetAddress: utils.Address
+    public paymentAssetAddress: utils.Address
     public numBlocksToSubscribe: bigint
 
     constructor(
@@ -21,8 +20,8 @@ export class SubscribeDatasetMarketplace implements actions.Action {
         paymentAssetAddress: string,
         numBlocksToSubscribe: bigint
     ) {
-        this.marketplaceAssetAddress = Address.fromString(marketplaceAssetAddress)
-        this.paymentAssetAddress = Address.fromString(paymentAssetAddress)
+        this.marketplaceAssetAddress = utils.Address.fromString(marketplaceAssetAddress)
+        this.paymentAssetAddress = utils.Address.fromString(paymentAssetAddress)
         this.numBlocksToSubscribe = numBlocksToSubscribe
     }
 
