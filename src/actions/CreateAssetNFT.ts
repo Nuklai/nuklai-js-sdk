@@ -4,7 +4,7 @@
 import { actions, consts, utils } from '@nuklai/hyperchain-sdk';
 import {
     CREATE_ASSET_COMPUTE_UNITS,
-    CREATE_ASSET_ID,
+    CREATE_ASSET_NFT_ID,
     STORAGE_ASSET_CHUNKS,
     MAX_NAME_SIZE,
     MAX_SYMBOL_SIZE,
@@ -70,7 +70,7 @@ export class CreateAssetNFT implements actions.Action {
     }
 
     getTypeId(): number {
-        return CREATE_ASSET_ID;
+        return CREATE_ASSET_NFT_ID;
     }
 
     size(): number {

@@ -26,7 +26,7 @@ export const CLAIM_MARKETPLACE_PAYMENT_ID = 13
 // Asset Types
 export const ASSET_FUNGIBLE_TOKEN_ID = 0
 export const ASSET_NON_FUNGIBLE_TOKEN_ID = 1
-export const ASSET_FRACTIONAL_TOKEN_ID = 2
+export const ASSET_DATASET_TOKEN_ID = 2
 
 // Action Compute Units
 export const CREATE_ASSET_COMPUTE_UNITS = 15
