@@ -122,6 +122,15 @@ export interface GetNFTInfoResponse {
   uri: string
 }
 
+export interface BurnAssetFTResult {
+  oldBalance: string;
+  newBalance: string;
+}
+
+export interface GetBurnAssetFTParams {
+  txID: string;
+}
+
 export interface BurnAssetFTParams {
   asset: string
   amount: number

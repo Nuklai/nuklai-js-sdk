@@ -43,7 +43,9 @@ import {
   SubscribeDatasetMarketplaceResult,
   GetSubscribeTransactionParams,
   GetInitiateContributeTransactionParams,
-  GetCompleteContributeTransactionParams, GetClaimMarketplacePaymentParams, ClaimMarketplacePaymentResult,
+  GetCompleteContributeTransactionParams, GetClaimMarketplacePaymentParams,
+  ClaimMarketplacePaymentResult,
+  GetBurnAssetFTParams, BurnAssetFTResult,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import { DECIMALS } from '../constants'
@@ -680,40 +682,44 @@ export class RpcService extends common.Api {
     return nftInfo.owner === address
   }
 
+  async getBurnAssetFTResponse(params: GetBurnAssetFTParams): Promise<BurnAssetFTResult> {
+    return this.callRpc<BurnAssetFTResult>('burnAssetFTTx', params);
+  }
+
   async burnFTAsset(
-      asset: string,
-      amount: number,
+      assetAddress: string,
+      amount: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<BurnAssetFTResult> {
     try {
-      const amountInUnits = utils.parseBalance(amount, DECIMALS)
-      const burnAssetFT: BurnAssetFT = new BurnAssetFT(asset, amountInUnits)
+      const burnAssetFT = new BurnAssetFT(assetAddress, amount);
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [burnAssetFT],
-              authFactory
-          )
+      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
+      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [burnAssetFT],
+          authFactory
+      );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
-      return txSigned.id().toString()
+      const txResult = await this.getBurnAssetFTResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
     } catch (error) {
       console.error(
           'Failed to create and submit transaction for "BurnAssetFT" type',
           error
-      )
-      throw error
+      );
+      throw error;
     }
   }
 
