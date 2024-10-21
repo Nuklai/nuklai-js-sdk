@@ -1,8 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, consts, codec, utils } from '@nuklai/hyperchain-sdk'
 import { Id } from '@avalabs/avalanchejs';
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
     COMPLETE_CONTRIBUTE_DATASET_COMPUTE_UNITS,
     COMPLETE_CONTRIBUTE_DATASET_ID,
@@ -13,30 +13,18 @@ import {
 } from '../constants'
 
 export class CompleteContributeDataset implements actions.Action {
-    public datasetID: Id
-    public contributor: utils.Address
-    public uniqueNFTIDForContributor: bigint
-    public collateralAssetID: Id
-    public collateralAmount: bigint
-    public dataLocation: Uint8Array
-    public dataIdentifier: Uint8Array
+    public datasetContributionID: Id;
+    public datasetAddress: utils.Address
+    public datasetContributor: utils.Address
 
     constructor(
-        datasetID: string,
-        contributor: string,
-        uniqueNFTIDForContributor: bigint,
-        collateralAssetID: string,
-        collateralAmount: bigint,
-        dataLocation: string,
-        dataIdentifier: string
+        datasetContributionID: string,
+        datasetAddress: string,
+        datasetContributor: string
     ) {
-        this.datasetID = utils.toAssetID(datasetID)
-        this.contributor = utils.Address.fromString(contributor)
-        this.uniqueNFTIDForContributor = uniqueNFTIDForContributor
-        this.collateralAssetID = utils.toAssetID(collateralAssetID)
-        this.collateralAmount = collateralAmount
-        this.dataLocation = new TextEncoder().encode(dataLocation)
-        this.dataIdentifier = new TextEncoder().encode(dataIdentifier)
+        this.datasetContributionID = Id.fromString(datasetContributionID);
+        this.datasetAddress = utils.Address.fromString(datasetAddress)
+        this.datasetContributor = utils.Address.fromString(datasetContributor)
     }
 
     getTypeId(): number {
@@ -44,9 +32,7 @@ export class CompleteContributeDataset implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN * 2 + consts.ADDRESS_LEN + consts.UINT64_LEN * 2 +
-            consts.INT_LEN + this.dataLocation.length +
-            consts.INT_LEN + this.dataIdentifier.length
+        return consts.ID_LEN + consts.ADDRESS_LEN * 2
     }
 
     computeUnits(): number {
@@ -66,13 +52,9 @@ export class CompleteContributeDataset implements actions.Action {
 
     toJSON(): object {
         return {
-            datasetID: this.datasetID.toString(),
-            contributor: this.contributor.toString(),
-            uniqueNFTIDForContributor: this.uniqueNFTIDForContributor.toString(),
-            collateralAssetID: this.collateralAssetID.toString(),
-            collateralAmount: this.collateralAmount.toString(),
-            dataLocation: new TextDecoder().decode(this.dataLocation),
-            dataIdentifier: new TextDecoder().decode(this.dataIdentifier)
+            datasetContributionID: this.datasetContributionID.toString(),
+            datasetAddress: this.datasetAddress.toString(),
+            datasetContributor: this.datasetContributor.toString()
         }
     }
 
@@ -82,34 +64,28 @@ export class CompleteContributeDataset implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.datasetID)
-        codec.packAddress(this.contributor)
-        codec.packUint64(this.uniqueNFTIDForContributor)
-        codec.packID(this.collateralAssetID)
-        codec.packUint64(this.collateralAmount)
-        codec.packBytes(this.dataLocation)
-        codec.packBytes(this.dataIdentifier)
+        codec.packID(this.datasetContributionID)
+        codec.packAddress(this.datasetAddress)
+        codec.packAddress(this.datasetContributor)
         return codec.toBytes()
     }
 
-    static fromBytesCodec(codec: utils.Codec): [CompleteContributeDataset, utils.Codec] {
-        const datasetID = codec.unpackID(true)
-        const contributor = codec.unpackAddress()
-        const uniqueNFTIDForContributor = codec.unpackUint64(true)
-        const collateralAssetID = codec.unpackID(false)
-        const collateralAmount = codec.unpackUint64(true)
-        const dataLocation = codec.unpackLimitedBytes(consts.MAX_METADATA_SIZE, true)
-        const dataIdentifier = codec.unpackLimitedBytes(consts.MAX_METADATA_SIZE, true)
+    static fromBytes(bytes: Uint8Array): [CompleteContributeDataset | null, Error | null] {
+        const codec = utils.Codec.newReader(bytes, bytes.length)
+        const datasetContributionID = codec.unpackID(true)
+        const datasetAddress = codec.unpackAddress()
+        const datasetContributor = codec.unpackAddress()
+
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
 
         const action = new CompleteContributeDataset(
-            datasetID.toString(),
-            contributor.toString(),
-            uniqueNFTIDForContributor,
-            collateralAssetID.toString(),
-            collateralAmount,
-            new TextDecoder().decode(dataLocation),
-            new TextDecoder().decode(dataIdentifier)
+            datasetContributionID.toString(),
+            datasetAddress.toString(),
+            datasetContributor.toString()
         )
-        return [action, codec]
+        return [action, null]
     }
 }

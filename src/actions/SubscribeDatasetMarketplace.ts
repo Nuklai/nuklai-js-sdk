@@ -1,8 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { Id } from "@avalabs/avalanchejs";
 import { actions, utils, consts } from "@nuklai/hyperchain-sdk";
+import { Address } from "@nuklai/hyperchain-sdk/dist/utils";
 import {
     SUBSCRIBE_DATASET_MARKETPLACE_COMPUTE_UNITS,
     SUBSCRIBE_DATASET_MARKETPLACE_ID,
@@ -11,22 +11,18 @@ import {
     STORAGE_BALANCE_CHUNKS
 } from '../constants'
 
-
 export class SubscribeDatasetMarketplace implements actions.Action {
-    public datasetID: Id
-    public marketplaceAssetID: Id
-    public assetForPayment: Id
+    public marketplaceAssetAddress: Address
+    public paymentAssetAddress: Address
     public numBlocksToSubscribe: bigint
 
     constructor(
-        datasetID: string,
-        marketplaceAssetID: string,
-        assetForPayment: string,
+        marketplaceAssetAddress: string,
+        paymentAssetAddress: string,
         numBlocksToSubscribe: bigint
     ) {
-        this.datasetID = utils.toAssetID(datasetID)
-        this.marketplaceAssetID = utils.toAssetID(marketplaceAssetID)
-        this.assetForPayment = utils.toAssetID(assetForPayment)
+        this.marketplaceAssetAddress = Address.fromString(marketplaceAssetAddress)
+        this.paymentAssetAddress = Address.fromString(paymentAssetAddress)
         this.numBlocksToSubscribe = numBlocksToSubscribe
     }
 
@@ -35,13 +31,12 @@ export class SubscribeDatasetMarketplace implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN + consts.ID_LEN + consts.ID_LEN + consts.UINT64_LEN
+        return consts.ADDRESS_LEN * 2 + consts.UINT64_LEN
     }
 
     computeUnits(): number {
         return SUBSCRIBE_DATASET_MARKETPLACE_COMPUTE_UNITS
     }
-
 
     stateKeysMaxChunks(): number[] {
         return [STORAGE_DATASET_CHUNKS, STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS]
@@ -49,9 +44,8 @@ export class SubscribeDatasetMarketplace implements actions.Action {
 
     toJSON(): object {
         return {
-            datasetID: this.datasetID.toString(),
-            marketplaceAssetID: this.marketplaceAssetID.toString(),
-            assetForPayment: this.assetForPayment.toString(),
+            marketplaceAssetAddress: this.marketplaceAssetAddress.toString(),
+            paymentAssetAddress: this.paymentAssetAddress.toString(),
             numBlocksToSubscribe: this.numBlocksToSubscribe.toString()
         }
     }
@@ -62,26 +56,30 @@ export class SubscribeDatasetMarketplace implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.datasetID)
-        codec.packID(this.marketplaceAssetID)
-        codec.packID(this.assetForPayment)
+        codec.packAddress(this.marketplaceAssetAddress)
+        codec.packAddress(this.paymentAssetAddress)
         codec.packUint64(this.numBlocksToSubscribe)
         return codec.toBytes()
     }
 
-    static fromBytesCodec(codec: utils.Codec): [SubscribeDatasetMarketplace, utils.Codec] {
-        const datasetID = codec.unpackID(true)
-        const marketplaceAssetID = codec.unpackID(true)
-        const assetForPayment = codec.unpackID(true)
+    static fromBytes(bytes: Uint8Array): [SubscribeDatasetMarketplace | null, Error | null] {
+        const codec = utils.Codec.newReader(bytes, bytes.length)
+        const marketplaceAssetAddress = codec.unpackAddress()
+        const paymentAssetAddress = codec.unpackAddress()
         const numBlocksToSubscribe = codec.unpackUint64(true)
+
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
+
         return [
             new SubscribeDatasetMarketplace(
-                datasetID.toString(),
-                marketplaceAssetID.toString(),
-                assetForPayment.toString(),
+                marketplaceAssetAddress.toString(),
+                paymentAssetAddress.toString(),
                 numBlocksToSubscribe
             ),
-            codec
+            null
         ]
     }
 }

@@ -240,21 +240,27 @@ export interface GetDatasetMarketplaceInfoResponse {
   metadata: Record<string, string>;
 }
 
+export interface InitiateContributeDatasetResult {
+  datasetContributionID: string;
+  collateralAssetAddress: string;
+  collateralAmountTaken: string;
+}
+
 export interface CompleteContributeDatasetResult {
-  txID: string;
-  collateralAssetID: string;
-  collateralAmountRefunded: bigint;
-  datasetID: string;
-  datasetChildNftID: string;
+  collateralAssetAddress: string;
+  collateralAmountRefunded: string;
+  datasetChildNftAddress: string;
   to: string;
   dataLocation: string;
   dataIdentifier: string;
 }
 
-export interface InitiateContributeDatasetResult {
+export interface GetInitiateContributeTransactionParams {
   txID: string;
-  collateralAssetID: string;
-  collateralAmountRefunded: bigint;
+}
+
+export interface GetCompleteContributeTransactionParams {
+  txID: string;
 }
 
 export interface PublishDatasetMarketplaceResult {
@@ -262,4 +268,32 @@ export interface PublishDatasetMarketplaceResult {
   assetForPayment: string;
   datasetPricePerBlock: string;
   publisher: string;
+}
+
+export interface GetSubscribeTransactionParams {
+  txID: string;
+}
+
+export interface SubscribeDatasetMarketplaceResult {
+  marketplaceAssetAddress: string;
+  marketplaceAssetNumSubscriptions: string;
+  subscriptionNftAddress: string;
+  paymentAssetAddress: string;
+  datasetPricePerBlock: string;
+  totalCost: string;
+  numBlocksToSubscribe: string;
+  issuanceBlock: string;
+  expirationBlock: string;
+}
+
+export interface ClaimMarketplacePaymentResult {
+  lastClaimedBlock: string;
+  paymentClaimed: string;
+  paymentRemaining: string;
+  distributedReward: string;
+  distributedTo: string;
+}
+
+export interface GetClaimMarketplacePaymentParams {
+  txID: string;
 }

@@ -1,29 +1,24 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, consts, codec, utils } from '@nuklai/hyperchain-sdk'
-import { Id } from '@avalabs/avalanchejs'
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
     CLAIM_MARKETPLACE_PAYMENT_COMPUTE_UNITS,
     CLAIM_MARKETPLACE_PAYMENT_ID,
-    STORAGE_DATASET_CHUNKS,
     STORAGE_ASSET_CHUNKS,
     STORAGE_BALANCE_CHUNKS
 } from '../constants'
 
 export class ClaimMarketplacePayment implements actions.Action {
-    public datasetID: Id
-    public marketplaceAssetID: Id
-    public assetForPayment: Id
+    public marketplaceAssetAddress: utils.Address
+    public paymentAssetAddress: utils.Address
 
     constructor(
-        datasetID: string,
-        marketplaceAssetID: string,
-        assetForPayment: string
+        marketplaceAssetAddress: string,
+        paymentAssetAddress: string
     ) {
-        this.datasetID = utils.toAssetID(datasetID)
-        this.marketplaceAssetID = utils.toAssetID(marketplaceAssetID)
-        this.assetForPayment = utils.toAssetID(assetForPayment)
+        this.marketplaceAssetAddress = utils.Address.fromString(marketplaceAssetAddress)
+        this.paymentAssetAddress = utils.Address.fromString(paymentAssetAddress)
     }
 
     getTypeId(): number {
@@ -31,7 +26,7 @@ export class ClaimMarketplacePayment implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN * 3
+        return consts.ADDRESS_LEN * 2
     }
 
     computeUnits(): number {
@@ -39,14 +34,13 @@ export class ClaimMarketplacePayment implements actions.Action {
     }
 
     stateKeysMaxChunks(): number[] {
-        return [STORAGE_DATASET_CHUNKS, STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS]
+        return [STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS]
     }
 
     toJSON(): object {
         return {
-            datasetID: this.datasetID.toString(),
-            marketplaceAssetID: this.marketplaceAssetID.toString(),
-            assetForPayment: this.assetForPayment.toString()
+            marketplaceAssetAddress: this.marketplaceAssetAddress.toString(),
+            paymentAssetAddress: this.paymentAssetAddress.toString()
         }
     }
 
@@ -56,22 +50,27 @@ export class ClaimMarketplacePayment implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.datasetID)
-        codec.packID(this.marketplaceAssetID)
-        codec.packID(this.assetForPayment)
+        codec.packAddress(this.marketplaceAssetAddress)
+        codec.packAddress(this.paymentAssetAddress)
         return codec.toBytes()
     }
 
-    static fromBytesCodec(codec: utils.Codec): [ClaimMarketplacePayment, utils.Codec] {
-        const datasetID = codec.unpackID(true)
-        const marketplaceAssetID = codec.unpackID(true)
-        const assetForPayment = codec.unpackID(false)
+    static fromBytes(bytes: Uint8Array): [ClaimMarketplacePayment | null, Error | null] {
+        const codec = utils.Codec.newReader(bytes, bytes.length)
+        const marketplaceAssetAddress = codec.unpackAddress()
+        const paymentAssetAddress = codec.unpackAddress()
 
-        const action = new ClaimMarketplacePayment(
-            datasetID.toString(),
-            marketplaceAssetID.toString(),
-            assetForPayment.toString()
-        )
-        return [action, codec]
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
+
+        return [
+            new ClaimMarketplacePayment(
+                marketplaceAssetAddress.toString(),
+                paymentAssetAddress.toString()
+            ),
+            null
+        ]
     }
 }

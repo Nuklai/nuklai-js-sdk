@@ -40,6 +40,10 @@ import {
   GetValidatorStakeResponse,
   PendingContributionsResponse,
   GetDatasetMarketplaceInfoResponse, CompleteContributeDatasetResult, InitiateContributeDatasetResult, PublishDatasetMarketplaceResult, GetPublishTransactionResponse, GetPublishTransactionParams,
+  SubscribeDatasetMarketplaceResult,
+  GetSubscribeTransactionParams,
+  GetInitiateContributeTransactionParams,
+  GetCompleteContributeTransactionParams, GetClaimMarketplacePaymentParams, ClaimMarketplacePaymentResult,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import { DECIMALS } from '../constants'
@@ -339,6 +343,18 @@ export class RpcService extends common.Api {
   async createDataset(
     assetAddress: string,
       name: string,
+      name: string,
+      name: string,
+      name: string,
+      symbol: string,
+    name: string,
+      symbol: string,
+    name: string,
+      name: string,
+      symbol: string,
+    name: string,
+      symbol: string,
+    name: string,
       name: string,
       name: string,
       symbol: string,
@@ -653,9 +669,7 @@ export class RpcService extends common.Api {
     return this.callRpc<PendingContributionsResponse>('pendingContributions', { datasetID })
   }
 
-  async getNFTInfo(
-      getNFTInfoParams: GetNFTInfoParams
-  ): Promise<GetNFTInfoResponse> {
+  async getNFTInfo(getNFTInfoParams: GetNFTInfoParams): Promise<GetNFTInfoResponse> {
     const params = getNFTInfoParams
     params.nftID = utils.toAssetID(params.nftID).toString()
     return this.callRpc<GetNFTInfoResponse>('nftInfo', params)
@@ -739,128 +753,114 @@ export class RpcService extends common.Api {
     }
   }
 
-  async initiateContributeDataset(
-      datasetID: string,
-      dataLocation: string,
-      dataIdentifier: string,
-      collateralAssetID: string,
-      collateralAmount: bigint,
-      authFactory: auth.AuthFactory,
-      hyperApiService: services.RpcService,
-      actionRegistry: chain.ActionRegistry,
-      authRegistry: chain.AuthRegistry
-    ): Promise<InitiateContributeDatasetResult> {
-    try {
-
-      const initiateAction = new InitiateContributeDataset(
-          datasetID,
-          dataLocation,
-          dataIdentifier,
-          collateralAssetID,
-          collateralAmount
-      );
-
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
-          genesisInfo.genesis,
-          actionRegistry,
-          authRegistry,
-          [initiateAction],
-          authFactory
-        );
-      if (err) {
-        throw err
-      }
-
-      await submit()
-
-      const result: InitiateContributeDatasetResult = {
-        txID: txSigned.id().toString(),
-        collateralAssetID: collateralAssetID,
-        collateralAmountRefunded: collateralAmount
-      };
-
-      return result;
-    } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "InitiateContributeDataset" type',
-          error
-      )
-      throw error
-    }
+  async getInitiateContributeTransactionResponse(params: GetInitiateContributeTransactionParams): Promise<InitiateContributeDatasetResult> {
+    return this.callRpc<InitiateContributeDatasetResult>('initiateContributeTx', params);
   }
 
-  async completeContributeDataset(
-      datasetID: string,
-      contributor: string,
-      uniqueNFTIDForContributor: bigint,
-      collateralAssetID: string,
-      collateralAmount: bigint,
-      dataLocation: string,
-      dataIdentifier: string,
-      authFactory: auth.AuthFactory,
-      hyperApiService: services.RpcService,
-      actionRegistry: chain.ActionRegistry,
-      authRegistry: chain.AuthRegistry
-  ): Promise<CompleteContributeDatasetResult> {
-    try {
-      const completeAction = new CompleteContributeDataset(
-          datasetID,
-          contributor,
-          uniqueNFTIDForContributor,
-          collateralAssetID,
-          collateralAmount,
-          dataLocation,
-          dataIdentifier
-      )
+  async getCompleteContributeTransactionResponse(params: GetCompleteContributeTransactionParams): Promise<CompleteContributeDatasetResult> {
+    return this.callRpc<CompleteContributeDatasetResult>('completeContributeTx', params);
+  }
 
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
-      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
-          genesisInfo.genesis,
-          actionRegistry,
-          authRegistry,
-          [completeAction],
-          authFactory
-      )
-      if (err) {
-        throw err
-      }
+  async initiateContributeDataset(
+    datasetAddress: string,
+    dataLocation: string,
+    dataIdentifier: string,
+    authFactory: auth.AuthFactory,
+    hyperApiService: services.RpcService,
+    actionRegistry: chain.ActionRegistry,
+    authRegistry: chain.AuthRegistry
+): Promise<InitiateContributeDatasetResult> {
+  try {
+    const initiateAction = new InitiateContributeDataset(
+        datasetAddress,
+        dataLocation,
+        dataIdentifier
+    );
+
+    const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+    const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+        genesisInfo.genesis,
+        actionRegistry,
+        authRegistry,
+        [initiateAction],
+        authFactory
+    )
+    if (err) {
+      throw err
+    }
 
       await submit()
 
-      const result: CompleteContributeDatasetResult = {
-        txID: txSigned.id().toString(),
-        collateralAssetID: collateralAssetID,
-        collateralAmountRefunded: collateralAmount,
-        datasetID: datasetID,
-        datasetChildNftID: utils.createActionID(txSigned.id(), 1).toString(),
-        to: contributor,
-        dataLocation: dataLocation,
-        dataIdentifier: dataIdentifier
-      }
+    // Fetch the initiate contribute transaction response
+    const txResult = await this.getInitiateContributeTransactionResponse({ txID: txSigned.id().toString() })
 
-      return result
-    } catch (error) {
-      console.error('Failed to complete dataset contribution', error)
-      throw error
+    return txResult;
+  } catch (error) {
+    console.error(
+        'Failed to create and submit transaction for "InitiateContributeDataset" type',
+        error
+    )
+    throw error
+  }
+}
+
+  async completeContributeDataset(
+    datasetContributionID: string,
+    datasetAddress: string,
+    datasetContributor: string,
+    authFactory: auth.AuthFactory,
+    hyperApiService: services.RpcService,
+    actionRegistry: chain.ActionRegistry,
+    authRegistry: chain.AuthRegistry
+): Promise<CompleteContributeDatasetResult> {
+  try {
+    const completeAction = new CompleteContributeDataset(
+        datasetContributionID,
+        datasetAddress,
+        datasetContributor
+    )
+
+    const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
+    const { submit, txSigned, err } = await hyperApiService.generateTransaction(
+        genesisInfo.genesis,
+        actionRegistry,
+        authRegistry,
+        [completeAction],
+        authFactory
+    )
+    if (err) {
+      throw err
     }
+
+    await submit()
+
+    // Fetch the complete contribute transaction response
+    const txResult = await this.getCompleteContributeTransactionResponse({ txID: txSigned.id().toString() })
+
+    return txResult;
+  } catch (error) {
+    console.error('Failed to complete dataset contribution', error)
+    throw error
+  }
+}
+
+  async getSubscribeTransactionResponse(params: GetSubscribeTransactionParams): Promise<SubscribeDatasetMarketplaceResult> {
+    return this.callRpc<SubscribeDatasetMarketplaceResult>('subscribeTx', params);
   }
 
   async subscribeDatasetMarketplace(
-      datasetID: string,
-      marketplaceAssetID: string,
-      assetForPayment: string,
+      marketplaceAssetAddress: string,
+      paymentAssetAddress: string,
       numBlocksToSubscribe: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<SubscribeDatasetMarketplaceResult> {
     try {
       const subscribeAction = new SubscribeDatasetMarketplace(
-          datasetID,
-          marketplaceAssetID,
-          assetForPayment,
+          marketplaceAssetAddress,
+          paymentAssetAddress,
           numBlocksToSubscribe
       )
 
@@ -878,24 +878,30 @@ export class RpcService extends common.Api {
 
       await submit()
 
-      return txSigned.id().toString()
+      // Fetch the subscription transaction response
+      const txResult = await this.getSubscribeTransactionResponse({ txID: txSigned.id().toString() })
+
+      return txResult;
     } catch (error) {
       console.error('Failed to subscribe to dataset in marketplace', error)
       throw error
     }
   }
 
+  async getClaimMarketplacePaymentResponse(params: GetClaimMarketplacePaymentParams): Promise<ClaimMarketplacePaymentResult> {
+    return this.callRpc<ClaimMarketplacePaymentResult>('claimMarketplaceTx', params);
+  }
+
   async claimMarketplacePayment(
-      datasetID: string,
-      marketplaceAssetID: string,
-      assetForPayment: string,
+      marketplaceAssetAddress: string,
+      paymentAssetAddress: string,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
       authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  ): Promise<ClaimMarketplacePaymentResult> {
     try {
-      const claimAction = new ClaimMarketplacePayment(datasetID, marketplaceAssetID, assetForPayment)
+      const claimAction = new ClaimMarketplacePayment(marketplaceAssetAddress, paymentAssetAddress)
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
@@ -911,7 +917,10 @@ export class RpcService extends common.Api {
 
       await submit()
 
-      return txSigned.id().toString()
+      // Fetch the claim transaction response
+      const txResult = await this.getClaimMarketplacePaymentResponse({ txID: txSigned.id().toString() })
+
+      return txResult;
     } catch (error) {
       console.error('Failed to claim marketplace payment', error)
       throw error
@@ -927,9 +936,9 @@ export class RpcService extends common.Api {
   }
 
   async publishDatasetToMarketplace(
-    datasetAddress: string,
-    paymentAssetAddress: string,
-    datasetPricePerBlock: bigint,
+      datasetAddress: string,
+      paymentAssetAddress: string,
+      datasetPricePerBlock: bigint,
       authFactory: auth.AuthFactory,
       hyperApiService: services.RpcService,
       actionRegistry: chain.ActionRegistry,
@@ -937,10 +946,10 @@ export class RpcService extends common.Api {
   ): Promise<PublishDatasetMarketplaceResult> {
     try {
       const publishAction = new PublishDatasetMarketplace(
-        datasetAddress,
-        paymentAssetAddress,
-        datasetPricePerBlock
-    );
+          datasetAddress,
+          paymentAssetAddress,
+          datasetPricePerBlock
+      );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo()
 
