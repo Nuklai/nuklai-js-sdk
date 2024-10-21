@@ -14,15 +14,15 @@ import {
 } from '../constants'
 
 export class CreateDataset implements actions.Action {
-    public assetAddress: utils.Address
-    public name: string
-    public description: string
-    public categories: string
-    public licenseName: string
-    public licenseSymbol: string
-    public licenseURL: string
-    public metadata: string
-    public isCommunityDataset: boolean
+    public assetAddress: utils.Address;
+    public name: string;
+    public description: string;
+    public categories: string;
+    public licenseName: string;
+    public licenseSymbol: string;
+    public licenseURL: string;
+    public metadata: string;
+    public isCommunityDataset: boolean;
 
     constructor(
         assetAddress: string,
@@ -35,17 +35,17 @@ export class CreateDataset implements actions.Action {
         metadata: string,
         isCommunityDataset: boolean
     ) {
-        this.assetAddress = utils.Address.fromString(assetAddress)
-        this.name = name
-        this.description = description
-        this.categories = categories
-        this.licenseName = licenseName
-        this.licenseSymbol = licenseSymbol
-        this.licenseURL = licenseURL
-        this.metadata = metadata
-        this.isCommunityDataset = isCommunityDataset
+        this.assetAddress = utils.Address.fromString(assetAddress);
+        this.name = name;
+        this.description = description;
+        this.categories = categories;
+        this.licenseName = licenseName;
+        this.licenseSymbol = licenseSymbol;
+        this.licenseURL = licenseURL;
+        this.metadata = metadata;
+        this.isCommunityDataset = isCommunityDataset;
 
-        this.validate()
+        this.validate();
     }
 
     private validate(): void {

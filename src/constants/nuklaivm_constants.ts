@@ -8,10 +8,11 @@ export const DECIMALS = 9
 
 // Action TypeIDs
 export const TRANSFER_ID = 0
-export const CREATE_ASSET_ID = 1
-export const MINT_ASSET_FT_ID = 2
-export const MINT_ASSET_NFT_ID = 3
-export const CREATE_DATASET_ID = 4
+export const CREATE_ASSET_FT_ID = 1
+export const CREATE_ASSET_NFT_ID = 2
+export const CREATE_DATASET_ID = 3
+export const MINT_ASSET_FT_ID = 4
+export const MINT_ASSET_NFT_ID = 5
 export const BURNASSET_FT_ID = 5
 export const BURNASSET_NFT_ID = 6
 export const UPDATE_DATASET_ID = 7

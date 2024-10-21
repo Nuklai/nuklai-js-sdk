@@ -154,6 +154,15 @@ export interface BurnAssetNFTParams {
   assetNftAddress: string;
 }
 
+export interface CreateDatasetResult {
+  datasetAddress: string;
+  datasetParentNftAddress: string;
+}
+
+export interface GetCreateDatasetParams {
+  txID: string;
+}
+
 export interface GetDatasetInfoParams {
   datasetID: string;
 }
@@ -167,7 +176,6 @@ export interface GetDatasetInfoResponse {
   licenseURL: string;
   metadata: string;
   isCommunityDataset: boolean;
-  // These are part of the metadata.
   saleID: string;
   baseAsset: string;
   basePrice: number;

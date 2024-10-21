@@ -2,10 +2,8 @@
 // See the file LICENSE for licensing terms.
 
 import { auth, chain, common, config, services, utils } from '@nuklai/hyperchain-sdk'
-import { CreateAsset } from '../actions/createAsset'
 import { CreateAssetFT } from "../actions/CreateAssetFT"
 import { CreateDataset } from 'actions/CreateDataset'
-import { MintDataset } from '../actions/MintDataset'
 import { MintAssetFT } from "../actions/MintAssetFT"
 import { MintAssetNFT } from "../actions/MintAssetNFT"
 import { Transfer } from '../actions/transfer'
@@ -50,7 +48,7 @@ import {
   GetBurnAssetNFTParams,
   BurnAssetNFTResult,
   BurnAssetNFTParams,
-  TransferResult, GetTransferParams,
+  TransferResult, GetTransferParams, CreateDatasetResult, GetCreateDatasetParams,
 } from '../common/models'
 import { NUKLAI_VMAPI_METHOD_PREFIX, NUKLAI_VMAPI_PATH } from '../constants/endpoints'
 import { DECIMALS } from '../constants'
@@ -209,81 +207,6 @@ export class RpcService extends common.Api {
     return this.transfer(to, nftAddress, 1n, memo, authFactory, hyperApiService, actionRegistry, authRegistry);
   }
 
-  async createAsset(
-      assetType: number,
-      name: string,
-      symbol: string,
-      decimals: number,
-      metadata: string,
-      uri: string,
-      maxSupply: bigint,
-      parentNFTMetadata: string | undefined,
-      authFactory: auth.AuthFactory, 
-      hyperApiService: services.RpcService,
-      actionRegistry: chain.ActionRegistry,
-      authRegistry: chain.AuthRegistry
-  ): Promise<{ txID: string; assetID: string }> {
-    try {
-      console.log('Creating asset with parameters:', {
-        assetType,
-        name,
-        symbol,
-        decimals,
-        metadata,
-        uri,
-        maxSupply: maxSupply.toString(),
-        parentNFTMetadata
-      });
-
-      const createAsset: CreateAsset = new CreateAsset(
-          assetType,
-          name,
-          symbol,
-          decimals,
-          metadata,
-          uri,
-          maxSupply,
-          parentNFTMetadata
-      );
-
-      console.log('CreateAsset object created:', createAsset);
-      console.log('CreateAsset size:', createAsset.size());
-
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
-      console.log('Genesis info retrieved:', genesisInfo);
-
-      console.log('Generating transaction...');
-      const { submit, txSigned, err } =
-          await hyperApiService.generateTransaction(
-              genesisInfo.genesis,
-              actionRegistry,
-              authRegistry,
-              [createAsset],
-              authFactory
-          )
-      if (err) {
-        console.error('Error generating transaction:', err);
-        throw err
-      }
-
-      console.log('Transaction generated successfully. Submitting...');
-      await submit()
-
-      const txID = txSigned.id().toString()
-      const assetID = utils.createActionID(txSigned.id(), 0).toString()
-
-      console.log('Asset created successfully:', { txID, assetID });
-      return { txID, assetID }
-    } catch (error) {
-      console.error(
-          'Failed to create and submit transaction for "CreateAsset" type',
-          error
-      )
-      console.error('Error stack:', (error as Error).stack);
-      throw error
-    }
-  }
-
   async createFTAsset(
       name: string,
       symbol: string,
@@ -337,74 +260,45 @@ export class RpcService extends common.Api {
     }
   }
 
-  async createDataset(
-    assetAddress: string,
-    name: string,
-    description: string,
-    categories: string,
-    licenseName: string,
-    licenseSymbol: string,
-    licenseURL: string,
-    metadata: string,
-    isCommunityDataset: boolean,
-    authFactory: auth.AuthFactory,
-    hyperApiService: services.RpcService,
-    actionRegistry: chain.ActionRegistry,
-    authRegistry: chain.AuthRegistry
-  ): Promise<string> {
-    try {
-      const createDataset: CreateDataset = new CreateDataset(
-        assetAddress,
-        name,
-        description,
-        categories,
-        licenseName,
-        licenseSymbol,
-        licenseURL,
-        metadata,
-        isCommunityDataset
-      );
-
-      const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
-      const { submit, txSigned, err } = await hyperApiService.generateTransaction(
-        genesisInfo.genesis,
-        actionRegistry,
-        authRegistry,
-        [createDataset],
-        authFactory
-      );
-      if (err) {
-        throw err;
-      }
-
-      await submit();
-
-      return txSigned.id().toString();
-    } catch (error) {
-      console.error('Failed to create and submit transaction for "CreateDataset" type', error);
-      throw error;
-    }
+  async getCreateDatasetResponse(params: GetCreateDatasetParams): Promise<CreateDatasetResult> {
+    return this.callRpc<CreateDatasetResult>('createDatasetTx', params);
   }
 
-  async mintDataset(
-    assetAddress: string,
-    to: string,
-    value: bigint,
-    authFactory: auth.AuthFactory,
-    hyperApiService: services.RpcService,
-    actionRegistry: chain.ActionRegistry,
-    authRegistry: chain.AuthRegistry
-  ): Promise<string> {
+  async createDataset(
+      assetAddress: string,
+      name: string,
+      description: string,
+      categories: string,
+      licenseName: string,
+      licenseSymbol: string,
+      licenseURL: string,
+      metadata: string,
+      isCommunityDataset: boolean,
+      authFactory: auth.AuthFactory,
+      hyperApiService: services.RpcService,
+      actionRegistry: chain.ActionRegistry,
+      authRegistry: chain.AuthRegistry
+  ): Promise<CreateDatasetResult> {
     try {
-      const mintDataset: MintDataset = new MintDataset(assetAddress, to, value);
+      const createDataset = new CreateDataset(
+          assetAddress,
+          name,
+          description,
+          categories,
+          licenseName,
+          licenseSymbol,
+          licenseURL,
+          metadata,
+          isCommunityDataset
+      );
 
       const genesisInfo: GetGenesisInfoResponse = await this.getGenesisInfo();
       const { submit, txSigned, err } = await hyperApiService.generateTransaction(
-        genesisInfo.genesis,
-        actionRegistry,
-        authRegistry,
-        [mintDataset],
-        authFactory
+          genesisInfo.genesis,
+          actionRegistry,
+          authRegistry,
+          [createDataset],
+          authFactory
       );
       if (err) {
         throw err;
@@ -412,9 +306,12 @@ export class RpcService extends common.Api {
 
       await submit();
 
-      return txSigned.id().toString();
+      // Fetch the createDataset transaction response
+      const txResult = await this.getCreateDatasetResponse({ txID: txSigned.id().toString() });
+
+      return txResult;
     } catch (error) {
-      console.error('Failed to create and submit transaction for "MintDataset" type', error);
+      console.error('Failed to create and submit transaction for "CreateDataset" type', error);
       throw error;
     }
   }
@@ -719,10 +616,10 @@ export class RpcService extends common.Api {
           authFactory
       );
       if (err) {
-        throw err
+        throw err;
       }
 
-      await submit()
+      await submit();
 
       // Fetch the burn transaction response
       const txResult = await this.getBurnAssetNFTResponse({ txID: txSigned.id().toString() });
