@@ -8,7 +8,7 @@ import {
   STORAGE_ASSET_CHUNKS,
   STORAGE_BALANCE_CHUNKS,
   ASSET_FRACTIONAL_TOKEN_ID,
-} from "../constants/nuklaivm";
+} from "../constants";
 
 export class MintDataset implements actions.Action {
   public assetAddress: utils.Address;
@@ -26,7 +26,7 @@ export class MintDataset implements actions.Action {
   }
 
   size(): number {
-    return consts.AddressLen + consts.AddressLen + consts.Uint64Len;
+    return consts.ADDRESS_LEN + consts.ADDRESS_LEN + consts.UINT64_LEN;
   }
 
   computeUnits(): number {
