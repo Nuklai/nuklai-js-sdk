@@ -78,7 +78,7 @@ export class CreateDataset implements actions.Action {
 
     size(): number {
         return (
-            consts.AddressLen +
+            consts.ADDRESS_LEN +
             consts.MaxStringLen + this.name.length +
             consts.MaxStringLen + this.description.length +
             consts.MaxStringLen + this.categories.length +
