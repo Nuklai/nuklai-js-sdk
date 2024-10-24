@@ -1,77 +1,87 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { Id } from '@avalabs/avalanchejs'
-import { actions, consts, codec, utils } from '@nuklai/hyperchain-sdk'
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
-    MAX_METADATA_SIZE,
-    MAX_TEXT_SIZE,
-    UPDATEASSET_COMPUTE_UNITS,
-    UPDATEASSET_ID,
-    STORAGE_ASSET_CHUNKS
-} from '../constants/nuklaivm'
+    UPDATE_ASSET_COMPUTE_UNITS,
+    UPDATE_ASSET_ID,
+    STORAGE_ASSET_CHUNKS,
+    MAX_NAME_SIZE,
+    MAX_SYMBOL_SIZE,
+    MAX_DATASET_METADATA_SIZE
+} from '../constants/'
 
 export class UpdateAsset implements actions.Action {
-    public asset: Id
-    public name: Uint8Array
-    public symbol: Uint8Array
-    public metadata: Uint8Array
-    public uri: Uint8Array
+    public assetAddress: utils.Address
+    public name: string
+    public symbol: string
+    public metadata: string
     public maxSupply: bigint
-    public admin: Uint8Array
-    public mintActor: Uint8Array
-    public pauseUnpauseActor: Uint8Array
-    public freezeUnfreezeActor: Uint8Array
-    public enableDisableKYCAccountActor: Uint8Array
+    public owner: string
+    public mintAdmin: string
+    public pauseUnpauseAdmin: string
+    public freezeUnfreezeAdmin: string
+    public enableDisableKYCAccountAdmin: string
 
     constructor(
-        asset: string,
+        assetAddress: string,
         name: string,
         symbol: string,
         metadata: string,
-        uri: string,
         maxSupply: bigint,
-        admin: string,
-        mintActor: string,
-        pauseUnpauseActor: string,
-        freezeUnfreezeActor: string,
-        enableDisableKYCAccountActor: string
+        owner: string,
+        mintAdmin: string,
+        pauseUnpauseAdmin: string,
+        freezeUnfreezeAdmin: string,
+        enableDisableKYCAccountAdmin: string
     ) {
-        this.asset = utils.toAssetID(asset)
-        this.name = new TextEncoder().encode(name)
-        this.symbol = new TextEncoder().encode(symbol)
-        this.metadata = new TextEncoder().encode(metadata)
-        this.uri = new TextEncoder().encode(uri)
+        this.assetAddress = utils.Address.fromString(assetAddress)
+        this.name = name
+        this.symbol = symbol
+        this.metadata = metadata
         this.maxSupply = maxSupply
-        this.admin = new TextEncoder().encode(admin)
-        this.mintActor = new TextEncoder().encode(mintActor)
-        this.pauseUnpauseActor = new TextEncoder().encode(pauseUnpauseActor)
-        this.freezeUnfreezeActor = new TextEncoder().encode(freezeUnfreezeActor)
-        this.enableDisableKYCAccountActor = new TextEncoder().encode(enableDisableKYCAccountActor)
+        this.owner = owner
+        this.mintAdmin = mintAdmin
+        this.pauseUnpauseAdmin = pauseUnpauseAdmin
+        this.freezeUnfreezeAdmin = freezeUnfreezeAdmin
+        this.enableDisableKYCAccountAdmin = enableDisableKYCAccountAdmin
+
+        this.validate()
+    }
+
+    private validate(): void {
+        if (this.name && (this.name.length < 3 || this.name.length > MAX_NAME_SIZE)) {
+            throw new Error('Invalid name length')
+        }
+        if (this.symbol && (this.symbol.length < 3 || this.symbol.length > MAX_SYMBOL_SIZE)) {
+            throw new Error('Invalid symbol length')
+        }
+        if (this.metadata && this.metadata.length > MAX_DATASET_METADATA_SIZE) {
+            throw new Error('Invalid metadata length')
+        }
     }
 
     getTypeId(): number {
-        return UPDATEASSET_ID
+        return UPDATE_ASSET_ID
     }
 
     size(): number {
         return (
-            consts.ID_LEN +
-            codec.bytesLen(this.name) +
-            codec.bytesLen(this.symbol) +
-            codec.bytesLen(this.metadata) +
-            codec.bytesLen(this.uri) +
+            consts.ADDRESS_LEN +
+            consts.MaxStringLen + this.name.length +
+            consts.MaxStringLen + this.symbol.length +
+            consts.MaxStringLen + this.metadata.length +
             consts.UINT64_LEN +
-            codec.bytesLen(this.admin) +
-            codec.bytesLen(this.mintActor) +
-            codec.bytesLen(this.pauseUnpauseActor) +
-            codec.bytesLen(this.freezeUnfreezeActor) +
-            codec.bytesLen(this.enableDisableKYCAccountActor)
+            consts.MaxStringLen + this.owner.length +
+            consts.MaxStringLen + this.mintAdmin.length +
+            consts.MaxStringLen + this.pauseUnpauseAdmin.length +
+            consts.MaxStringLen + this.freezeUnfreezeAdmin.length +
+            consts.MaxStringLen + this.enableDisableKYCAccountAdmin.length
         )
     }
 
     computeUnits(): number {
-        return UPDATEASSET_COMPUTE_UNITS
+        return UPDATE_ASSET_COMPUTE_UNITS
     }
 
     stateKeysMaxChunks(): number[] {
@@ -80,17 +90,16 @@ export class UpdateAsset implements actions.Action {
 
     toJSON(): object {
         return {
-            asset: this.asset.toString(),
-            name: new TextDecoder().decode(this.name),
-            symbol: new TextDecoder().decode(this.symbol),
-            metadata: new TextDecoder().decode(this.metadata),
-            uri: new TextDecoder().decode(this.uri),
+            assetAddress: this.assetAddress.toString(),
+            name: this.name,
+            symbol: this.symbol,
+            metadata: this.metadata,
             maxSupply: this.maxSupply.toString(),
-            admin: new TextDecoder().decode(this.admin),
-            mintActor: new TextDecoder().decode(this.mintActor),
-            pauseUnpauseActor: new TextDecoder().decode(this.pauseUnpauseActor),
-            freezeUnfreezeActor: new TextDecoder().decode(this.freezeUnfreezeActor),
-            enableDisableKYCAccountActor: new TextDecoder().decode(this.enableDisableKYCAccountActor)
+            owner: this.owner,
+            mintAdmin: this.mintAdmin,
+            pauseUnpauseAdmin: this.pauseUnpauseAdmin,
+            freezeUnfreezeAdmin: this.freezeUnfreezeAdmin,
+            enableDisableKYCAccountAdmin: this.enableDisableKYCAccountAdmin
         }
     }
 
@@ -100,78 +109,49 @@ export class UpdateAsset implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.asset)
-        codec.packBytes(this.name)
-        codec.packBytes(this.symbol)
-        codec.packBytes(this.metadata)
-        codec.packBytes(this.uri)
+        codec.packAddress(this.assetAddress)
+        codec.packString(this.name)
+        codec.packString(this.symbol)
+        codec.packString(this.metadata)
         codec.packUint64(this.maxSupply)
-        codec.packBytes(this.admin)
-        codec.packBytes(this.mintActor)
-        codec.packBytes(this.pauseUnpauseActor)
-        codec.packBytes(this.freezeUnfreezeActor)
-        codec.packBytes(this.enableDisableKYCAccountActor)
+        codec.packString(this.owner)
+        codec.packString(this.mintAdmin)
+        codec.packString(this.pauseUnpauseAdmin)
+        codec.packString(this.freezeUnfreezeAdmin)
+        codec.packString(this.enableDisableKYCAccountAdmin)
         return codec.toBytes()
     }
 
-    static fromBytes(bytes: Uint8Array): [UpdateAsset, Error?] {
+    static fromBytes(bytes: Uint8Array): [UpdateAsset | null, Error | null] {
         const codec = utils.Codec.newReader(bytes, bytes.length)
-        const asset = codec.unpackID(true)
-        const name = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
-        const symbol = codec.unpackLimitedBytes(MAX_TEXT_SIZE, false)
-        const metadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
-        const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
+        const assetAddress = codec.unpackAddress()
+        const name = codec.unpackString(false)
+        const symbol = codec.unpackString(false)
+        const metadata = codec.unpackString(false)
         const maxSupply = codec.unpackUint64(false)
-        const admin = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const mintActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const pauseUnpauseActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const freezeUnfreezeActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const enableDisableKYCAccountActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
+        const owner = codec.unpackString(false)
+        const mintAdmin = codec.unpackString(false)
+        const pauseUnpauseAdmin = codec.unpackString(false)
+        const freezeUnfreezeAdmin = codec.unpackString(false)
+        const enableDisableKYCAccountAdmin = codec.unpackString(false)
+
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
 
         const action = new UpdateAsset(
-            asset.toString(),
-            new TextDecoder().decode(name),
-            new TextDecoder().decode(symbol),
-            new TextDecoder().decode(metadata),
-            new TextDecoder().decode(uri),
+            assetAddress.toString(),
+            name,
+            symbol,
+            metadata,
             maxSupply,
-            new TextDecoder().decode(admin),
-            new TextDecoder().decode(mintActor),
-            new TextDecoder().decode(pauseUnpauseActor),
-            new TextDecoder().decode(freezeUnfreezeActor),
-            new TextDecoder().decode(enableDisableKYCAccountActor)
+            owner,
+            mintAdmin,
+            pauseUnpauseAdmin,
+            freezeUnfreezeAdmin,
+            enableDisableKYCAccountAdmin
         )
-
-        return [action, codec.getError()]
-    }
-
-    static fromBytesCodec(codec: utils.Codec): [UpdateAsset, utils.Codec] {
-        const asset = codec.unpackID(true)
-        const name = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
-        const symbol = codec.unpackLimitedBytes(MAX_TEXT_SIZE, false)
-        const metadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
-        const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, false)
-        const maxSupply = codec.unpackUint64(false)
-        const admin = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const mintActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const pauseUnpauseActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const freezeUnfreezeActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-        const enableDisableKYCAccountActor = codec.unpackLimitedBytes(consts.ADDRESS_LEN, false)
-
-        const action = new UpdateAsset(
-            asset.toString(),
-            new TextDecoder().decode(name),
-            new TextDecoder().decode(symbol),
-            new TextDecoder().decode(metadata),
-            new TextDecoder().decode(uri),
-            maxSupply,
-            new TextDecoder().decode(admin),
-            new TextDecoder().decode(mintActor),
-            new TextDecoder().decode(pauseUnpauseActor),
-            new TextDecoder().decode(freezeUnfreezeActor),
-            new TextDecoder().decode(enableDisableKYCAccountActor)
-        )
-
-        return [action, codec]
+        return [action, null]
     }
 }

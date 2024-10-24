@@ -1,73 +1,71 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { Id } from '@avalabs/avalanchejs'
-import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
+import { actions, consts, utils } from '@nuklai/hyperchain-sdk';
 import {
     BURNASSET_COMPUTE_UNITS,
     BURNASSET_NFT_ID,
     STORAGE_ASSET_CHUNKS,
     STORAGE_ASSET_NFT_CHUNKS,
     STORAGE_BALANCE_CHUNKS
-} from '../constants'
+} from '../constants';
 
-export const BurnAssetNFTTxSize = consts.ID_LEN * 2
+export const BurnAssetNFTTxSize = consts.ADDRESS_LEN * 2;
 
 export class BurnAssetNFT implements actions.Action {
-    public asset: Id
-    public nftID: Id
+    public assetAddress: utils.Address;
+    public assetNftAddress: utils.Address;
 
-    constructor(asset: string, nftID: string) {
-        this.asset = utils.toAssetID(asset)
-        this.nftID = utils.toAssetID(nftID)
+    constructor(assetAddress: string, assetNftAddress: string) {
+        this.assetAddress = utils.Address.fromString(assetAddress);
+        this.assetNftAddress = utils.Address.fromString(assetNftAddress);
     }
 
     getTypeId(): number {
-        return BURNASSET_NFT_ID
+        return BURNASSET_NFT_ID;
     }
 
     size(): number {
-        return BurnAssetNFTTxSize
+        return BurnAssetNFTTxSize;
     }
 
     computeUnits(): number {
-        return BURNASSET_COMPUTE_UNITS
+        return BURNASSET_COMPUTE_UNITS;
     }
 
     stateKeysMaxChunks(): number[] {
-        return [STORAGE_ASSET_CHUNKS, STORAGE_ASSET_NFT_CHUNKS, STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS]
+        return [STORAGE_ASSET_CHUNKS, STORAGE_ASSET_NFT_CHUNKS, STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS];
     }
 
     toJSON(): object {
         return {
-            asset: this.asset.toString(),
-            nftID: this.nftID.toString()
-        }
+            assetAddress: this.assetAddress.toString(),
+            assetNftAddress: this.assetNftAddress.toString()
+        };
     }
 
     toString(): string {
-        return JSON.stringify(this.toJSON())
+        return JSON.stringify(this.toJSON());
     }
 
     toBytes(): Uint8Array {
-        const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.asset)
-        codec.packID(this.nftID)
-        return codec.toBytes()
+        const codec = utils.Codec.newWriter(this.size(), this.size());
+        codec.packAddress(this.assetAddress);
+        codec.packAddress(this.assetNftAddress);
+        return codec.toBytes();
     }
 
-    static fromBytes(bytes: Uint8Array): [BurnAssetNFT, Error?] {
-        const codec = utils.Codec.newReader(bytes, bytes.length)
-        const asset = codec.unpackID(false)
-        const nftID = codec.unpackID(false)
-        const action = new BurnAssetNFT(asset.toString(), nftID.toString())
-        return [action, codec.getError()]
-    }
+    static fromBytes(bytes: Uint8Array): [BurnAssetNFT | null, Error | null] {
+        const codec = utils.Codec.newReader(bytes, bytes.length);
+        const assetAddress = codec.unpackAddress();
+        const assetNftAddress = codec.unpackAddress();
 
-    static fromBytesCodec(codec: utils.Codec): [BurnAssetNFT, utils.Codec] {
-        const asset = codec.unpackID(false)
-        const nftID = codec.unpackID(false)
-        const action = new BurnAssetNFT(asset.toString(), nftID.toString())
-        return [action, codec]
+        const error = codec.getError();
+        if (error) {
+            return [null, error];
+        }
+
+        const action = new BurnAssetNFT(assetAddress.toString(), assetNftAddress.toString());
+        return [action, null];
     }
 }

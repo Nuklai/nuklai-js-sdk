@@ -1,71 +1,97 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { actions, utils, consts } from '@nuklai/hyperchain-sdk'
-import { Id } from '@avalabs/avalanchejs'
+import { actions, utils } from '@nuklai/hyperchain-sdk';
+import {
+  TRANSFER_COMPUTE_UNITS,
+  TRANSFER_ID,
+  STORAGE_ASSET_CHUNKS,
+  STORAGE_BALANCE_CHUNKS,
+  MAX_TEXT_SIZE,
+  ADDRESS_LEN,
+  UINT64_LEN
+} from '../constants';
 
-export class Transfer extends actions.Transfer {
-  public asset: Id
-  public nftID?: Id
+export class Transfer implements actions.Action {
+  public to: utils.Address;
+  public assetAddress: utils.Address;
+  public value: bigint;
+  public memo: string;
 
-  constructor(to: string, asset: string, value: bigint, memo: string, nftID?: string) {
-    super(to, asset, value, memo)
-    this.asset = utils.toAssetID(asset)
-    if (nftID) {
-      this.nftID = utils.toAssetID(nftID)
+  constructor(to: string, assetAddress: string, value: bigint, memo: string) {
+    this.to = utils.Address.fromString(to);
+    this.assetAddress = utils.Address.fromString(assetAddress);
+    this.value = value;
+    this.memo = memo;
+
+    this.validate();
+  }
+
+  private validate(): void {
+    if (this.memo.length > MAX_TEXT_SIZE) {
+      throw new Error('Memo is too large');
     }
+    if (this.value === 0n) {
+      throw new Error('Value is zero');
+    }
+  }
+
+  getTypeId(): number {
+    return TRANSFER_ID;
   }
 
   size(): number {
-    return super.size() + (this.nftID ? consts.ID_LEN : 0)
+    return ADDRESS_LEN * 2 + UINT64_LEN + 2 + this.memo.length; // 2 for string length prefix
   }
 
-  toBytes(): Uint8Array {
-    const parentBytes = super.toBytes()
-    if (this.nftID) {
-      const codec = utils.Codec.newWriter(this.size(), this.size())
-      codec.packBytes(parentBytes)
-      codec.packID(this.nftID)
-      return codec.toBytes()
-    }
-
-    return parentBytes
+  computeUnits(): number {
+    return TRANSFER_COMPUTE_UNITS;
   }
 
-  static fromBytes(bytes: Uint8Array): [Transfer, Error?] {
-    const [parentTransfer, err] = super.fromBytes(bytes)
-    if (err) {
-      return [parentTransfer as Transfer, err]
-    }
-
-    const codec = utils.Codec.newReader(bytes, bytes.length)
-
-    // Unpack all fields of the parent transfer
-    codec.unpackAddress() // to
-    codec.unpackID(false) // asset
-    codec.unpackUint64(false) // value
-    codec.unpackBytes(false) // memo
-
-    // For NFT transfers:
-    let nftID: Id | undefined
-    if (codec.getOffset() < bytes.length) {
-      nftID = codec.unpackID(false)
-    }
-
-    return [new Transfer(
-        parentTransfer.to.toString(),
-        parentTransfer.asset.toString(),
-        parentTransfer.value,
-        new TextDecoder().decode(parentTransfer.memo),
-        nftID?.toString()
-    ), undefined]
+  stateKeysMaxChunks(): number[] {
+    return [STORAGE_ASSET_CHUNKS, STORAGE_BALANCE_CHUNKS, STORAGE_BALANCE_CHUNKS];
   }
 
   toJSON(): object {
-    const json = super.toJSON() as any
-    if (this.nftID) {
-      json.nftID = this.nftID.toString()
+    return {
+      to: this.to.toString(),
+      assetAddress: this.assetAddress.toString(),
+      value: this.value.toString(),
+      memo: this.memo
+    };
+  }
+
+  toString(): string {
+    return JSON.stringify(this.toJSON());
+  }
+
+  toBytes(): Uint8Array {
+    const codec = utils.Codec.newWriter(this.size(), this.size());
+    codec.packAddress(this.to);
+    codec.packAddress(this.assetAddress);
+    codec.packUint64(this.value);
+    codec.packString(this.memo);
+    return codec.toBytes();
+  }
+
+  static fromBytes(bytes: Uint8Array): [Transfer | null, Error | null] {
+    const codec = utils.Codec.newReader(bytes, bytes.length);
+    const to = codec.unpackAddress();
+    const assetAddress = codec.unpackAddress();
+    const value = codec.unpackUint64(true);
+    const memo = codec.unpackString(false);
+
+    const error = codec.getError();
+    if (error) {
+      return [null, error];
     }
-    return json
+
+    const action = new Transfer(
+        to.toString(),
+        assetAddress.toString(),
+        value,
+        memo
+    );
+    return [action, null];
   }
 }

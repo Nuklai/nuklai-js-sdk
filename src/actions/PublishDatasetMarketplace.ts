@@ -1,8 +1,5 @@
-// Copyright (C) 2024, Nuklai. All rights reserved.
-// See the file LICENSE for licensing terms.
+import { actions, consts, utils } from "@nuklai/hyperchain-sdk";
 
-import {actions, consts, utils} from "@nuklai/hyperchain-sdk";
-import { Id } from "@avalabs/avalanchejs";
 import {
     PUBLISH_DATASET_MARKETPLACE_COMPUTE_UNITS,
     PUBLISH_DATASET_MARKETPLACE_ID,
@@ -11,18 +8,18 @@ import {
 } from '../constants'
 
 export class PublishDatasetMarketplace implements actions.Action {
-    public datasetID: Id
-    public baseAssetID: Id
-    public basePrice: bigint
+    public datasetAddress: utils.Address
+    public paymentAssetAddress: utils.Address
+    public datasetPricePerBlock: bigint
 
     constructor(
-        datasetID: string,
-        baseAssetID: string,
-        basePrice: bigint
+        datasetAddress: string,
+        paymentAssetAddress: string,
+        datasetPricePerBlock: bigint
     ) {
-        this.datasetID = utils.toAssetID(datasetID)
-        this.baseAssetID = utils.toAssetID(baseAssetID)
-        this.basePrice = basePrice
+        this.datasetAddress = utils.Address.fromString(datasetAddress)
+        this.paymentAssetAddress = utils.Address.fromString(paymentAssetAddress)
+        this.datasetPricePerBlock = datasetPricePerBlock
     }
 
     getTypeId(): number {
@@ -30,7 +27,7 @@ export class PublishDatasetMarketplace implements actions.Action {
     }
 
     size(): number {
-        return consts.ID_LEN + consts.ID_LEN + consts.UINT64_LEN
+        return consts.ADDRESS_LEN * 2 + consts.UINT64_LEN
     }
 
     computeUnits(): number {
@@ -38,14 +35,14 @@ export class PublishDatasetMarketplace implements actions.Action {
     }
 
     stateKeysMaxChunks(): number[] {
-        return [STORAGE_DATASET_CHUNKS, STORAGE_ASSET_CHUNKS, STORAGE_ASSET_CHUNKS]
+        return [STORAGE_DATASET_CHUNKS, STORAGE_ASSET_CHUNKS]
     }
 
     toJSON(): object {
         return {
-            datasetID: this.datasetID.toString(),
-            baseAssetID: this.baseAssetID.toString(),
-            basePrice: this.basePrice.toString()
+            datasetAddress: this.datasetAddress.toString(),
+            paymentAssetAddress: this.paymentAssetAddress.toString(),
+            datasetPricePerBlock: this.datasetPricePerBlock.toString()
         }
     }
 
@@ -55,22 +52,28 @@ export class PublishDatasetMarketplace implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
-        codec.packID(this.datasetID)
-        codec.packID(this.baseAssetID)
-        codec.packUint64(this.basePrice)
+        codec.packAddress(this.datasetAddress)
+        codec.packAddress(this.paymentAssetAddress)
+        codec.packUint64(this.datasetPricePerBlock)
         return codec.toBytes()
     }
 
-    static fromBytesCodec(codec: utils.Codec): [PublishDatasetMarketplace, utils.Codec] {
-        const datasetID = codec.unpackID(true)
-        const baseAssetID = codec.unpackID(false)
-        const basePrice = codec.unpackUint64(false)
+    static fromBytes(bytes: Uint8Array): [PublishDatasetMarketplace | null, Error | null] {
+        const codec = utils.Codec.newReader(bytes, bytes.length)
+        const datasetAddress = codec.unpackAddress()
+        const paymentAssetAddress = codec.unpackAddress()
+        const datasetPricePerBlock = codec.unpackUint64(false)
+
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
 
         const action = new PublishDatasetMarketplace(
-            datasetID.toString(),
-            baseAssetID.toString(),
-            basePrice
+            datasetAddress.toString(),
+            paymentAssetAddress.toString(),
+            datasetPricePerBlock
         )
-        return [action, codec]
+        return [action, null]
     }
 }

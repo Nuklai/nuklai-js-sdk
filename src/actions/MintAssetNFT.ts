@@ -1,43 +1,49 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { Id } from '@avalabs/avalanchejs'
 import { actions, consts, utils } from '@nuklai/hyperchain-sdk'
 import {
-    MINTASSET_COMPUTE_UNITS,
-    MINTASSET_NFT_ID,
+    MINT_ASSET_COMPUTE_UNITS,
+    MINT_ASSET_NFT_ID,
     STORAGE_ASSET_CHUNKS,
     STORAGE_BALANCE_CHUNKS,
-    MAX_METADATA_SIZE
+    MAX_ASSET_METADATA_SIZE
 } from '../constants'
 
-export class MintAssetNFT implements actions.Action {
-    public to: utils.Address
-    public asset: Id
-    public uniqueID: bigint
-    public uri: Uint8Array
-    public metadata: Uint8Array
+export const MintAssetNFTTxSize =
+    consts.ADDRESS_LEN + // AssetAddress
+    consts.MaxStringLen + MAX_ASSET_METADATA_SIZE + // Metadata
+    consts.ADDRESS_LEN // To
 
-    constructor(to: string, asset: string, uniqueID: bigint, uri: string, metadata: string) {
+export class MintAssetNFT implements actions.Action {
+    public assetAddress: utils.Address
+    public metadata: string
+    public to: utils.Address
+
+    constructor(assetAddress: string, metadata: string, to: string) {
+        this.assetAddress = utils.Address.fromString(assetAddress)
+        this.metadata = metadata
         this.to = utils.Address.fromString(to)
-        this.asset = utils.toAssetID(asset)
-        this.uniqueID = uniqueID
-        this.uri = new TextEncoder().encode(uri)
-        this.metadata = new TextEncoder().encode(metadata)
+
+        this.validate()
+    }
+
+    private validate(): void {
+        if (this.metadata.length > MAX_ASSET_METADATA_SIZE) {
+            throw new Error('Invalid metadata length')
+        }
     }
 
     getTypeId(): number {
-        return MINTASSET_NFT_ID
+        return MINT_ASSET_NFT_ID
     }
 
     size(): number {
-        return consts.ADDRESS_LEN + consts.ID_LEN + consts.UINT64_LEN +
-            consts.UINT16_LEN + this.uri.length +
-            consts.UINT16_LEN + this.metadata.length
+        return MintAssetNFTTxSize
     }
 
     computeUnits(): number {
-        return MINTASSET_COMPUTE_UNITS
+        return MINT_ASSET_COMPUTE_UNITS
     }
 
     stateKeysMaxChunks(): number[] {
@@ -46,11 +52,9 @@ export class MintAssetNFT implements actions.Action {
 
     toJSON(): object {
         return {
-            to: this.to.toString(),
-            asset: this.asset.toString(),
-            uniqueID: this.uniqueID.toString(),
-            uri: new TextDecoder().decode(this.uri),
-            metadata: new TextDecoder().decode(this.metadata)
+            assetAddress: this.assetAddress.toString(),
+            metadata: this.metadata,
+            to: this.to.toString()
         }
     }
 
@@ -60,44 +64,28 @@ export class MintAssetNFT implements actions.Action {
 
     toBytes(): Uint8Array {
         const codec = utils.Codec.newWriter(this.size(), this.size())
+        codec.packAddress(this.assetAddress)
+        codec.packString(this.metadata)
         codec.packAddress(this.to)
-        codec.packID(this.asset)
-        codec.packUint64(this.uniqueID)
-        codec.packBytes(this.uri)
-        codec.packBytes(this.metadata)
         return codec.toBytes()
     }
 
-    static fromBytes(bytes: Uint8Array): [MintAssetNFT, Error?] {
+    static fromBytes(bytes: Uint8Array): [MintAssetNFT | null, Error | null] {
         const codec = utils.Codec.newReader(bytes, bytes.length)
+        const assetAddress = codec.unpackAddress()
+        const metadata = codec.unpackString(true)
         const to = codec.unpackAddress()
-        const asset = codec.unpackID(false)
-        const uniqueID = codec.unpackUint64(false)
-        const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
-        const metadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
-        const action = new MintAssetNFT(
-            to.toString(),
-            asset.toString(),
-            uniqueID,
-            new TextDecoder().decode(uri),
-            new TextDecoder().decode(metadata)
-        )
-        return [action, codec.getError()]
-    }
 
-    static fromBytesCodec(codec: utils.Codec): [MintAssetNFT, utils.Codec] {
-        const to = codec.unpackAddress()
-        const asset = codec.unpackID(false)
-        const uniqueID = codec.unpackUint64(false)
-        const uri = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
-        const metadata = codec.unpackLimitedBytes(MAX_METADATA_SIZE, true)
+        const error = codec.getError()
+        if (error) {
+            return [null, error]
+        }
+
         const action = new MintAssetNFT(
-            to.toString(),
-            asset.toString(),
-            uniqueID,
-            new TextDecoder().decode(uri),
-            new TextDecoder().decode(metadata)
+            assetAddress.toString(),
+            metadata,
+            to.toString()
         )
-        return [action, codec]
+        return [action, null]
     }
 }

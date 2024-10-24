@@ -1,71 +1,82 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { HyperchainSDK, config } from '@nuklai/hyperchain-sdk'
-import { CreateAsset } from './actions/createAsset'
-import { Transfer } from './actions/transfer'
-import { MintAssetFT } from './actions/MintAssetFT'
-import { MintAssetNFT } from './actions/MintAssetNFT'
-import { BurnAssetFT } from './actions/BurnAssetFT'
-import { BurnAssetNFT } from './actions/BurnAssetNFT'
-import { MintDataset } from './actions/MintDataset'
-import { UpdateAsset } from './actions/UpdateAsset'
-import { UpdateDataset } from './actions/UpdateDataset'
-import { InitiateContributeDataset } from "./actions/InitiateContributeDataset";
-import { CompleteContributeDataset } from "./actions/CompleteContributeDataset";
-import { PublishDatasetMarketplace } from "./actions/PublishDatasetMarketplace";
+import { HyperchainSDK, config, utils } from '@nuklai/hyperchain-sdk'
+import {
+  CreateAssetFT, CreateAssetNFT, Transfer, MintAssetNFT, MintAssetFT,
+    BurnAssetFT,
+    BurnAssetNFT,
+    CreateDataset,
+    UpdateAsset,
+    UpdateDataset,
+    InitiateContributeDataset,
+    CompleteContributeDataset,
+    PublishDatasetMarketplace,
+    SubscribeDatasetMarketplace,
+    ClaimMarketplacePayment,
+
+} from "./actions";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   NUKLAI_CHAIN_ID
-} from './constants/endpoints'
+} from './constants'
 import {
-  CREATEASSET_ID,
-  MINTASSET_FT_ID,
-  MINTASSET_NFT_ID,
-  MINTDATASET_ID,
+  CREATE_ASSET_FT_ID,
+  CREATE_ASSET_NFT_ID,
+  MINT_ASSET_FT_ID,
+  MINT_ASSET_NFT_ID,
+  CREATE_DATASET_ID,
   BURNASSET_FT_ID,
   BURNASSET_NFT_ID,
   TRANSFER_ID,
-  UPDATEASSET_ID,
-  UPDATEDATASET_ID,
+  UPDATE_ASSET_ID,
+  UPDATE_DATASET_ID,
   DECIMALS,
   HRP,
   SYMBOL,
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
   PUBLISH_DATASET_MARKETPLACE_ID,
-} from './constants/nuklaivm'
+  SUBSCRIBE_DATASET_MARKETPLACE_ID,
+  CLAIM_MARKETPLACE_PAYMENT_ID
+} from './constants/'
 import { RpcService } from './services/rpc'
 import { WebSocketService } from './services/websocket'
 
 export {
-  CreateAsset,
+  CreateAssetFT,
+  CreateAssetNFT,
   Transfer,
   MintAssetFT,
   MintAssetNFT,
   BurnAssetFT,
   BurnAssetNFT,
-  MintDataset,
+  CreateDataset,
   UpdateAsset,
   UpdateDataset,
   InitiateContributeDataset,
   CompleteContributeDataset,
   PublishDatasetMarketplace,
-  CREATEASSET_ID,
-  MINTASSET_FT_ID,
-  MINTASSET_NFT_ID,
-  MINTDATASET_ID,
+  SubscribeDatasetMarketplace,
+  ClaimMarketplacePayment,
+  CREATE_ASSET_FT_ID,
+  CREATE_ASSET_NFT_ID,
+  MINT_ASSET_FT_ID,
+  MINT_ASSET_NFT_ID,
+  CREATE_DATASET_ID,
   BURNASSET_FT_ID,
   BURNASSET_NFT_ID,
   TRANSFER_ID,
-  UPDATEASSET_ID,
-  UPDATEDATASET_ID,
+  UPDATE_ASSET_ID,
+  UPDATE_DATASET_ID,
   DECIMALS,
   HRP,
   SYMBOL,
   INITIATE_CONTRIBUTE_DATASET_ID,
   COMPLETE_CONTRIBUTE_DATASET_ID,
   PUBLISH_DATASET_MARKETPLACE_ID,
+  SUBSCRIBE_DATASET_MARKETPLACE_ID,
+  CLAIM_MARKETPLACE_PAYMENT_ID,
 }
 
 export class NuklaiSDK extends HyperchainSDK {
@@ -90,18 +101,21 @@ export class NuklaiSDK extends HyperchainSDK {
 
   private registerCustomActions() {
     const actionsToRegister = [
-      { id: CREATEASSET_ID, action: CreateAsset },
-      { id: MINTASSET_FT_ID, action: MintAssetFT },
-      { id: MINTASSET_NFT_ID, action: MintAssetNFT },
-      { id: MINTDATASET_ID, action: MintDataset },
+      { id: CREATE_ASSET_FT_ID, action: CreateAssetFT },
+      { id: CREATE_ASSET_NFT_ID, action: CreateAssetNFT},
+      { id: MINT_ASSET_FT_ID, action: MintAssetFT },
+      { id: MINT_ASSET_NFT_ID, action: MintAssetNFT },
+      { id: CREATE_DATASET_ID, action: CreateDataset },
       { id: BURNASSET_FT_ID, action: BurnAssetFT },
       { id: BURNASSET_NFT_ID, action: BurnAssetNFT },
-      { id: UPDATEASSET_ID, action: UpdateAsset },
-      { id: UPDATEDATASET_ID, action: UpdateDataset },
+      { id: UPDATE_ASSET_ID, action: UpdateAsset },
+      { id: UPDATE_DATASET_ID, action: UpdateDataset },
       { id: TRANSFER_ID, action: Transfer },
       { id: INITIATE_CONTRIBUTE_DATASET_ID, action: InitiateContributeDataset },
       { id: COMPLETE_CONTRIBUTE_DATASET_ID, action: CompleteContributeDataset },
       { id: PUBLISH_DATASET_MARKETPLACE_ID, action: PublishDatasetMarketplace},
+      { id: SUBSCRIBE_DATASET_MARKETPLACE_ID, action: SubscribeDatasetMarketplace },
+      { id: CLAIM_MARKETPLACE_PAYMENT_ID, action: ClaimMarketplacePayment },
     ];
 
     actionsToRegister.forEach(({ id, action }) => {
@@ -109,7 +123,8 @@ export class NuklaiSDK extends HyperchainSDK {
       if (!isRegistered) {
         console.log(`Registering action: ${action.name} with ID: ${id}`);
         try {
-          this.actionRegistry.register(id, action.fromBytesCodec, false);
+          const deserializeMethod = this.getDeserializeMethod(action);
+          this.actionRegistry.register(id, deserializeMethod, false);
         } catch (error) {
           console.error(`Error registering action ${action.name}:`, error);
         }
@@ -117,5 +132,21 @@ export class NuklaiSDK extends HyperchainSDK {
         console.log(`Action with ID ${id} already registered, skipping.`);
       }
     });
+  }
+
+  private getDeserializeMethod(action: any): (codec: utils.Codec) => [any, utils.Codec] {
+    if (typeof action.fromBytesCodec === 'function') {
+      return action.fromBytesCodec;
+    } else if (typeof action.fromBytes === 'function') {
+      return (codec: utils.Codec): [any, utils.Codec] => {
+        const [result, error] = action.fromBytes(codec.toBytes());
+        if (error) {
+          throw error;
+        }
+        return [result, codec];
+      };
+    } else {
+      throw new Error(`Action ${action.name} does not have a valid deserialization method`);
+    }
   }
 }
