@@ -1,6 +1,6 @@
 import { config } from "@nuklai/hyperchain-sdk";
 import { RpcService } from "./rpcService";
-import { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./constants";
+import { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./endpoints";
 import { HyperSDKClient } from "hypersdk-client";
 
 export class NuklaiSDK {
