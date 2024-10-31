@@ -27,4 +27,5 @@ export class NuklaiSDK {
   }
 }
 
-export { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./constants";
+export { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./endpoints";
+
