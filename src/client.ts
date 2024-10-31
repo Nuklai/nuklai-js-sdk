@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { HyperSDKClient } from 'hypersdk-client';
 import { NuklaiABI} from "./abi";
 import { Marshaler } from "hypersdk-client/dist/Marshaler";

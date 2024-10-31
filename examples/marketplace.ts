@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { NuklaiSDK } from "../src";
 import { PrivateKeySigner } from "hypersdk-client/dist/PrivateKeySigner";
 import { TxResult } from "hypersdk-client/dist/apiTransformers";

@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { config } from "@nuklai/hyperchain-sdk";
 import { RpcService } from "./rpcService";
 import { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./endpoints";

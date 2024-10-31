@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { NuklaiVMClient } from "./client";
 import { config } from "@nuklai/hyperchain-sdk";
 import { ActionOutput, SignerIface } from "hypersdk-client/dist/types";
