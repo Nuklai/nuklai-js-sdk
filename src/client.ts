@@ -205,6 +205,10 @@ export class NuklaiVMClient {
         return this.client.formatNativeTokens(balance);
     }
 
+    public async getTransactionStatus(txID: string): Promise<TxResult> {
+        return this.client.getTransactionStatus(txID);
+    }
+
     async executeAction(actionData: ActionData): Promise<ActionOutput[]> {
         if (!this.signer) {
             throw new Error("Signer not set");
@@ -212,6 +216,50 @@ export class NuklaiVMClient {
         return await this.client.executeActions([actionData]);
     }
 
+    // Validator Methods
+    async getAllValidators(): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetAllValidators",
+            data: {}
+        }]))[0];
+    }
+
+    async getStakedValidators(): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetStakedValidators",
+            data: {}
+        }]))[0];
+    }
+
+    async getValidatorStake(nodeID: string): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetValidatorStake",
+            data: { nodeID }
+        }]))[0];
+    }
+
+    async getUserStake(params: { owner: string; nodeID: string }): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetUserStake",
+            data: params
+        }]))[0];
+    }
+
+    async getEmissionInfo(): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetEmissionInfo",
+            data: {}
+        }]))[0];
+    }
+
+    async getAssetInfo(asset: string): Promise<ActionOutput> {
+        return (await this.client.executeActions([{
+            actionName: "GetAssetInfo",
+            data: { asset }
+        }]))[0];
+    }
+
+    // Helper Methods
     private async sendAction(actionName: string, data: Record<string, unknown>): Promise<TxResult> {
         if (!this.signer) {
             throw new Error("Signer not set");
@@ -219,17 +267,14 @@ export class NuklaiVMClient {
         return await this.client.sendTransaction([{ actionName, data }]);
     }
 
-    // Helper method to convert tokens
     convertToNativeTokens(formattedBalance: string): bigint {
         return this.client.convertToNativeTokens(formattedBalance);
     }
 
-    // Method to get ABI
     async getAbi() {
         return await this.client.getAbi();
     }
 
-    // Method to add block listener
     listenToBlocks(callback: Function) {
         return this.client.listenToBlocks((block) => callback(block));
     }

@@ -21,8 +21,35 @@ export class RpcService {
     }
   }
 
+  async getTransactionInfo(txID: string): Promise<TxResult> {
+    return this.client.getTransactionStatus(txID);
+  }
+
   setSigner(signer: SignerIface) {
     this.client.setSigner(signer);
+  }
+
+  async getAllValidators(): Promise<ActionOutput> {
+    return this.client.getAllValidators();
+  }
+
+  async getStakedValidators(): Promise<ActionOutput> {
+    return this.client.getStakedValidators();
+  }
+
+  async getValidatorStake(nodeID: string): Promise<ActionOutput> {
+    return this.client.getValidatorStake(nodeID);
+  }
+
+  async getUserStake(params: {
+    owner: string;
+    nodeID: string;
+  }): Promise<ActionOutput> {
+    return this.client.getUserStake(params);
+  }
+
+  async getEmissionInfo(): Promise<ActionOutput> {
+    return this.client.getEmissionInfo();
   }
 
   async createFTAsset(
