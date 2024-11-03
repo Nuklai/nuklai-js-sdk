@@ -1,34 +1,28 @@
-// Copyright (C) 2024, Nuklai. All rights reserved.
-// See the file LICENSE for licensing terms.
-
-import { config } from "@nuklai/hyperchain-sdk";
 import { RpcService } from "./rpcService";
-import { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./endpoints";
-import { HyperSDKClient } from "hypersdk-client";
+import {
+  MAINNET_PUBLIC_API_BASE_URL,
+  VM_NAME,
+  VM_RPC_PREFIX,
+} from "./endpoints";
+import { NuklaiVMClient } from "./client";
 
 export class NuklaiSDK {
   public rpcService: RpcService;
-  private client: HyperSDKClient;
+  private client: NuklaiVMClient;
 
-  constructor(nodeConfig?: Partial<config.NodeConfig>) {
-    const defaultSDKConfig: config.NodeConfig = {
-      baseApiUrl: MAINNET_PUBLIC_API_BASE_URL,
-      blockchainId: NUKLAI_CHAIN_ID,
-    };
+  constructor(baseApiUrl = MAINNET_PUBLIC_API_BASE_URL) {
+    this.rpcService = new RpcService(baseApiUrl);
 
-    const finalConfig = { ...defaultSDKConfig, ...nodeConfig };
-
-    this.rpcService = new RpcService(finalConfig);
-    this.client = new HyperSDKClient(finalConfig.baseApiUrl, "nuklaivm", "rpc");
+    this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX);
   }
 
-  listenToBlocks(
-    callback: (block: any) => void,
-    includeEmpty: boolean = false
-  ) {
-    return this.client.listenToBlocks(callback, includeEmpty);
+  listenToBlocks(callback: (block: any) => void) {
+    return this.client.listenToBlocks((block: any) => callback(block));
   }
 }
 
-export { MAINNET_PUBLIC_API_BASE_URL, NUKLAI_CHAIN_ID } from "./endpoints";
-
+export {
+  MAINNET_PUBLIC_API_BASE_URL,
+  VM_NAME,
+  VM_RPC_PREFIX,
+} from "./endpoints";

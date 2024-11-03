@@ -4,10 +4,7 @@
 import { auth } from '@nuklai/hyperchain-sdk'
 import { NuklaiSDK } from '../dist/index.esm.js'
 
-const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://api-devnet.nuklaivm-dev.net:9650',
-  blockchainId: '24h7hzFfHG2vCXtT1MKsxP1VkYb9kkKHAvhJim1Xb7Y6W15zY5'
-})
+const sdk = new NuklaiSDK()
 
 async function testSDK() {
   console.log('Starting SDK tests...')

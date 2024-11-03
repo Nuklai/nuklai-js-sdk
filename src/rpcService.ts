@@ -2,38 +2,64 @@
 // See the file LICENSE for licensing terms.
 
 import { NuklaiVMClient } from "./client";
-import { config } from "@nuklai/hyperchain-sdk";
-import { ActionOutput, SignerIface } from "hypersdk-client/dist/types";
+// import { config } from "@nuklai/hyperchain-sdk";
+import {
+  ActionData,
+  ActionOutput,
+  SignerIface,
+} from "hypersdk-client/dist/types";
 import { TxResult } from "hypersdk-client/dist/apiTransformers";
+import { VMABI } from "hypersdk-client/dist/Marshaler";
+import { VM_NAME, VM_RPC_PREFIX } from "./endpoints";
+
+const DEFAULT_TIMEOUT = 30000;
 
 export class RpcService {
   private client: NuklaiVMClient;
 
-  constructor(
-    protected configNuklai: config.NodeConfig,
-    private signer?: SignerIface
-  ) {
-    this.client = new NuklaiVMClient(
-      configNuklai.baseApiUrl,
-      "nuklaivm",
-      "rpc"
+  constructor(baseApiUrl: string, private signer?: SignerIface) {
+      this.client = new NuklaiVMClient(
+          baseApiUrl,
+          VM_NAME,
+          VM_RPC_PREFIX
+      );
+
+      // If signer is provided, set it
+      if (signer) {
+          this.client.setSigner(signer);
+      }
+  }
+
+  async executeAction(actionData: ActionData): Promise<ActionOutput[]> {
+    return this.executeWithTimeout(
+      () => this.client.executeAction(actionData),
+      "Failed to execute action"
     );
-
-    if (signer) {
-      this.client.setSigner(signer);
-    }
   }
 
+  // async getTransactionInfo(txID: string): Promise<TxResult> {
+  //     return this.client.getTransactionStatus(txID);
+  // }
   async getTransactionInfo(txID: string): Promise<TxResult> {
-    return this.client.getTransactionStatus(txID);
+    return this.executeWithTimeout(
+      () => this.client.getTransactionStatus(txID),
+      "Failed to get transaction info"
+    );
   }
 
+  // Method to set signer after construction
   setSigner(signer: SignerIface) {
     this.client.setSigner(signer);
   }
 
+  // async getAllValidators(): Promise<ActionOutput> {
+  //     return this.client.getAllValidators();
+  // }
   async getAllValidators(): Promise<ActionOutput> {
-    return this.client.getAllValidators();
+    return this.executeWithTimeout(
+      () => this.client.getAllValidators(),
+      "Failed to get validators"
+    );
   }
 
   async getStakedValidators(): Promise<ActionOutput> {
@@ -260,15 +286,34 @@ export class RpcService {
     });
   }
 
+  // Query Methods
+  // async getBalance(address: string): Promise<string> {
+  //     return this.client.getBalance(address);
+  // }
   async getBalance(address: string): Promise<string> {
-    return this.client.getBalance(address);
+    try {
+      return await this.client.getBalance(address);
+    } catch (error) {
+      console.error("Failed to get balance:", error);
+      throw error;
+    }
   }
 
+  // async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
+  //     return this.client.executeAction({
+  //         actionName: "GetAssetInfo",
+  //         data: { asset: assetAddress }
+  //     });
+  // }
   async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
-    return this.client.executeAction({
-      actionName: "GetAssetInfo",
-      data: { asset: assetAddress },
-    });
+    return this.executeWithTimeout(
+      () =>
+        this.client.executeAction({
+          actionName: "GetAssetInfo",
+          data: { asset: assetAddress },
+        }),
+      "Failed to get asset info"
+    );
   }
 
   async getDatasetInfo(datasetID: string): Promise<ActionOutput> {
@@ -300,5 +345,46 @@ export class RpcService {
       actionName: "GetPendingContributions",
       data: { datasetID },
     });
+  }
+
+  async fetchAbiFromServer() {
+    return this.client.fetchAbiFromServer();
+}
+
+  async getAbi() {
+    return this.client.getAbi();
+  }
+
+  // async validateConnection() {
+  //     return this.client.validateConnection();
+  // }
+  async validateConnection(): Promise<boolean> {
+    try {
+      return await this.client.validateConnection();
+    } catch (error) {
+      console.error("Connection validation failed:", error);
+      return false;
+    }
+  }
+
+  protected async executeWithTimeout<T>(
+    operation: () => Promise<T>,
+    errorMessage: string
+  ): Promise<T> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+      try {
+        const result = await operation();
+        clearTimeout(timeoutId);
+        return result;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch (error) {
+      console.error(`${errorMessage}:`, error);
+      throw error;
+    }
   }
 }

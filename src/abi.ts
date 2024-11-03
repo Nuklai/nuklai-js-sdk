@@ -23,6 +23,12 @@ export const NuklaiABI: VMABI = {
   ],
   types: [
     {
+      name: "Address",
+      fields: [
+        { name: "bytes", type: "[]uint8" },
+      ],
+    },
+    {
       name: "CreateAssetFT",
       fields: [
         { name: "assetType", type: "uint8" },

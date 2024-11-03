@@ -1,14 +1,8 @@
-// Copyright (C) 2024, Nuklai. All rights reserved.
-// See the file LICENSE for licensing terms.
+import { NuklaiSDK } from "../src/sdk.js";
+import { PrivateKeySigner } from "hypersdk-client/dist/PrivateKeySigner.js";
 
-import { NuklaiSDK } from "../src/sdk";
-import { PrivateKeySigner } from "hypersdk-client/dist/PrivateKeySigner";
-
-async function nonFungibleTokenExamples() {
-  const sdk = new NuklaiSDK({
-    baseApiUrl: "http://api-devnet.nuklaivm-dev.net:9650",
-    blockchainId: "24h7hzFfHG2vCXtT1MKsxP1VkYb9kkKHAvhJim1Xb7Y6W15zY5",
-  });
+async function nonFungibleTokenEx() {
+  const sdk = new NuklaiSDK();
 
   const signer = new PrivateKeySigner(new Uint8Array(32));
   sdk.rpcService.setSigner(signer);
@@ -55,4 +49,4 @@ async function nonFungibleTokenExamples() {
   }
 }
 
-export { nonFungibleTokenExamples };
+export { nonFungibleTokenEx };

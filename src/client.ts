@@ -2,18 +2,43 @@
 // See the file LICENSE for licensing terms.
 
 import { HyperSDKClient } from 'hypersdk-client';
-import { NuklaiABI} from "./abi";
-import { Marshaler } from "hypersdk-client/dist/Marshaler";
+import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient';
+import { NuklaiABI } from "./abi";
+import { Marshaler, VMABI } from "hypersdk-client/dist/Marshaler";
 import { ActionData, ActionOutput, SignerIface, TransactionPayload } from "hypersdk-client/dist/types";
 import { TxResult } from "hypersdk-client/dist/apiTransformers";
+import { VM_NAME, VM_RPC_PREFIX } from './endpoints';
+
+const DEFAULT_TIMEOUT = 30000;
+const CHAIN_ID = 'DPqCib879gKLxtL7Wao6WTh5hNUYFFBZSL9otsLAZ6wKPJuXb';
 
 export class NuklaiVMClient {
     private client: HyperSDKClient;
+    private httpClient: HyperSDKHTTPClient;
     private marshaler: Marshaler;
     private signer?: SignerIface;
+    private readonly baseEndpoint: string;
 
-    constructor(rpcEndpoint: string, private vmName: string = "nuklaivm", private rpcPrefix: string = "rpc") {
-        this.client = new HyperSDKClient(rpcEndpoint, vmName, rpcPrefix);
+    constructor(
+        rpcEndpoint: string = "http://localhost:9650",
+        private vmName: string = VM_NAME,
+        private rpcPrefix: string = VM_RPC_PREFIX,
+    ) {
+        this.baseEndpoint = rpcEndpoint.replace(/\/$/, '');
+
+        // Initialize both clients
+        this.client = new HyperSDKClient(
+            this.baseEndpoint,
+            vmName,
+            rpcPrefix
+        );
+
+        this.httpClient = new HyperSDKHTTPClient(
+            this.baseEndpoint,
+            vmName,
+            rpcPrefix
+        );
+
         this.marshaler = new Marshaler(NuklaiABI);
     }
 
@@ -203,82 +228,222 @@ export class NuklaiVMClient {
     }
 
     // Query Methods
-    async getBalance(address: string): Promise<string> {
-        const balance = await this.client.getBalance(address);
-        return this.client.formatNativeTokens(balance);
-    }
-
-    public async getTransactionStatus(txID: string): Promise<TxResult> {
-        return this.client.getTransactionStatus(txID);
-    }
-
-    async executeAction(actionData: ActionData): Promise<ActionOutput[]> {
-        if (!this.signer) {
-            throw new Error("Signer not set");
+    // Update the getBalance method to use httpClient
+    public async getBalance(address: string): Promise<string> {
+        try {
+            const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
+                'balance',
+                { address, asset: 'NAI' }
+            );
+            return this.client.formatNativeTokens(BigInt(result.amount));
+        } catch (error) {
+            console.error('Balance query failed:', error);
+            throw error;
         }
-        return await this.client.executeActions([actionData]);
     }
 
     // Validator Methods
     async getAllValidators(): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetAllValidators",
-            data: {}
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'allValidators',
+                {}
+            );
+        } catch (error) {
+            console.error('Failed to get validators:', error);
+            throw error;
+        }
     }
 
     async getStakedValidators(): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetStakedValidators",
-            data: {}
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'stakedValidators',
+                {}
+            );
+        } catch (error) {
+            console.error('Failed to get staked validators:', error);
+            throw error;
+        }
     }
 
     async getValidatorStake(nodeID: string): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetValidatorStake",
-            data: { nodeID }
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'validatorStake',
+                { nodeID }
+            );
+        } catch (error) {
+            console.error('Failed to get validator stake:', error);
+            throw error;
+        }
     }
 
     async getUserStake(params: { owner: string; nodeID: string }): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetUserStake",
-            data: params
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'userStake',
+                params
+            );
+        } catch (error) {
+            console.error('Failed to get user stake:', error);
+            throw error;
+        }
     }
 
     async getEmissionInfo(): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetEmissionInfo",
-            data: {}
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'emissionInfo',
+                {}
+            );
+        } catch (error) {
+            console.error('Failed to get emission info:', error);
+            throw error;
+        }
     }
 
     async getAssetInfo(asset: string): Promise<ActionOutput> {
-        return (await this.client.executeActions([{
-            actionName: "GetAssetInfo",
-            data: { asset }
-        }]))[0];
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'asset',
+                { asset }
+            );
+        } catch (error) {
+            console.error('Failed to get asset info:', error);
+            throw error;
+        }
     }
 
-    // Helper Methods
+    async getTransactionStatus(txID: string): Promise<TxResult> {
+        try {
+            return await this.httpClient.makeIndexerRequest(
+                'tx',
+                { txID }
+            );
+        } catch (error) {
+            console.error('Failed to get transaction status:', error);
+            throw error;
+        }
+    }
+
+    public async fetchAbiFromServer(): Promise<VMABI> {
+        try {
+            // Return dynamically fetched ABI from the VM server.
+            const response = await this.httpClient.makeVmAPIRequest('abi', {});
+
+            if (typeof response === 'object' && response !== null && 'actions' in response && 'outputs' in response) {
+                const vmAbi = response as VMABI;
+
+                this.marshaler = new Marshaler(vmAbi);
+
+                return vmAbi;
+            } else {
+                throw new Error('Invalid ABI response from server');
+            }
+        } catch (error) {
+            console.error('Failed to fetch ABI from server:', error);
+            throw error;
+        }
+    }
+
+    public async getAbi() {
+        try {
+            return NuklaiABI;
+        } catch (error) {
+            console.error('ABI retrieval failed:', error);
+            throw error;
+        }
+    }
+
+    async executeAction(actionData: ActionData): Promise<string[]> {
+        if (!this.signer) {
+            throw new Error("Signer not set");
+        }
+
+        try {
+            const serializedAction = this.marshaler.encodeTyped(
+                actionData.actionName,
+                JSON.stringify(actionData.data)
+            );
+
+            const publicKeyString = Buffer.from(this.signer.getPublicKey()).toString('hex');
+
+            return await this.httpClient.executeActions(
+                [serializedAction],
+                publicKeyString
+            );
+        } catch (error) {
+            console.error('Failed to execute action:', error);
+            throw error;
+        }
+    }
+
     private async sendAction(actionName: string, data: Record<string, unknown>): Promise<TxResult> {
         if (!this.signer) {
             throw new Error("Signer not set");
         }
-        return await this.client.sendTransaction([{ actionName, data }]);
+
+        const actionTypes: Record<string, string> = {
+            "createAssetFT": "CreateAssetFt",
+            "createAssetNFT": "CreateAssetNFT",
+            "mintAssetFT": "MintAssetFT",
+            "mintAssetNFT": "MintAssetNFT",
+            "burnAssetFT": "BurnAssetFT",
+            "burnAssetNFT": "BurnAssetNFT",
+            "transfer": "Transfer",
+            "createDataset": "CreateDataset",
+            "updateDataset": "UpdateDataset",
+            "publishDatasetToMarketplace": "PublishDatasetToMarketplace",
+            "subscribeDatasetMarketplace": "SubscribeDatasetMarketplace",
+            "claimMarketplacePayment": "ClaimMarketplacePayment",
+        };
+
+        const mappedActionName = actionTypes[actionName] || actionName;
+        return await this.client.sendTransaction([{ actionName: mappedActionName, data }]);
     }
 
     convertToNativeTokens(formattedBalance: string): bigint {
         return this.client.convertToNativeTokens(formattedBalance);
     }
 
-    async getAbi() {
-        return await this.client.getAbi();
+    /**
+     * Listen to new blocks from the chain
+     * @param callback Function to be called when a new block is received
+     * @param includeEmpty Optional parameter to include empty blocks (default: false)
+     * @returns A function to unsubscribe from block updates
+     */
+
+    listenToBlocks(callback: (block: any) => void, includeEmpty: boolean = false) {
+        try {
+
+            return this.client.listenToBlocks((block) => {
+               if (includeEmpty || (block?.block?.txs?.length > 0)) {
+                    callback(block);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to initialize block listener:', error);
+            throw error;
+        }
     }
 
-    listenToBlocks(callback: Function) {
-        return this.client.listenToBlocks((block) => callback(block));
+    public async validateConnection(): Promise<boolean> {
+        try {
+            const abi = await this.getAbi();
+            return !!abi;
+        } catch (error) {
+            console.error('Connection validation failed:', error);
+            return false;
+        }
+    }
+
+    protected async makeVmRequest<T>(method: string, params: Record<string, unknown> = {}): Promise<T> {
+        try {
+            return await this.httpClient.makeVmAPIRequest<T>(method, params);
+        } catch (error) {
+            console.error(`VM request failed for method ${method}:`, error);
+            throw error;
+        }
     }
 }

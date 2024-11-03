@@ -1,15 +1,9 @@
-// Copyright (C) 2024, Nuklai. All rights reserved.
-// See the file LICENSE for licensing terms.
+import { NuklaiSDK } from "../src/sdk.js";
+import { PrivateKeySigner } from "hypersdk-client/dist/PrivateKeySigner.js";
 
-import { NuklaiSDK } from "../src/sdk";
-import { PrivateKeySigner } from "hypersdk-client/dist/PrivateKeySigner";
-
-async function fungibleTokenExamples() {
+async function fungibleTokenEx() {
   // Initialize SDK
-  const sdk = new NuklaiSDK({
-    baseApiUrl: "http://api-devnet.nuklaivm-dev.net:9650",
-    blockchainId: "24h7hzFfHG2vCXtT1MKsxP1VkYb9kkKHAvhJim1Xb7Y6W15zY5",
-  });
+  const sdk = new NuklaiSDK();
 
   // Set up signer with a private key
   const privateKey = new Uint8Array(32);
@@ -17,6 +11,13 @@ async function fungibleTokenExamples() {
   sdk.rpcService.setSigner(signer);
 
   try {
+    // Test basic connectivity first
+    console.log("Testing basic connectivity...");
+    const abi = await sdk.rpcService.getAbi().catch((error) => {
+      console.error("Failed to get ABI:", error);
+      throw new Error("Basic connectivity test failed");
+    });
+
     // Create a new fungible token
     console.log("Creating fungible token...");
     const createTxResult = await sdk.rpcService.createFTAsset(
@@ -66,7 +67,14 @@ async function fungibleTokenExamples() {
     console.log("Transfer complete:", transferTxResult);
   } catch (error) {
     console.error("Error in fungible token operations:", error);
+    if (error instanceof Error) {
+      console.error("- Message:", error.message);
+      console.error("- Stack:", error.stack);
+    } else {
+      console.error("Unknown error:", error);
+    }
+    throw error;
   }
 }
 
-export { fungibleTokenExamples };
+export { fungibleTokenEx };
