@@ -21,9 +21,9 @@ describe("NuklaiSDK Asset", () => {
     const signer = new PrivateKeySigner(new Uint8Array(32));
     await sdk.rpcService.setSigner(signer);
 
-    abi = (await sdk.rpcService.getAbi()) as VMABI;
+    // abi = (await sdk.rpcService.getAbi()) as VMABI;
 
-    // abi = await sdk.rpcService.fetchAbiFromServer() as VMABI;
+    abi = await sdk.rpcService.fetchAbiFromServer() as VMABI;
 
     console.log(
       "Loaded ABI Actions:",

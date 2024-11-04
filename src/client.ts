@@ -330,7 +330,7 @@ export class NuklaiVMClient {
     public async fetchAbiFromServer(): Promise<VMABI> {
         try {
             // Return dynamically fetched ABI from the VM server.
-            const response = await this.httpClient.makeVmAPIRequest('abi', {});
+            const response = await this.httpClient.makeVmAPIRequest('getABI', {});
 
             if (typeof response === 'object' && response !== null && 'actions' in response && 'outputs' in response) {
                 const vmAbi = response as VMABI;
