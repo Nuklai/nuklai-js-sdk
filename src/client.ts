@@ -9,12 +9,38 @@ import { ActionData, ActionOutput, SignerIface, TransactionPayload } from "hyper
 import { TxResult } from "hypersdk-client/dist/apiTransformers";
 import { VM_NAME, VM_RPC_PREFIX } from './endpoints';
 
-const DEFAULT_TIMEOUT = 30000;
-const CHAIN_ID = 'DPqCib879gKLxtL7Wao6WTh5hNUYFFBZSL9otsLAZ6wKPJuXb';
+export class NuklaiCoreApiClient {
+    private httpClient: HyperSDKHTTPClient;
+
+    constructor(
+        rpcEndpoint: string = "http://localhost:9650",
+        private vmName: string = VM_NAME,
+    ) {
+        this.httpClient = new HyperSDKHTTPClient(
+            rpcEndpoint,
+            vmName,
+            'coreapi'
+        );
+    }
+
+    public async getABI(): Promise<VMABI> {
+        try {
+            const response = await this.httpClient.makeCoreAPIRequest('getABI', {});
+            if (!response || typeof response !== 'object') {
+                throw new Error('Invalid ABI response from server');
+            }
+            return response as VMABI;
+        } catch (error) {
+            console.error('Failed to fetch ABI from coreapi:', error);
+            throw error;
+        }
+    }
+}
 
 export class NuklaiVMClient {
     private client: HyperSDKClient;
     private httpClient: HyperSDKHTTPClient;
+    private coreApiClient: NuklaiCoreApiClient;
     private marshaler: Marshaler;
     private signer?: SignerIface;
     private readonly baseEndpoint: string;
@@ -25,6 +51,7 @@ export class NuklaiVMClient {
         private rpcPrefix: string = VM_RPC_PREFIX,
     ) {
         this.baseEndpoint = rpcEndpoint.replace(/\/$/, '');
+        this.coreApiClient = new NuklaiCoreApiClient(rpcEndpoint, vmName);
 
         // Initialize both clients
         this.client = new HyperSDKClient(
@@ -329,18 +356,9 @@ export class NuklaiVMClient {
 
     public async fetchAbiFromServer(): Promise<VMABI> {
         try {
-            // Return dynamically fetched ABI from the VM server.
-            const response = await this.httpClient.makeVmAPIRequest('getABI', {});
-
-            if (typeof response === 'object' && response !== null && 'actions' in response && 'outputs' in response) {
-                const vmAbi = response as VMABI;
-
-                this.marshaler = new Marshaler(vmAbi);
-
-                return vmAbi;
-            } else {
-                throw new Error('Invalid ABI response from server');
-            }
+            const vmAbi = await this.coreApiClient.getABI();
+            this.marshaler = new Marshaler(vmAbi);
+            return vmAbi;
         } catch (error) {
             console.error('Failed to fetch ABI from server:', error);
             throw error;
