@@ -275,7 +275,16 @@ export class NuklaiVMClient {
     licenseURL: string
     isCommunityDataset: boolean
   }): Promise<TxResult> {
-    return this.sendAction('UpdateDataset', params)
+    return this.sendAction('UpdateDataset', {
+      dataset_address: params.datasetAddress,
+      name: params.name,
+      description: params.description,
+      categories: params.categories,
+      license_name: params.licenseName,
+      license_symbol: params.licenseSymbol,
+      license_url: params.licenseURL,
+      is_community_dataset: params.isCommunityDataset
+    })
   }
 
   // Dataset Contribution
@@ -284,10 +293,11 @@ export class NuklaiVMClient {
     dataLocation: string
     dataIdentifier: string
   }): Promise<TxResult> {
-    console.log('datasetAddress', params.datasetAddress)
-    console.log('dataLocation', params.dataLocation)
-    console.log('dataIdentifier', params.dataIdentifier)
-    return this.sendAction('InitiateContributeDataset', params)
+    return this.sendAction('InitiateContributeDataset', {
+      dataset_address: params.datasetAddress,
+      data_location: params.dataLocation,
+      data_identifier: params.dataIdentifier
+    })
   }
 
   async completeContributeDataset(params: {
@@ -295,7 +305,11 @@ export class NuklaiVMClient {
     datasetAddress: string
     datasetContributor: string
   }): Promise<TxResult> {
-    return this.sendAction('CompleteContributeDataset', params)
+    return this.sendAction('CompleteContributeDataset', {
+      dataset_contribution_id: params.datasetContributionID,
+      dataset_address: params.datasetAddress,
+      dataset_contributor: params.datasetContributor
+    })
   }
 
   // Marketplace
@@ -304,9 +318,10 @@ export class NuklaiVMClient {
     paymentAssetAddress: string
     datasetPricePerBlock: bigint
   }): Promise<TxResult> {
-    return this.sendAction('PublishDatasetMarketplace', {
-      ...params,
-      datasetPricePerBlock: params.datasetPricePerBlock.toString()
+    return this.sendAction('PublishDatasetToMarketplace', {
+      dataset_address: params.datasetAddress,
+      payment_asset_address: params.paymentAssetAddress,
+      dataset_price_per_block: params.datasetPricePerBlock.toString()
     })
   }
 
@@ -316,8 +331,9 @@ export class NuklaiVMClient {
     numBlocksToSubscribe: bigint
   }): Promise<TxResult> {
     return this.sendAction('SubscribeDatasetMarketplace', {
-      ...params,
-      numBlocksToSubscribe: params.numBlocksToSubscribe.toString()
+      marketplace_asset_address: params.marketplaceAssetAddress,
+      payment_asset_address: params.paymentAssetAddress,
+      num_blocks_to_subscribe: params.numBlocksToSubscribe.toString()
     })
   }
 
@@ -325,7 +341,10 @@ export class NuklaiVMClient {
     marketplaceAssetAddress: string
     paymentAssetAddress: string
   }): Promise<TxResult> {
-    return this.sendAction('ClaimMarketplacePayment', params)
+    return this.sendAction('ClaimMarketplacePayment', {
+      marketplace_asset_address: params.marketplaceAssetAddress,
+      payment_asset_address: params.paymentAssetAddress
+    })
   }
 
   // Query Methods

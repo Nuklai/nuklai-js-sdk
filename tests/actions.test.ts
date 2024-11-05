@@ -85,8 +85,17 @@ describe('NuklaiSDK Asset', () => {
         expect(result).toBeDefined()
         expect(result.success).toBe(true)
         expect(result.result).toBeDefined()
+
+        console.log(
+          'Created FT asset: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
         ftAddress = result.result[0].asset_id
-        console.log('Created FT asset:', ftAddress)
       } catch (error) {
         console.error('Failed to create FT asset:', error)
         throw error
@@ -102,7 +111,16 @@ describe('NuklaiSDK Asset', () => {
           mintAmount
         )
         expect(result.success).toBe(true)
-        console.log('Minted FT tokens')
+
+        console.log(
+          'Minted FT tokens: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
       } catch (error) {
         console.error('Failed to mint FT tokens:', error)
         throw error
@@ -130,7 +148,16 @@ describe('NuklaiSDK Asset', () => {
           'Test transfer'
         )
         expect(result.success).toBe(true)
-        console.log('FT transfer complete')
+
+        console.log(
+          'FT transfer complete: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
       } catch (error) {
         console.error('Failed to transfer FT tokens:', error)
         throw error
@@ -151,10 +178,18 @@ describe('NuklaiSDK Asset', () => {
           TEST_ADDRESS,
           TEST_ADDRESS
         )
-
         expect(result.success).toBe(true)
+
+        console.log(
+          'Created NFT collection: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
         nftAddress = result.result[0].asset_id
-        console.log('Created NFT collection:', nftAddress)
       } catch (error) {
         console.error('Failed to create NFT collection:', error)
         throw error
@@ -173,7 +208,15 @@ describe('NuklaiSDK Asset', () => {
           TEST_ADDRESS
         )
         expect(result.success).toBe(true)
-        console.log('Minted NFT')
+        console.log(
+          'Minted NFT: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
       } catch (error) {
         console.error('Failed to mint NFT:', error)
         throw error
@@ -205,10 +248,18 @@ describe('NuklaiSDK Asset', () => {
           TEST_ADDRESS,
           TEST_ADDRESS
         )
-
         expect(result.success).toBe(true)
+
+        console.log(
+          'Created Fractional token: ',
+          JSON.stringify(
+            result.result[0],
+            (_, value) =>
+              typeof value === 'bigint' ? value.toString() : value,
+            2
+          )
+        )
         fractionalAssetAddress = result.result[0].asset_id
-        console.log('Created Fractional token:', fractionalAssetAddress)
       } catch (error) {
         console.error('Failed to create Fractional token:', error)
         throw error
@@ -239,11 +290,18 @@ describe('NuklaiSDK Asset', () => {
         JSON.stringify({ format: 'CSV', size: '1GB' }),
         true
       )
-
       expect(result.success).toBe(true)
+
+      console.log(
+        'Created dataset: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
       datasetAddress = result.result[0].dataset_address
       expect(datasetAddress).toBe(fractionalAssetAddress)
-      console.log('Created dataset:', datasetAddress)
     })
 
     it('should initiate dataset contribution', async () => {
@@ -252,10 +310,17 @@ describe('NuklaiSDK Asset', () => {
         'ipfs://QmTest...',
         'test-data-001'
       )
-
       expect(result.success).toBe(true)
-      datasetContributionId = result.result[0].datasetContributionID
-      console.log('Initiated dataset contribution:', datasetContributionId)
+
+      console.log(
+        'Initiated dataset contribution: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
+      datasetContributionId = result.result[0].dataset_contribution_id
     })
 
     it('should complete dataset contribution', async () => {
@@ -265,7 +330,15 @@ describe('NuklaiSDK Asset', () => {
         TEST_ADDRESS
       )
       expect(result.success).toBe(true)
-      console.log('Completed dataset contribution')
+
+      console.log(
+        'Completed dataset contribution: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
     })
 
     it('should get dataset info', async () => {
@@ -286,7 +359,15 @@ describe('NuklaiSDK Asset', () => {
         true
       )
       expect(result.success).toBe(true)
-      console.log('Updated dataset')
+
+      console.log(
+        'Updated dataset: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
     })
   })
 
@@ -298,7 +379,15 @@ describe('NuklaiSDK Asset', () => {
         BigInt('1000000000') // price per block
       )
       expect(result.success).toBe(true)
-      console.log('Published dataset to marketplace')
+
+      console.log(
+        'Published dataset to marketplace: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
     })
 
     it('should subscribe to dataset', async () => {
@@ -308,7 +397,15 @@ describe('NuklaiSDK Asset', () => {
         BigInt(1000) // number of blocks
       )
       expect(result.success).toBe(true)
-      console.log('Subscribed to dataset')
+
+      console.log(
+        'Subscribed to dataset: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
     })
 
     it('should claim marketplace payment', async () => {
@@ -317,7 +414,15 @@ describe('NuklaiSDK Asset', () => {
         TEST_ADDRESS // payment asset address
       )
       expect(result.success).toBe(true)
-      console.log('Claimed marketplace payment')
+
+      console.log(
+        'Claimed marketplace payment: ',
+        JSON.stringify(
+          result.result[0],
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )
+      )
     })
   })
 
