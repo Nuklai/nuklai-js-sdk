@@ -252,7 +252,17 @@ export class NuklaiVMClient {
     metadata: string
     isCommunityDataset: boolean
   }): Promise<TxResult> {
-    return this.sendAction('CreateDataset', params)
+    return this.sendAction('CreateDataset', {
+      asset_address: params.assetAddress,
+      name: params.name,
+      description: params.description,
+      categories: params.categories,
+      license_name: params.licenseName,
+      license_symbol: params.licenseSymbol,
+      license_url: params.licenseURL,
+      metadata: params.metadata,
+      is_community_dataset: params.isCommunityDataset
+    })
   }
 
   async updateDataset(params: {
@@ -274,6 +284,9 @@ export class NuklaiVMClient {
     dataLocation: string
     dataIdentifier: string
   }): Promise<TxResult> {
+    console.log('datasetAddress', params.datasetAddress)
+    console.log('dataLocation', params.dataLocation)
+    console.log('dataIdentifier', params.dataIdentifier)
     return this.sendAction('InitiateContributeDataset', params)
   }
 

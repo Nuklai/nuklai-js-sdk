@@ -241,7 +241,7 @@ describe('NuklaiSDK Asset', () => {
       )
 
       expect(result.success).toBe(true)
-      datasetAddress = result.result[0].datasetAddress
+      datasetAddress = result.result[0].dataset_address
       expect(datasetAddress).toBe(fractionalAssetAddress)
       console.log('Created dataset:', datasetAddress)
     })
