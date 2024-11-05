@@ -5,15 +5,15 @@ import { HyperSDKClient } from 'hypersdk-client';
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient';
 import { NuklaiABI } from "./abi";
 import { Marshaler, VMABI } from "hypersdk-client/dist/Marshaler";
-import { ActionData, ActionOutput, SignerIface, TransactionPayload } from "hypersdk-client/dist/types";
+import { ActionData, ActionOutput, SignerIface } from "hypersdk-client/dist/types";
 import { TxResult } from "hypersdk-client/dist/apiTransformers";
-import { VM_NAME, VM_RPC_PREFIX } from './endpoints';
+import { VM_NAME, VM_RPC_PREFIX, MAINNET_PUBLIC_API_BASE_URL, getBlockchainEndpoint } from './endpoints';
 
 export class NuklaiCoreApiClient {
     private httpClient: HyperSDKHTTPClient;
 
     constructor(
-        rpcEndpoint: string = "http://localhost:9650",
+        rpcEndpoint: string = MAINNET_PUBLIC_API_BASE_URL,
         private vmName: string = VM_NAME,
     ) {
         this.httpClient = new HyperSDKHTTPClient(
@@ -25,11 +25,20 @@ export class NuklaiCoreApiClient {
 
     public async getABI(): Promise<VMABI> {
         try {
+            // Remove 'hypersdk.' since makeCoreAPIRequest adds it automatically
             const response = await this.httpClient.makeCoreAPIRequest('getABI', {});
+
             if (!response || typeof response !== 'object') {
                 throw new Error('Invalid ABI response from server');
             }
-            return response as VMABI;
+
+            // Extract the ABI - the response should have an 'abi' property
+            const abi = (response as any).abi;
+            if (!abi) {
+                throw new Error('ABI not found in server response');
+            }
+
+            return abi;
         } catch (error) {
             console.error('Failed to fetch ABI from coreapi:', error);
             throw error;
@@ -46,14 +55,14 @@ export class NuklaiVMClient {
     private readonly baseEndpoint: string;
 
     constructor(
-        rpcEndpoint: string = "http://localhost:9650",
+        rpcEndpoint: string = MAINNET_PUBLIC_API_BASE_URL,
         private vmName: string = VM_NAME,
         private rpcPrefix: string = VM_RPC_PREFIX,
     ) {
         this.baseEndpoint = rpcEndpoint.replace(/\/$/, '');
-        this.coreApiClient = new NuklaiCoreApiClient(rpcEndpoint, vmName);
+        this.coreApiClient = new NuklaiCoreApiClient(this.baseEndpoint, vmName);
 
-        // Initialize both clients
+        // Use direct endpoint without chain ID
         this.client = new HyperSDKClient(
             this.baseEndpoint,
             vmName,
@@ -88,10 +97,17 @@ export class NuklaiVMClient {
         freezeUnfreezeAdmin: string;
         enableDisableKYCAccountAdmin: string;
     }): Promise<TxResult> {
-        return this.sendAction("CreateAssetFT", {
-            assetType: 1,
-            ...params,
-            maxSupply: params.maxSupply.toString()
+        return this.sendAction("CreateAsset", {
+            asset_type: 1, // FT
+            name: params.name,
+            symbol: params.symbol,
+            decimals: params.decimals,
+            metadata: params.metadata,
+            max_supply: params.maxSupply.toString(),
+            mint_admin: params.mintAdmin,
+            pause_unpause_admin: params.pauseUnpauseAdmin,
+            freeze_unfreeze_admin: params.freezeUnfreezeAdmin,
+            enable_disable_kyc_account_admin: params.enableDisableKYCAccountAdmin
         });
     }
 
@@ -105,10 +121,17 @@ export class NuklaiVMClient {
         freezeUnfreezeAdmin: string;
         enableDisableKYCAccountAdmin: string;
     }): Promise<TxResult> {
-        return this.sendAction("CreateAssetNFT", {
-            assetType: 2,
-            ...params,
-            maxSupply: params.maxSupply.toString()
+        return this.sendAction("CreateAsset", {
+            asset_type: 2, // NFT
+            name: params.name,
+            symbol: params.symbol,
+            decimals: 0, // NFTs has 0 decimals
+            metadata: params.metadata,
+            max_supply: params.maxSupply.toString(),
+            mint_admin: params.mintAdmin,
+            pause_unpause_admin: params.pauseUnpauseAdmin,
+            freeze_unfreeze_admin: params.freezeUnfreezeAdmin,
+            enable_disable_kyc_account_admin: params.enableDisableKYCAccountAdmin
         });
     }
 
@@ -137,8 +160,9 @@ export class NuklaiVMClient {
         amount: bigint;
     }): Promise<TxResult> {
         return this.sendAction("MintAssetFT", {
-            ...params,
-            amount: params.amount.toString()
+            to: params.to,
+            asset_address: params.assetAddress,
+            value: params.amount.toString()
         });
     }
 
@@ -147,7 +171,11 @@ export class NuklaiVMClient {
         metadata: string;
         to: string;
     }): Promise<TxResult> {
-        return this.sendAction("MintAssetNFT", params);
+        return this.sendAction("MintAssetNFT", {
+            asset_address: params.assetAddress,
+            metadata: params.metadata,
+            to: params.to
+        });
     }
 
     async burnFTAsset(params: {
@@ -155,8 +183,8 @@ export class NuklaiVMClient {
         amount: bigint;
     }): Promise<TxResult> {
         return this.sendAction("BurnAssetFT", {
-            ...params,
-            amount: params.amount.toString()
+            asset_address: params.assetAddress,
+            value: params.amount.toString()
         });
     }
 
@@ -164,7 +192,10 @@ export class NuklaiVMClient {
         assetAddress: string;
         assetNftAddress: string;
     }): Promise<TxResult> {
-        return this.sendAction("BurnAssetNFT", params);
+        return this.sendAction("BurnAssetNFT", {
+            asset_address: params.assetAddress,
+            asset_nft_address: params.assetNftAddress
+        });
     }
 
     async transfer(params: {
@@ -174,8 +205,10 @@ export class NuklaiVMClient {
         memo: string;
     }): Promise<TxResult> {
         return this.sendAction("Transfer", {
-            ...params,
-            value: params.value.toString()
+            to: params.to,
+            asset_address: params.assetAddress,
+            value: params.value.toString(),
+            memo: params.memo
         });
     }
 
@@ -357,15 +390,34 @@ export class NuklaiVMClient {
     public async fetchAbiFromServer(): Promise<VMABI> {
         try {
             const vmAbi = await this.coreApiClient.getABI();
-            this.marshaler = new Marshaler(vmAbi);
-            return vmAbi;
+            if (this.isValidABI(vmAbi)) {
+                console.log('Successfully fetched ABI from server');
+                this.marshaler = new Marshaler(vmAbi);
+                return vmAbi;
+            } else {
+                console.log('Invalid ABI from server, falling back to static ABI');
+                this.marshaler = new Marshaler(NuklaiABI);
+                return NuklaiABI;
+            }
         } catch (error) {
-            console.error('Failed to fetch ABI from server:', error);
-            throw error;
+            console.log('Server ABI fetch failed, using static ABI');
+            this.marshaler = new Marshaler(NuklaiABI);
+            return NuklaiABI;
         }
     }
 
-    public async getAbi() {
+    private isValidABI(abi: any): boolean {
+        return (
+            abi &&
+            typeof abi === 'object' &&
+            Array.isArray(abi.actions) &&
+            Array.isArray(abi.types) &&
+            abi.actions.length > 0 &&
+            abi.types.length > 0
+        );
+    }
+
+    public async getAbi(): Promise<VMABI> {
         try {
             return NuklaiABI;
         } catch (error) {
@@ -402,23 +454,7 @@ export class NuklaiVMClient {
             throw new Error("Signer not set");
         }
 
-        const actionTypes: Record<string, string> = {
-            "createAssetFT": "CreateAssetFt",
-            "createAssetNFT": "CreateAssetNFT",
-            "mintAssetFT": "MintAssetFT",
-            "mintAssetNFT": "MintAssetNFT",
-            "burnAssetFT": "BurnAssetFT",
-            "burnAssetNFT": "BurnAssetNFT",
-            "transfer": "Transfer",
-            "createDataset": "CreateDataset",
-            "updateDataset": "UpdateDataset",
-            "publishDatasetToMarketplace": "PublishDatasetToMarketplace",
-            "subscribeDatasetMarketplace": "SubscribeDatasetMarketplace",
-            "claimMarketplacePayment": "ClaimMarketplacePayment",
-        };
-
-        const mappedActionName = actionTypes[actionName] || actionName;
-        return await this.client.sendTransaction([{ actionName: mappedActionName, data }]);
+        return await this.client.sendTransaction([{ actionName, data }]);
     }
 
     convertToNativeTokens(formattedBalance: string): bigint {
@@ -431,7 +467,6 @@ export class NuklaiVMClient {
      * @param includeEmpty Optional parameter to include empty blocks (default: false)
      * @returns A function to unsubscribe from block updates
      */
-
     listenToBlocks(callback: (block: any) => void, includeEmpty: boolean = false) {
         try {
 
@@ -456,11 +491,23 @@ export class NuklaiVMClient {
         }
     }
 
-    protected async makeVmRequest<T>(method: string, params: Record<string, unknown> = {}): Promise<T> {
+    async makeVmRequest<T>(method: string, params: Record<string, unknown> = {}): Promise<T> {
         try {
             return await this.httpClient.makeVmAPIRequest<T>(method, params);
         } catch (error) {
             console.error(`VM request failed for method ${method}:`, error);
+            throw error;
+        }
+    }
+
+    async requestTestTokens(address: string): Promise<TxResult> {
+        try {
+            return await this.httpClient.makeVmAPIRequest(
+                'faucet',
+                { address }
+            );
+        } catch (error) {
+            console.error('Failed to request test tokens:', error);
             throw error;
         }
     }

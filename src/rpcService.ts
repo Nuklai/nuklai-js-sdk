@@ -18,16 +18,12 @@ export class RpcService {
   private client: NuklaiVMClient;
 
   constructor(baseApiUrl: string, private signer?: SignerIface) {
-      this.client = new NuklaiVMClient(
-          baseApiUrl,
-          VM_NAME,
-          VM_RPC_PREFIX
-      );
+    this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX);
 
-      // If signer is provided, set it
-      if (signer) {
-          this.client.setSigner(signer);
-      }
+    // If signer is provided, set it
+    if (signer) {
+      this.client.setSigner(signer);
+    }
   }
 
   async executeAction(actionData: ActionData): Promise<ActionOutput[]> {
@@ -287,9 +283,6 @@ export class RpcService {
   }
 
   // Query Methods
-  // async getBalance(address: string): Promise<string> {
-  //     return this.client.getBalance(address);
-  // }
   async getBalance(address: string): Promise<string> {
     try {
       return await this.client.getBalance(address);
@@ -299,57 +292,47 @@ export class RpcService {
     }
   }
 
-  // async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
-  //     return this.client.executeAction({
-  //         actionName: "GetAssetInfo",
-  //         data: { asset: assetAddress }
-  //     });
-  // }
   async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () =>
-        this.client.executeAction({
-          actionName: "GetAssetInfo",
-          data: { asset: assetAddress },
-        }),
+      () => this.client.makeVmRequest("asset", { asset: assetAddress }),
       "Failed to get asset info"
     );
   }
 
   async getDatasetInfo(datasetID: string): Promise<ActionOutput> {
-    return this.client.executeAction({
-      actionName: "GetDatasetInfo",
-      data: { datasetID },
-    });
+    return this.executeWithTimeout(
+      () => this.client.makeVmRequest("dataset", { datasetID }),
+      "Failed to get dataset info"
+    );
   }
 
   async getDatasetBalance(
     address: string,
     assetID: string
   ): Promise<ActionOutput> {
-    return this.client.executeAction({
-      actionName: "GetDatasetBalance",
-      data: { address, assetID },
-    });
+    return this.executeWithTimeout(
+      () => this.client.makeVmRequest("datasetBalance", { address, assetID }),
+      "Failed to get dataset balance"
+    );
   }
 
   async getDatasetNFTInfo(nftID: string): Promise<ActionOutput> {
-    return this.client.executeAction({
-      actionName: "GetDatasetNFTInfo",
-      data: { nftID },
-    });
+    return this.executeWithTimeout(
+      () => this.client.makeVmRequest("datasetNFT", { nftID }),
+      "Failed to get dataset NFT info"
+    );
   }
 
   async getPendingContributions(datasetID: string): Promise<ActionOutput> {
-    return this.client.executeAction({
-      actionName: "GetPendingContributions",
-      data: { datasetID },
-    });
+    return this.executeWithTimeout(
+      () => this.client.makeVmRequest("pendingContributions", { datasetID }),
+      "Failed to get pending contributions"
+    );
   }
 
   async fetchAbiFromServer() {
     return this.client.fetchAbiFromServer();
-}
+  }
 
   async getAbi() {
     return this.client.getAbi();
@@ -365,6 +348,10 @@ export class RpcService {
       console.error("Connection validation failed:", error);
       return false;
     }
+  }
+
+  async requestTestTokens(address: string): Promise<TxResult> {
+    return this.client.requestTestTokens(address);
   }
 
   protected async executeWithTimeout<T>(
