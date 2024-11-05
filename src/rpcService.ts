@@ -1,36 +1,36 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiVMClient } from "./client";
+import { NuklaiVMClient } from './client'
 // import { config } from "@nuklai/hyperchain-sdk";
 import {
   ActionData,
   ActionOutput,
-  SignerIface,
-} from "hypersdk-client/dist/types";
-import { TxResult } from "hypersdk-client/dist/apiTransformers";
-import { VMABI } from "hypersdk-client/dist/Marshaler";
-import { VM_NAME, VM_RPC_PREFIX } from "./endpoints";
+  SignerIface
+} from 'hypersdk-client/dist/types'
+import { TxResult } from 'hypersdk-client/dist/apiTransformers'
+import { VMABI } from 'hypersdk-client/dist/Marshaler'
+import { VM_NAME, VM_RPC_PREFIX } from './endpoints'
 
-const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_TIMEOUT = 30000
 
 export class RpcService {
-  private client: NuklaiVMClient;
+  private client: NuklaiVMClient
 
-  constructor(baseApiUrl: string, private signer?: SignerIface) {
-    this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX);
+  constructor(baseApiUrl: string, private privateKey?: string) {
+    this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX)
 
-    // If signer is provided, set it
-    if (signer) {
-      this.client.setSigner(signer);
+    // If privateKey is provided, set it
+    if (privateKey) {
+      this.client.setSigner(privateKey)
     }
   }
 
   async executeAction(actionData: ActionData): Promise<ActionOutput[]> {
     return this.executeWithTimeout(
       () => this.client.executeAction(actionData),
-      "Failed to execute action"
-    );
+      'Failed to execute action'
+    )
   }
 
   // async getTransactionInfo(txID: string): Promise<TxResult> {
@@ -39,13 +39,13 @@ export class RpcService {
   async getTransactionInfo(txID: string): Promise<TxResult> {
     return this.executeWithTimeout(
       () => this.client.getTransactionStatus(txID),
-      "Failed to get transaction info"
-    );
+      'Failed to get transaction info'
+    )
   }
 
   // Method to set signer after construction
-  setSigner(signer: SignerIface) {
-    this.client.setSigner(signer);
+  setSigner(privateKey: string) {
+    this.client.setSigner(privateKey)
   }
 
   // async getAllValidators(): Promise<ActionOutput> {
@@ -54,27 +54,27 @@ export class RpcService {
   async getAllValidators(): Promise<ActionOutput> {
     return this.executeWithTimeout(
       () => this.client.getAllValidators(),
-      "Failed to get validators"
-    );
+      'Failed to get validators'
+    )
   }
 
   async getStakedValidators(): Promise<ActionOutput> {
-    return this.client.getStakedValidators();
+    return this.client.getStakedValidators()
   }
 
   async getValidatorStake(nodeID: string): Promise<ActionOutput> {
-    return this.client.getValidatorStake(nodeID);
+    return this.client.getValidatorStake(nodeID)
   }
 
   async getUserStake(params: {
-    owner: string;
-    nodeID: string;
+    owner: string
+    nodeID: string
   }): Promise<ActionOutput> {
-    return this.client.getUserStake(params);
+    return this.client.getUserStake(params)
   }
 
   async getEmissionInfo(): Promise<ActionOutput> {
-    return this.client.getEmissionInfo();
+    return this.client.getEmissionInfo()
   }
 
   async createFTAsset(
@@ -97,8 +97,8 @@ export class RpcService {
       mintAdmin,
       pauseUnpauseAdmin,
       freezeUnfreezeAdmin,
-      enableDisableKYCAccountAdmin,
-    });
+      enableDisableKYCAccountAdmin
+    })
   }
 
   async createNFTAsset(
@@ -119,8 +119,8 @@ export class RpcService {
       mintAdmin,
       pauseUnpauseAdmin,
       freezeUnfreezeAdmin,
-      enableDisableKYCAccountAdmin,
-    });
+      enableDisableKYCAccountAdmin
+    })
   }
 
   async transfer(
@@ -133,8 +133,8 @@ export class RpcService {
       to,
       assetAddress,
       value,
-      memo,
-    });
+      memo
+    })
   }
 
   async mintFTAsset(
@@ -145,8 +145,8 @@ export class RpcService {
     return this.client.mintFTAsset({
       to,
       assetAddress,
-      amount,
-    });
+      amount
+    })
   }
 
   async mintNFTAsset(
@@ -157,15 +157,15 @@ export class RpcService {
     return this.client.mintNFTAsset({
       assetAddress,
       metadata,
-      to,
-    });
+      to
+    })
   }
 
   async burnFTAsset(assetAddress: string, amount: bigint): Promise<TxResult> {
     return this.client.burnFTAsset({
       assetAddress,
-      amount,
-    });
+      amount
+    })
   }
 
   async burnNFTAsset(
@@ -174,8 +174,8 @@ export class RpcService {
   ): Promise<TxResult> {
     return this.client.burnNFTAsset({
       assetAddress,
-      assetNftAddress,
-    });
+      assetNftAddress
+    })
   }
 
   async createDataset(
@@ -198,8 +198,8 @@ export class RpcService {
       licenseSymbol,
       licenseURL,
       metadata,
-      isCommunityDataset,
-    });
+      isCommunityDataset
+    })
   }
 
   async updateDataset(
@@ -220,8 +220,8 @@ export class RpcService {
       licenseName,
       licenseSymbol,
       licenseURL,
-      isCommunityDataset,
-    });
+      isCommunityDataset
+    })
   }
 
   async initiateContributeDataset(
@@ -232,8 +232,8 @@ export class RpcService {
     return this.client.initiateContributeDataset({
       datasetAddress,
       dataLocation,
-      dataIdentifier,
-    });
+      dataIdentifier
+    })
   }
 
   async completeContributeDataset(
@@ -244,8 +244,8 @@ export class RpcService {
     return this.client.completeContributeDataset({
       datasetContributionID,
       datasetAddress,
-      datasetContributor,
-    });
+      datasetContributor
+    })
   }
 
   async publishDatasetToMarketplace(
@@ -256,8 +256,8 @@ export class RpcService {
     return this.client.publishDatasetToMarketplace({
       datasetAddress,
       paymentAssetAddress,
-      datasetPricePerBlock,
-    });
+      datasetPricePerBlock
+    })
   }
 
   async subscribeDatasetMarketplace(
@@ -268,8 +268,8 @@ export class RpcService {
     return this.client.subscribeDatasetMarketplace({
       marketplaceAssetAddress,
       paymentAssetAddress,
-      numBlocksToSubscribe,
-    });
+      numBlocksToSubscribe
+    })
   }
 
   async claimMarketplacePayment(
@@ -278,32 +278,32 @@ export class RpcService {
   ): Promise<TxResult> {
     return this.client.claimMarketplacePayment({
       marketplaceAssetAddress,
-      paymentAssetAddress,
-    });
+      paymentAssetAddress
+    })
   }
 
   // Query Methods
   async getBalance(address: string): Promise<string> {
     try {
-      return await this.client.getBalance(address);
+      return await this.client.getBalance(address)
     } catch (error) {
-      console.error("Failed to get balance:", error);
-      throw error;
+      console.error('Failed to get balance:', error)
+      throw error
     }
   }
 
   async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest("asset", { asset: assetAddress }),
-      "Failed to get asset info"
-    );
+      () => this.client.makeVmRequest('asset', { asset: assetAddress }),
+      'Failed to get asset info'
+    )
   }
 
   async getDatasetInfo(datasetID: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest("dataset", { datasetID }),
-      "Failed to get dataset info"
-    );
+      () => this.client.makeVmRequest('dataset', { datasetID }),
+      'Failed to get dataset info'
+    )
   }
 
   async getDatasetBalance(
@@ -311,31 +311,31 @@ export class RpcService {
     assetID: string
   ): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest("datasetBalance", { address, assetID }),
-      "Failed to get dataset balance"
-    );
+      () => this.client.makeVmRequest('datasetBalance', { address, assetID }),
+      'Failed to get dataset balance'
+    )
   }
 
   async getDatasetNFTInfo(nftID: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest("datasetNFT", { nftID }),
-      "Failed to get dataset NFT info"
-    );
+      () => this.client.makeVmRequest('datasetNFT', { nftID }),
+      'Failed to get dataset NFT info'
+    )
   }
 
   async getPendingContributions(datasetID: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest("pendingContributions", { datasetID }),
-      "Failed to get pending contributions"
-    );
+      () => this.client.makeVmRequest('pendingContributions', { datasetID }),
+      'Failed to get pending contributions'
+    )
   }
 
   async fetchAbiFromServer() {
-    return this.client.fetchAbiFromServer();
+    return this.client.fetchAbiFromServer()
   }
 
   async getAbi() {
-    return this.client.getAbi();
+    return this.client.getAbi()
   }
 
   // async validateConnection() {
@@ -343,15 +343,15 @@ export class RpcService {
   // }
   async validateConnection(): Promise<boolean> {
     try {
-      return await this.client.validateConnection();
+      return await this.client.validateConnection()
     } catch (error) {
-      console.error("Connection validation failed:", error);
-      return false;
+      console.error('Connection validation failed:', error)
+      return false
     }
   }
 
   async requestTestTokens(address: string): Promise<TxResult> {
-    return this.client.requestTestTokens(address);
+    return this.client.requestTestTokens(address)
   }
 
   protected async executeWithTimeout<T>(
@@ -359,19 +359,19 @@ export class RpcService {
     errorMessage: string
   ): Promise<T> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
 
       try {
-        const result = await operation();
-        clearTimeout(timeoutId);
-        return result;
+        const result = await operation()
+        clearTimeout(timeoutId)
+        return result
       } finally {
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId)
       }
     } catch (error) {
-      console.error(`${errorMessage}:`, error);
-      throw error;
+      console.error(`${errorMessage}:`, error)
+      throw error
     }
   }
 }
