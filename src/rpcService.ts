@@ -3,13 +3,8 @@
 
 import { NuklaiVMClient } from './client'
 // import { config } from "@nuklai/hyperchain-sdk";
-import {
-  ActionData,
-  ActionOutput,
-  SignerIface
-} from 'hypersdk-client/dist/types'
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
-import { VMABI } from 'hypersdk-client/dist/Marshaler'
+import { ActionData, ActionOutput } from 'hypersdk-client/dist/types'
 import { VM_NAME, VM_RPC_PREFIX } from './endpoints'
 
 const DEFAULT_TIMEOUT = 30000
@@ -112,6 +107,28 @@ export class RpcService {
     enableDisableKYCAccountAdmin: string
   ): Promise<TxResult> {
     return this.client.createNFTAsset({
+      name,
+      symbol,
+      metadata,
+      maxSupply,
+      mintAdmin,
+      pauseUnpauseAdmin,
+      freezeUnfreezeAdmin,
+      enableDisableKYCAccountAdmin
+    })
+  }
+
+  async createFractionalAsset(
+    name: string,
+    symbol: string,
+    metadata: string,
+    maxSupply: bigint,
+    mintAdmin: string,
+    pauseUnpauseAdmin: string,
+    freezeUnfreezeAdmin: string,
+    enableDisableKYCAccountAdmin: string
+  ): Promise<TxResult> {
+    return this.client.createFractionalAsset({
       name,
       symbol,
       metadata,

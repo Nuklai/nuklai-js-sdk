@@ -102,7 +102,7 @@ export class NuklaiVMClient {
     enableDisableKYCAccountAdmin: string
   }): Promise<TxResult> {
     return this.sendAction('CreateAsset', {
-      asset_type: 1, // FT
+      asset_type: 0, // FT
       name: params.name,
       symbol: params.symbol,
       decimals: params.decimals,
@@ -126,10 +126,34 @@ export class NuklaiVMClient {
     enableDisableKYCAccountAdmin: string
   }): Promise<TxResult> {
     return this.sendAction('CreateAsset', {
-      asset_type: 2, // NFT
+      asset_type: 1, // NFT
       name: params.name,
       symbol: params.symbol,
       decimals: 0, // NFTs has 0 decimals
+      metadata: params.metadata,
+      max_supply: params.maxSupply.toString(),
+      mint_admin: params.mintAdmin,
+      pause_unpause_admin: params.pauseUnpauseAdmin,
+      freeze_unfreeze_admin: params.freezeUnfreezeAdmin,
+      enable_disable_kyc_account_admin: params.enableDisableKYCAccountAdmin
+    })
+  }
+
+  async createFractionalAsset(params: {
+    name: string
+    symbol: string
+    metadata: string
+    maxSupply: bigint
+    mintAdmin: string
+    pauseUnpauseAdmin: string
+    freezeUnfreezeAdmin: string
+    enableDisableKYCAccountAdmin: string
+  }): Promise<TxResult> {
+    return this.sendAction('CreateAsset', {
+      asset_type: 2, // Fractional
+      name: params.name,
+      symbol: params.symbol,
+      decimals: 0,
       metadata: params.metadata,
       max_supply: params.maxSupply.toString(),
       mint_admin: params.mintAdmin,
@@ -446,6 +470,13 @@ export class NuklaiVMClient {
     if (!this.signer) {
       throw new Error('Signer not set')
     }
+
+    console.log(
+      'Action data for action',
+      actionName,
+      ':',
+      JSON.stringify(data, null, 2)
+    )
 
     return await this.client.sendTransaction([{ actionName, data }])
   }

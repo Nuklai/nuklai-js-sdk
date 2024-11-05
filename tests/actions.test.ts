@@ -5,6 +5,8 @@ import { MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK } from '../src/sdk'
 const API_HOST = MAINNET_PUBLIC_API_BASE_URL
 const TEST_ADDRESS =
   '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9'
+const TEST_ADDRESS2 =
+  '002b5d019495996310f81c6a26a4dd9eeb9a3f3be1bac0a9294436713aecc84496'
 const TEST_ADDRESS_PRIVATE_KEY =
   '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd0'
 
@@ -14,6 +16,7 @@ describe('NuklaiSDK Asset', () => {
   // Store created asset addresses for later tests
   let ftAddress: string
   let nftAddress: string
+  let fractionalAssetAddress: string
   let datasetAddress: string
   let datasetContributionId: string
 
@@ -71,7 +74,7 @@ describe('NuklaiSDK Asset', () => {
           'Test Token',
           'TEST',
           9,
-          'Test metadata',
+          generateRandomString(16),
           BigInt('1000000000000000000000000'), // 1M tokens
           TEST_ADDRESS, // mint admin
           TEST_ADDRESS, // pause/unpause admin
@@ -121,7 +124,7 @@ describe('NuklaiSDK Asset', () => {
       try {
         const transferAmount = BigInt('100000000000000000') // 0.1 token
         const result = await sdk.rpcService.transfer(
-          TEST_ADDRESS, // to self for testing
+          TEST_ADDRESS2,
           ftAddress,
           transferAmount,
           'Test transfer'
@@ -141,7 +144,7 @@ describe('NuklaiSDK Asset', () => {
         const result = await sdk.rpcService.createNFTAsset(
           'Test NFT Collection',
           'TNFT',
-          'Test NFT collection metadata',
+          generateRandomString(16),
           BigInt(1000), // max supply
           TEST_ADDRESS,
           TEST_ADDRESS,
@@ -189,10 +192,44 @@ describe('NuklaiSDK Asset', () => {
     })
   })
 
+  describe('Fractional Token Operations', () => {
+    it('should create fractional token', async () => {
+      try {
+        const result = await sdk.rpcService.createFractionalAsset(
+          'Test Fractional token',
+          'TFRA',
+          generateRandomString(16),
+          BigInt(1000), // max supply
+          TEST_ADDRESS,
+          TEST_ADDRESS,
+          TEST_ADDRESS,
+          TEST_ADDRESS
+        )
+
+        expect(result.success).toBe(true)
+        fractionalAssetAddress = result.result[0].asset_id
+        console.log('Created Fractional token:', fractionalAssetAddress)
+      } catch (error) {
+        console.error('Failed to create Fractional token:', error)
+        throw error
+      }
+    })
+    it('should get Fractional asset info', async () => {
+      try {
+        const info = await sdk.rpcService.getAssetInfo(fractionalAssetAddress)
+        expect(info).toBeDefined()
+        console.log('Fractional asset info retrieved')
+      } catch (error) {
+        console.error('Failed to get Fractional asset info:', error)
+        throw error
+      }
+    })
+  })
+
   describe('Dataset Operations', () => {
     it('should create dataset', async () => {
       const result = await sdk.rpcService.createDataset(
-        TEST_ADDRESS,
+        fractionalAssetAddress,
         'Test Dataset',
         'A test dataset',
         'AI,Testing',
@@ -200,11 +237,12 @@ describe('NuklaiSDK Asset', () => {
         'MIT',
         'https://opensource.org/licenses/MIT',
         JSON.stringify({ format: 'CSV', size: '1GB' }),
-        false
+        true
       )
 
       expect(result.success).toBe(true)
       datasetAddress = result.result[0].datasetAddress
+      expect(datasetAddress).toBe(fractionalAssetAddress)
       console.log('Created dataset:', datasetAddress)
     })
 
@@ -290,3 +328,14 @@ describe('NuklaiSDK Asset', () => {
     console.log('Final FT balance:', ftBalance)
   })
 })
+
+// Helper function to generate a random alphanumeric string of specified length
+function generateRandomString(length: number): string {
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length))
+  }
+  return result
+}
