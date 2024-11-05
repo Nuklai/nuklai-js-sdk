@@ -268,7 +268,7 @@ export class RpcService {
   async publishDatasetToMarketplace(
     datasetAddress: string,
     paymentAssetAddress: string,
-    datasetPricePerBlock: bigint
+    datasetPricePerBlock: number
   ): Promise<TxResult> {
     return this.client.publishDatasetToMarketplace({
       datasetAddress,
@@ -280,7 +280,7 @@ export class RpcService {
   async subscribeDatasetMarketplace(
     marketplaceAssetAddress: string,
     paymentAssetAddress: string,
-    numBlocksToSubscribe: bigint
+    numBlocksToSubscribe: number
   ): Promise<TxResult> {
     return this.client.subscribeDatasetMarketplace({
       marketplaceAssetAddress,

@@ -316,24 +316,24 @@ export class NuklaiVMClient {
   async publishDatasetToMarketplace(params: {
     datasetAddress: string
     paymentAssetAddress: string
-    datasetPricePerBlock: bigint
+    datasetPricePerBlock: number
   }): Promise<TxResult> {
     return this.sendAction('PublishDatasetToMarketplace', {
       dataset_address: params.datasetAddress,
       payment_asset_address: params.paymentAssetAddress,
-      dataset_price_per_block: params.datasetPricePerBlock.toString()
+      dataset_price_per_block: params.datasetPricePerBlock
     })
   }
 
   async subscribeDatasetMarketplace(params: {
     marketplaceAssetAddress: string
     paymentAssetAddress: string
-    numBlocksToSubscribe: bigint
+    numBlocksToSubscribe: number
   }): Promise<TxResult> {
     return this.sendAction('SubscribeDatasetMarketplace', {
       marketplace_asset_address: params.marketplaceAssetAddress,
       payment_asset_address: params.paymentAssetAddress,
-      num_blocks_to_subscribe: params.numBlocksToSubscribe.toString()
+      num_blocks_to_subscribe: params.numBlocksToSubscribe
     })
   }
 

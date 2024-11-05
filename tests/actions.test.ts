@@ -3,6 +3,8 @@ import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK } from '../src/sdk'
 
 const API_HOST = MAINNET_PUBLIC_API_BASE_URL
+const NAI_ASSET_ADDRESS =
+  '00cf77495ce1bdbf11e5e45463fad5a862cb6cc0a20e00e658c4ac3355dcdc64bb'
 const TEST_ADDRESS =
   '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9'
 const TEST_ADDRESS2 =
@@ -375,8 +377,8 @@ describe('NuklaiSDK Asset', () => {
     it('should publish dataset to marketplace', async () => {
       const result = await sdk.rpcService.publishDatasetToMarketplace(
         datasetAddress,
-        TEST_ADDRESS, // payment asset (using test address as dummy)
-        BigInt('1000000000') // price per block
+        NAI_ASSET_ADDRESS, // payment asset
+        1000000000 // price per block
       )
       expect(result.success).toBe(true)
 
@@ -393,8 +395,8 @@ describe('NuklaiSDK Asset', () => {
     it('should subscribe to dataset', async () => {
       const result = await sdk.rpcService.subscribeDatasetMarketplace(
         datasetAddress, // marketplace asset address
-        TEST_ADDRESS, // payment asset address
-        BigInt(1000) // number of blocks
+        NAI_ASSET_ADDRESS, // payment asset address
+        1 // number of blocks
       )
       expect(result.success).toBe(true)
 
@@ -411,7 +413,7 @@ describe('NuklaiSDK Asset', () => {
     it('should claim marketplace payment', async () => {
       const result = await sdk.rpcService.claimMarketplacePayment(
         datasetAddress, // marketplace asset address
-        TEST_ADDRESS // payment asset address
+        NAI_ASSET_ADDRESS // payment asset address
       )
       expect(result.success).toBe(true)
 
