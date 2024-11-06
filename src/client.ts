@@ -318,7 +318,7 @@ export class NuklaiVMClient {
     paymentAssetAddress: string
     datasetPricePerBlock: number
   }): Promise<TxResult> {
-    return this.sendAction('PublishDatasetToMarketplace', {
+    return this.sendAction('PublishDatasetMarketplace', {
       dataset_address: params.datasetAddress,
       payment_asset_address: params.paymentAssetAddress,
       dataset_price_per_block: params.datasetPricePerBlock
