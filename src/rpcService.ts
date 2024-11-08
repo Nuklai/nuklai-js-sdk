@@ -318,10 +318,10 @@ export class RpcService {
 
   async getDatasetInfo(datasetID: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
-      () => this.client.makeVmRequest('dataset', { datasetID }),
-      'Failed to get dataset info'
+        () => this.client.makeVmRequest('dataset', { dataset: datasetID }),
+        'Failed to get dataset info'
     )
-  }
+}
 
   async getDatasetBalance(
     address: string,

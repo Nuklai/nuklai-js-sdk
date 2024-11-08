@@ -393,6 +393,7 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should subscribe to dataset', async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000))
       const result = await sdk.rpcService.subscribeDatasetMarketplace(
         datasetAddress, // marketplace asset address
         NAI_ASSET_ADDRESS, // payment asset address
@@ -411,6 +412,7 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should claim marketplace payment', async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000))
       const result = await sdk.rpcService.claimMarketplacePayment(
         datasetAddress, // marketplace asset address
         NAI_ASSET_ADDRESS // payment asset address
