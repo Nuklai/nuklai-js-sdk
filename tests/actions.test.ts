@@ -350,6 +350,7 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should update dataset', async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000))
       const result = await sdk.rpcService.updateDataset(
         datasetAddress,
         'Updated Test Dataset',
