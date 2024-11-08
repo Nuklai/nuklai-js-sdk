@@ -1,6 +1,6 @@
 import { datasetEx } from './dataset.ts'
 import { fungibleTokenEx } from './fungible_tokens.ts'
-import { marketplaceEx } from './marketplace.js'
+import { marketplaceEx } from './marketplace.ts'
 import { nonFungibleTokenEx } from './non_fungible_token.ts'
 import { verifyEndpoint } from './utils.ts'
 

@@ -47,7 +47,7 @@ async function fungibleTokenEx() {
 
     // Transfer tokens
     console.log('Transferring tokens...')
-    const transferAmount = BigInt('100000000000000000') // 0.1 token
+    const transferAmount = BigInt(1) // 1 token
     const transferTxResult = await sdk.rpcService.transfer(
       TEST_ADDRESS2,
       NAI_ASSET_ADDRESS,

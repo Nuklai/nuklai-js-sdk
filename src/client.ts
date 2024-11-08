@@ -80,10 +80,17 @@ export class NuklaiVMClient {
   }
 
   public async setSigner(privateKey: string) {
+    // TODO: Only private key type ed25519 is supported(secpk256r1 and bls are not supported)
+    // Slice the string to keep only the first 64 hex characters (32 bytes)
+    const privateKeyOnly = privateKey.slice(0, 64)
+
+    // Convert the hex string to a Uint8Array
     const privateKeyArray = new Uint8Array(
-      privateKey.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
+      privateKeyOnly.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
     )
+
     this.signer = new PrivateKeySigner(privateKeyArray)
+
     await this.client.connectWallet({
       type: 'private-key',
       privateKey: privateKeyArray

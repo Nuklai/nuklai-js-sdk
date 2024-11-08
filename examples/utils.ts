@@ -8,7 +8,7 @@ export const TEST_ADDRESS =
 export const TEST_ADDRESS2 =
   '002b5d019495996310f81c6a26a4dd9eeb9a3f3be1bac0a9294436713aecc84496'
 export const TEST_ADDRESS_PRIVATE_KEY =
-  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd0'
+  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7'
 
 export async function verifyEndpoint(endpoint: string): Promise<{
   isValid: boolean
