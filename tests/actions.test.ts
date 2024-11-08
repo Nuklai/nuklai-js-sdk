@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
-import { MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK } from '../src/sdk'
+import { NuklaiSDK } from '../src/sdk'
 
-const API_HOST = MAINNET_PUBLIC_API_BASE_URL
+const API_HOST = 'http://127.0.0.1:9650'
 const NAI_ASSET_ADDRESS =
   '00cf77495ce1bdbf11e5e45463fad5a862cb6cc0a20e00e658c4ac3355dcdc64bb'
 const TEST_ADDRESS =
@@ -350,7 +350,7 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should update dataset', async () => {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       const result = await sdk.rpcService.updateDataset(
         datasetAddress,
         'Updated Test Dataset',
@@ -375,7 +375,7 @@ describe('NuklaiSDK Asset', () => {
   })
 
   describe('Marketplace Operations', () => {
-    let marketplaceAssetAddress: string; 
+    let marketplaceAssetAddress: string
     it('should publish dataset to marketplace', async () => {
       const result = await sdk.rpcService.publishDatasetToMarketplace(
         datasetAddress,
@@ -384,12 +384,14 @@ describe('NuklaiSDK Asset', () => {
       )
       expect(result.success).toBe(true)
 
-      marketplaceAssetAddress = result.result[0].marketplace_asset_address;
+      marketplaceAssetAddress = result.result[0].marketplace_asset_address
       console.log('MP Asset Address:', marketplaceAssetAddress)
 
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      const getmarketplaceAInfo = await sdk.rpcService.getAssetInfo(marketplaceAssetAddress)
+      const getmarketplaceAInfo = await sdk.rpcService.getAssetInfo(
+        marketplaceAssetAddress
+      )
       console.log('Marketplace Asset Info:', getmarketplaceAInfo)
 
       console.log(
@@ -403,20 +405,20 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should subscribe to dataset', async () => {
-        const minBlocksToSubscribe = 10; // dataset.GetDatasetConfig().MinBlocksToSubscribe 
-        
-        const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-        console.log('NAI Balance before subscribe:', balance)
-        
-        await new Promise(resolve => setTimeout(resolve, 2000))
-  
-        const result = await sdk.rpcService.subscribeDatasetMarketplace(
-          marketplaceAssetAddress,
-          NAI_ASSET_ADDRESS,
-          minBlocksToSubscribe
-        )
-        console.log('Subscribe result:', result)
-        expect(result.success).toBe(true)
+      const minBlocksToSubscribe = 10 // dataset.GetDatasetConfig().MinBlocksToSubscribe
+
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+      console.log('NAI Balance before subscribe:', balance)
+
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      const result = await sdk.rpcService.subscribeDatasetMarketplace(
+        marketplaceAssetAddress,
+        NAI_ASSET_ADDRESS,
+        minBlocksToSubscribe
+      )
+      console.log('Subscribe result:', result)
+      expect(result.success).toBe(true)
 
       console.log(
         'Subscribed to dataset: ',
@@ -429,18 +431,18 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should claim marketplace payment', async () => {
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        
-        const result = await sdk.rpcService.claimMarketplacePayment(
-          marketplaceAssetAddress,
-          NAI_ASSET_ADDRESS
-        )
-        
-        if (result.success === false) {
-          const info = await sdk.rpcService.getAssetInfo(marketplaceAssetAddress)
-          console.log('Marketplace state just before claim failed:', info)
-        }
-        expect(result.success).toBe(true)
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+
+      const result = await sdk.rpcService.claimMarketplacePayment(
+        marketplaceAssetAddress,
+        NAI_ASSET_ADDRESS
+      )
+
+      if (result.success === false) {
+        const info = await sdk.rpcService.getAssetInfo(marketplaceAssetAddress)
+        console.log('Marketplace state just before claim failed:', info)
+      }
+      expect(result.success).toBe(true)
 
       console.log(
         'Claimed marketplace payment: ',

@@ -2,13 +2,9 @@ import { beforeAll, describe, expect, it } from '@jest/globals'
 import { HyperSDKClient } from 'hypersdk-client'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
-import {
-  MAINNET_PUBLIC_API_BASE_URL,
-  VM_NAME,
-  VM_RPC_PREFIX
-} from '../src/endpoints'
+import { VM_NAME, VM_RPC_PREFIX } from '../src/endpoints'
 
-const API_HOST = MAINNET_PUBLIC_API_BASE_URL
+const API_HOST = 'http://127.0.0.1:9650'
 const DEMO_ADDRESS =
   '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9'
 const TEST_ADDRESS_PRIVATE_KEY =
