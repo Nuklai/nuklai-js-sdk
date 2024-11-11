@@ -1,24 +1,12 @@
-<p align="center">
+# Nuklai SDK
+
+<div align="center">
   <img width="90%" alt="hypersdk" src="https://i.ibb.co/qMBy03t/Nuklai-SDK.png">
-</p>
 
-The Nuklai SDK provides a modular and comprehensive interface for interacting with the Nuklai blockchain. It is designed to facilitate developers with functions ranging from network configurations to transaction management and complex warp operations.
+  <p>A modular interface for interacting with the Nuklai blockchain, built on top of the <a href="https://github.com/ava-labs/hypersdk">Avalanche HyperSDK</a>.</p>
+</div>
 
-## Features
-
-- **Core and Nuklai API Services**: Separate interfaces for HyperVM (`coreapi`) and NuklaiVM (`nuklaivm`) functionalities.
-- **Network Services**: Fetch network settings and last accepted blocks.
-- **Health Checks**: Monitor the liveness and connectivity of the blockchain network.
-- **Transaction Management**: Submit and fetch details about transactions.
-- **Asset Management**: Query and manage blockchain assets.
-- **Emission Details**: Access emission information, validator details, and staking functionalities.
-- **Asset Management**: Create, mint, and burn fungible tokens, non-fungible tokens (NFTs), and dataset tokens.
-- **Balance Checking**: Query balances for both fungible and non-fungible tokens.
-- **NFT Information**: Retrieve detailed information about specific NFTs.
-
-## Installation
-
-Install the Nuklai SDK via npm/yarn
+## 📦 Installation
 
 ```bash
 npm install @nuklai/nuklai-sdk
@@ -26,333 +14,249 @@ npm install @nuklai/nuklai-sdk
 yarn add @nuklai/nuklai-sdk
 ```
 
-## Build from Source
+## 🚀 Quick Start
 
-To build the SDK from source:
+```javascript
+import { NuklaiSDK } from "@nuklai/nuklai-sdk";
+
+const sdk = new NuklaiSDK("http://127.0.0.1:9650");
+const healthStatus = await sdk.rpcService.validateConnection();
+```
+
+## ✨ Core Features
+
+- 💰 Asset Management (Fungible/Non-Fungible Tokens)
+- 📊 Dataset Creation and Management
+- 🏪 Marketplace Operations
+- 💳 Transaction Management
+- 🔍 Network Status and Health Checks
+- 🏛️ Validator Management
+- 📈 Staking Operations
+
+## 📖 Basic Usage
+
+### Initialization
+
+```javascript
+import { NuklaiSDK } from "@nuklai/nuklai-sdk";
+
+const sdk = new NuklaiSDK({
+  baseApiUrl: "http://127.0.0.1:9650",
+});
+
+// Set the signer for transactions
+sdk.rpcService.setSigner("your-private-key-here");
+```
+
+### Asset Management
+
+```javascript
+// Create a fungible token
+const ftResult = await sdk.rpcService.createFTAsset(
+  "Test Token",
+  "TEST",
+  9,
+  "metadata",
+  BigInt("1000000000000000000"), // Max supply
+  "owner-address",
+  "admin-address",
+  "admin-address",
+  "admin-address"
+);
+
+// Create an NFT collection
+const nftResult = await sdk.rpcService.createNFTAsset(
+  "Test NFT",
+  "TNFT",
+  "metadata",
+  BigInt(1000), // Max supply
+  "owner-address",
+  "admin-address",
+  "admin-address",
+  "admin-address"
+);
+```
+
+### Token Operations
+
+```javascript
+// Mint fungible tokens
+const mintAmount = BigInt("1000000000000000000"); // 1 token
+const mintResult = await sdk.rpcService.mintFTAsset(
+  "receiver-address",
+  "token-address",
+  mintAmount
+);
+
+// Mint NFT
+const nftMintResult = await sdk.rpcService.mintNFTAsset(
+  "nft-collection-address",
+  JSON.stringify({
+    name: "Test NFT #1",
+    description: "First NFT",
+    attributes: [],
+  }),
+  "receiver-address"
+);
+
+// Transfer tokens
+const transferAmount = BigInt("100000000000000000"); // 0.1 token
+const transferResult = await sdk.rpcService.transfer(
+  "recipient-address",
+  "token-address",
+  transferAmount,
+  "Transfer memo"
+);
+```
+
+### Check Address Balance
+
+```javascript
+const balance = await sdk.rpcService.getBalance("address");
+```
+
+### Dataset Operations
+
+```javascript
+// Create a dataset
+const result = await sdk.rpcService.createDataset(
+  "asset-address",
+  "Test Dataset",
+  "Description",
+  "AI,Testing",
+  "MIT",
+  "MIT",
+  "https://opensource.org/licenses/MIT",
+  "metadata",
+  true // isCommunityDataset
+);
+```
+
+## 🛠️ Development
+
+Build from source:
 
 ```bash
 yarn
 yarn build
 ```
 
-## Examples
-
-The [examples directory](./examples) contains various example code to interact with the Nuklai SDK.
-
-## Usage
-
-Import and initialize the SDK in your project:
-
-```javascript
-import { NuklaiSDK } from '@nuklai/nuklai-sdk'
-
-const sdk = new NuklaiSDK({
-  baseApiUrl: 'http://127.0.0.1:9650', // Node API URL
-  blockchainId: 'CuH4wPFDk6p1jSRPMcJPgt9nGFfF7zfRrH3nkJW2TWLfRE53L' // Blockchain ID
-})
-```
-
-## Example Usage
-
-### Check Health Status
-
-```javascript
-const healthStatus = await sdk.rpcService.ping()
-console.log('Node Ping:', JSON.stringify(healthStatus, null, 2))
-```
-
-### Get Network Information
-
-```javascript
-const networkInfo = await sdk.rpcService.getNetworkInfo()
-console.log('Network Info:', JSON.stringify(networkInfo, null, 2))
-```
-
-### Fetch a Balance
-
-```javascript
-const params = {
-  address: 'nuklai1qpg4ecapjymddcde8sfq06dshzpxltqnl47tvfz0hnkesjz7t0p35d5fnr3',
-  asset: 'NAI'
-}
-const balance = await sdk.rpcServiceNuklai.getBalance(params)
-console.log('Balance:', JSON.stringify(balance, null, 2))
-```
-
-### Fetch Emission Information
-
-```javascript
-const emissionInfo = await sdk.rpcServiceNuklai.getEmissionInfo()
-console.log('Emission Info:', JSON.stringify(emissionInfo, null, 2))
-```
-
-### Generate Private/Public Key Pair
-
-```javascript
-import { NuklaiSDK } from '@nuklai/nuklai-sdk'
-import { auth } from '@nuklai/hyperchain-sdk'
-
-const { privateKey, publicKey } = auth.ED25519Factory.generateKeyPair()
-console.log(
-  'Generated ED25519 Private Key:',
-  auth.ED25519Factory.privateKeyToHex(privateKey)
-)
-console.log(
-  'Generated ED25519 Public Key:',
-  auth.ED25519.publicKeyToHex(publicKey)
-)
-```
-
-### Submit a Transaction(via JSON RPC)
-
-```javascript
-// Set the private key for the sender address
-const authFactory = auth.getAuthFactory(
-  'ed25519',
-  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
-)
-const txID = await sdk.rpcServiceNuklai.sendTransferTransaction(
-  'nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz', // receiver address
-  'NAI', // asset ID
-  '0.0001', // amount
-  'Test Memo', // memo
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-console.log('Transaction ID:', txID)
-```
-
-### Submit a Transaction(via Websocket)
-
-```javascript
-// Set the private key for the sender address
-const authFactory = auth.getAuthFactory(
-  'ed25519',
-  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7' // private key (as hex string) for nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx
-)
-await sdk.wsServiceNuklai.connect()
-const txID = await sdk.wsServiceNuklai.sendTransferTransactionAndWait(
-  'nuklai1qpxncu2a69l9wyz3yqg4fqn86ys2ll6ja7vhym5qn2vk4cdyvgj2vn4k7wz', // receiver address
-  'NAI', // asset ID
-  '0.0001', // amount
-  'Test Memo', // memo
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-await sdk.wsServiceNuklai.close()
-console.log('Transaction ID:', txID)
-```
-
-### Create a New Asset
-
-```js
-const {txID, assetID} = await sdk.rpcServiceNuklai.createAsset(
-    'TEST', // symbol
-    1, // decimals
-    'Test token', // metadata
-    authFactory,
-    sdk.rpcService,
-    sdk.actionRegistry,
-    sdk.authRegistry
-)
-console.log('Create Asset Transaction ID:', txID)
-console.log('Asset ID:', assetID)
-```
-
-### Mint Asset
-
-```js
-const mintAsset = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
-  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx', // receiver address
-  assetID, // asset ID
-  10, // amount to mint
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-console.log('Mint Transaction ID:', mintAsset)
-```
-
-### Listen for blocks(via Websocket)
-
-```js
-await sdk.wsServiceNuklai.connect()
-const connectAndListen = async () => {
-  try {
-    const err = await sdk.wsServiceNuklai.registerBlocks()
-    if (err) {
-      throw err
-    }
-    const listenBlocks = async () => {
-      const { block, results, err } = await sdk.wsServiceNuklai.listenBlock(
-        sdk.actionRegistry,
-        sdk.authRegistry
-      )
-      if (err) {
-        throw err
-      }
-      console.log('block: ', block.toJSON())
-      results.map((result, i) =>
-        console.log(`result at ${i}: ${result.toJSON()}`)
-      )
-    }
-    // Initial block fetch
-    listenBlocks()
-
-    // Fetch blocks periodically
-    const interval = setInterval(listenBlocks, 3000)
-
-    return () => clearInterval(interval)
-  } catch (err) {
-    console.error(err)
-  }
-}
-connectAndListen()
-await sdk.wsServiceNuklai.close()
-```
-
-### Create Different Types of Assets
-
-```javascript
-// Create Fungible Token (FT)
-const { txID: ftTxID, assetID: ftAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
-  ASSET_FUNGIBLE_TOKEN_ID,
-  'Fungible Token',
-  'FT',
-  18,
-  'Test Fungible Token',
-  'https://example.com/ft',
-  BigInt(1000000000000000000000000), // 1 million tokens
-  undefined,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-
-// Create Non-Fungible Token (NFT)
-const { txID: nftTxID, assetID: nftAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
-  ASSET_NON_FUNGIBLE_TOKEN_ID,
-  'Non-Fungible Token',
-  'NFT',
-  0,
-  'Test Non-Fungible Token',
-  'https://example.com/nft',
-  BigInt(1000), // 1000 NFTs max
-  undefined,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-
-// Create Dataset Token
-const { txID: datasetTxID, assetID: datasetAssetID } = await sdk.rpcServiceNuklai.sendCreateAssetTransaction(
-  ASSET_DATASET_TOKEN_ID,
-  'Dataset Token',
-  'DT',
-  0,
-  'Test Dataset Token',
-  'https://example.com/dataset',
-  BigInt(1),
-  'Parent NFT Metadata',
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-```
-
-### Mint Tokens
-
-```javascript
-// Mint Fungible Token (FT)
-const ftMintTxID = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
-  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
-  ftAssetID,
-  1000,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-
-// Mint Non-Fungible Token (NFT)
-const nftMintTxID = await sdk.rpcServiceNuklai.sendMintAssetTransaction(
-  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
-  nftAssetID,
-  1,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-```
-
-### Check Token Balances
-
-```javascript
-// Check Fungible Token Balance
-const ftBalance = await sdk.getFungibleTokenBalance(
-  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
-  ftAssetID
-)
-
-// Check Non-Fungible Token Balance
-const nftBalance = await sdk.getNonFungibleTokenBalance(
-  'nuklai1qrzvk4zlwj9zsacqgtufx7zvapd3quufqpxk5rsdd4633m4wz2fdjss0gwx',
-  nftAssetID
-)
-```
-
-### Get NFT Information
-
-```javascript
-const nftInfo = await sdk.getNFTInfo(nftAssetID)
-console.log('NFT Info:', nftInfo)
-```
-
-### Burn Tokens
-
-```javascript
-// Burn Fungible Token (FT)
-const ftBurnTxID = await sdk.rpcServiceNuklai.sendBurnAssetFTTransaction(
-  ftAssetID,
-  100,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-
-// Burn Non-Fungible Token (NFT)
-const nftBurnTxID = await sdk.rpcServiceNuklai.sendBurnAssetNFTTransaction(
-  nftAssetID,
-  nftInfo.tokenID,
-  authFactory,
-  sdk.rpcService,
-  sdk.actionRegistry,
-  sdk.authRegistry
-)
-```
-
-## Publish
+Run tests:
 
 ```bash
-npm publish --access public
+yarn test
 ```
 
-## Contributing
+## 📝 Examples
 
-Contributions to the Nuklai SDK are welcome! Please ensure that your code adheres to the existing style, and include tests for new features.
+The `examples/` directory contains sample implementations:
 
-## License
+```plaintext
+examples/
+├── datasets.ts            # Dataset creation and management
+├── fungible-tokens.ts     # Fungible Token operations
+├── non-fungible-tokens.ts # Non-Fungible Token operations
+└── marketplace.ts         # Marketplace interactions
+```
 
-This SDK is released under the [MIT License](LICENSE).
+You can run all examples at once using:
 
-This README file should provide a clear and professional introduction to your SDK, making it easier for developers to understand how to use it and contribute to it.
+```bash
+yarn examples
+```
+
+Or run individual examples:
+
+```bash
+ts-node --esm examples/fungible-tokens.ts
+ts-node --esm examples/non-fungible-tokens.ts
+```
+
+## 📚 API Reference
+
+All methods are accessible through the `sdk.rpcService` instance. Below is a comprehensive reference of available methods grouped by their functionality.
+
+### Network Operations
+
+| Method                      | Description                   | Parameters       | Returns                 |
+| --------------------------- | ----------------------------- | ---------------- | ----------------------- |
+| `validateConnection()`      | Checks node connectivity      | None             | `Promise<boolean>`      |
+| `getEmissionInfo()`         | Retrieves emission statistics | None             | `Promise<ActionOutput>` |
+| `getAllValidators()`        | Lists all validators          | None             | `Promise<ActionOutput>` |
+| `getStakedValidators()`     | Lists validators with stake   | None             | `Promise<ActionOutput>` |
+| `getValidatorStake(nodeID)` | Gets specific validator stake | `nodeID: string` | `Promise<ActionOutput>` |
+
+### Asset Management
+
+#### Fungible Token Methods
+
+| Method            | Description                | Parameters                                                                                                                                                                                                            | Returns             |
+| ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `createFTAsset()` | Creates a new Fungible Token | - `name: string`<br>- `symbol: string`<br>- `decimals: number`<br>- `metadata: string`<br>- `maxSupply: bigint`<br>- `mintAdmin: string`<br>- `pauseAdmin: string`<br>- `freezeAdmin: string`<br>- `kycAdmin: string` | `Promise<TxResult>` |
+| `mintFTAsset()`   | Mints Fungible Tokens               | - `to: string`<br>- `assetAddress: string`<br>- `amount: bigint`                                                                                                                                                      | `Promise<TxResult>` |
+| `transfer()`      | Transfers tokens           | - `to: string`<br>- `assetAddress: string`<br>- `value: bigint`<br>- `memo: string`                                                                                                                                   | `Promise<TxResult>` |
+
+#### Non-Fungible Token Methods
+
+| Method             | Description            | Parameters                                                                                                                                                                                    | Returns             |
+| ------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `createNFTAsset()` | Creates an NFT collection | - `name: string`<br>- `symbol: string`<br>- `metadata: string`<br>- `maxSupply: bigint`<br>- `mintAdmin: string`<br>- `pauseAdmin: string`<br>- `freezeAdmin: string`<br>- `kycAdmin: string` | `Promise<TxResult>` |
+| `mintNFTAsset()`   | Mints a new NFT          | - `assetAddress: string`<br>- `metadata: string`<br>- `to: string`                                                                                                                            | `Promise<TxResult>` |
+
+### Dataset & Marketplace Operations
+
+#### Dataset Methods
+
+| Method             | Description          | Parameters                                                                                                                                                                                                                                     | Returns                 |
+| ------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `createDataset()`  | Creates a new dataset  | - `assetAddress: string`<br>- `name: string`<br>- `description: string`<br>- `categories: string`<br>- `licenseName: string`<br>- `licenseSymbol: string`<br>- `licenseURL: string`<br>- `metadata: string`<br>- `isCommunityDataset: boolean` | `Promise<TxResult>`     |
+| `updateDataset()`  | Updates dataset info | - `datasetAddress: string`<br>- `name: string`<br>- `description: string`<br>- `categories: string`<br>- `licenseName: string`<br>- `licenseSymbol: string`<br>- `licenseURL: string`<br>- `isCommunityDataset: boolean`                       | `Promise<TxResult>`     |
+| `getDatasetInfo()` | Gets dataset details | `datasetID: string`                                                                                                                                                                                                                            | `Promise<ActionOutput>` |
+
+#### Marketplace Methods
+
+| Method                          | Description                  | Parameters                                                                                                 | Returns             |
+| ------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------- |
+| `publishDatasetToMarketplace()` | Lists dataset on marketplace | - `datasetAddress: string`<br>- `paymentAssetAddress: string`<br>- `datasetPricePerBlock: number`          | `Promise<TxResult>` |
+| `subscribeDatasetMarketplace()` | Subscribes to dataset        | - `marketplaceAssetAddress: string`<br>- `paymentAssetAddress: string`<br>- `numBlocksToSubscribe: number` | `Promise<TxResult>` |
+| `claimMarketplacePayment()`     | Claims marketplace earnings  | - `marketplaceAssetAddress: string`<br>- `paymentAssetAddress: string`                                     | `Promise<TxResult>` |
+
+### Query Methods
+
+| Method                      | Description                 | Parameters                                 | Returns                 |
+| --------------------------- | --------------------------- | ------------------------------------------ | ----------------------- |
+| `getBalance()`              | Get's address balance        | `address: string`                          | `Promise<string>`       |
+| `getAssetInfo()`            | Get's asset details          | `assetAddress: string`                     | `Promise<ActionOutput>` |
+| `getDatasetBalance()`       | Get's dataset balance        | - `address: string`<br>- `assetID: string` | `Promise<ActionOutput>` |
+| `getDatasetNFTInfo()`       | Get's NFT details            | `nftID: string`                            | `Promise<ActionOutput>` |
+| `getPendingContributions()` | Lists pending contributions | `datasetID: string`                        | `Promise<ActionOutput>` |
+
+### Usage Example
+
+Creating and minting a fungible token
+
+```typescript
+// Create a FT
+const ftResult = await sdk.rpcService.createFTAsset(
+  "Test Token",
+  "TEST",
+  9,
+  "metadata",
+  BigInt("1000000000000000000"),
+  "owner-address",
+  "admin-address",
+  "admin-address",
+  "admin-address"
+);
+
+// After creation, mint some tokens
+const mintResult = await sdk.rpcService.mintFTAsset(
+  "receiver-address",
+  ftResult.result[0].asset_id,
+  BigInt("1000000000000000000")
+);
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
