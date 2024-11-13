@@ -509,14 +509,6 @@ export class NuklaiVMClient {
     if (!this.signer) {
       throw new Error('Signer not set')
     }
-
-    console.log(
-      'Action data for action',
-      actionName,
-      ':',
-      JSON.stringify(data, null, 2)
-    )
-
     return await this.client.sendTransaction([{ actionName, data }])
   }
 
