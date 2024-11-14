@@ -55,56 +55,10 @@ export class NuklaiCoreApiClient {
 
 export interface ActionInput {
   actionName: string;
-  data: {
-    asset_type?: number;
-    name?: string;
-    symbol?: string;
-    decimals?: number;
-    metadata?: string;
-    max_supply?: string;
-    mint_admin?: string;
-    pause_unpause_admin?: string;
-    freeze_unfreeze_admin?: string;
-    enable_disable_kyc_account_admin?: string;
-    to?: string;
-    asset_address?: string;
-    value?: string;
-    asset_nft_address?: string;
-    dataset_address?: string;
-    description?: string;
-    categories?: string;
-    license_name?: string;
-    license_symbol?: string;
-    license_url?: string;
-    is_community_dataset?: boolean;
-    data_location?: string;
-    data_identifier?: string;
-    dataset_contribution_id?: string;
-    dataset_contributor?: string;
-    marketplace_asset_address?: string;
-    payment_asset_address?: string;
-    dataset_price_per_block?: number;
-    num_blocks_to_subscribe?: number;
-  };
+  data: Record<string, any>;
 }
 
-export interface ActionResult {
-  asset_id?: string;
-  asset_balance?: string;
-  nft_id?: string;
-  dataset_address?: string;
-  dataset_parent_nft_address?: string;
-  dataset_child_address?: string;
-  dataset_contribution_id?: string;
-  collateral_asset_address?: string;
-  collateral_amount_taken?: string;
-  collateral_amount_refunded?: string;
-  marketplace_asset_address?: string;
-  payment_asset_address?: string;
-  data_location?: string;
-  data_identifier?: string;
-  to?: string;
-}
+export interface ActionResult extends Record<string, any> {}
 
 export interface TransactionResult {
   txId: string;
