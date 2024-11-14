@@ -98,7 +98,7 @@ describe('NuklaiSDK Asset', () => {
             2
           )
         )
-        ftAddress = result.result.results[0].asset_id
+        ftAddress = result.result.results[0].asset_id!;
       } catch (error) {
         console.error('Failed to create FT asset:', error)
         throw error
@@ -195,7 +195,7 @@ describe('NuklaiSDK Asset', () => {
             2
           )
         )
-        nftAddress = result.result.results[0].asset_id
+        nftAddress = result.result.results[0].asset_id!;
       } catch (error) {
         console.error('Failed to create NFT collection:', error)
         throw error
@@ -267,7 +267,7 @@ describe('NuklaiSDK Asset', () => {
             2
           )
         )
-        fractionalAssetAddress = result.result.results[0].asset_id
+        fractionalAssetAddress = result.result.results[0].asset_id!;
       } catch (error) {
         console.error('Failed to create Fractional token:', error)
         throw error
@@ -430,7 +430,7 @@ describe('NuklaiSDK Asset', () => {
       const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
       console.log('NAI Balance before subscribe:', balance)
 
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
 
       const result = await sdk.rpcService.subscribeDatasetMarketplace(
         marketplaceAssetAddress,

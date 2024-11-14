@@ -112,10 +112,6 @@ export interface TransactionResult {
     timestamp: number;
     success: boolean;
     sponsor: string;
-    block?: {
-      height: number;
-      timestamp: number;
-    };
     units: {
       bandwidth: number;
       compute: number;
@@ -603,25 +599,30 @@ export class NuklaiVMClient {
       const encoder = new TextEncoder();
       const txData = encoder.encode(JSON.stringify({ actionName, data }));
       const txId = bytesToHex(sha256(txData));
-  
-      const rawResult = await this.client.sendTransaction([{ actionName, data }]);
+      const sponsorPublicKey = Buffer.from(this.signer.getPublicKey()).toString("hex");
+
+      const rawResult = await this.client.sendTransaction([
+        { actionName, data },
+      ]);
 
       return {
         txId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
+          sponsor: `0x${sponsorPublicKey}`,
           units: rawResult.units,
           fee: rawResult.fee,
-          results: rawResult.result.map(item => ({
+          input: createActionInput(actionName, data),
+          results: rawResult.result.map((item) => ({
             ...item,
-          }))
-        }
+          })),
+        },
       };
     } catch (error) {
       console.error("Transaction failed:", {
         error,
-        actionName
+        actionName,
       });
       throw error;
     }
