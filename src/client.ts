@@ -6,6 +6,8 @@ import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex } from '@noble/hashes/utils';
 import {
   ActionData,
   ActionOutput,
@@ -49,6 +51,30 @@ export class NuklaiCoreApiClient {
       throw error
     }
   }
+}
+
+export interface ActionResult {
+  asset_id: string;
+  dataset_address?: string;
+  dataset_contribution_id?: string;
+  marketplace_asset_address?: string;
+}
+
+export interface TransactionResult {
+  txId: string;
+  result: {
+    timestamp: number;
+    success: boolean;
+    units: {
+      bandwidth: number;
+      compute: number;
+      storageRead: number;
+      storageAllocate: number;
+      storageWrite: number;
+    };
+    fee: number;
+    results: ActionResult[];
+  };
 }
 
 export class NuklaiVMClient {
@@ -107,7 +133,7 @@ export class NuklaiVMClient {
     pauseUnpauseAdmin: string
     freezeUnfreezeAdmin: string
     enableDisableKYCAccountAdmin: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('CreateAsset', {
       asset_type: 0, // FT
       name: params.name,
@@ -131,7 +157,7 @@ export class NuklaiVMClient {
     pauseUnpauseAdmin: string
     freezeUnfreezeAdmin: string
     enableDisableKYCAccountAdmin: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('CreateAsset', {
       asset_type: 1, // NFT
       name: params.name,
@@ -155,7 +181,7 @@ export class NuklaiVMClient {
     pauseUnpauseAdmin: string
     freezeUnfreezeAdmin: string
     enableDisableKYCAccountAdmin: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('CreateAsset', {
       asset_type: 2, // Fractional
       name: params.name,
@@ -181,7 +207,7 @@ export class NuklaiVMClient {
     pauseUnpauseAdmin: string
     freezeUnfreezeAdmin: string
     enableDisableKYCAccountAdmin: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('UpdateAsset', {
       ...params,
       maxSupply: params.maxSupply.toString()
@@ -193,7 +219,7 @@ export class NuklaiVMClient {
     to: string
     assetAddress: string
     amount: bigint
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('MintAssetFT', {
       to: params.to,
       asset_address: params.assetAddress,
@@ -205,7 +231,7 @@ export class NuklaiVMClient {
     assetAddress: string
     metadata: string
     to: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('MintAssetNFT', {
       asset_address: params.assetAddress,
       metadata: params.metadata,
@@ -216,7 +242,7 @@ export class NuklaiVMClient {
   async burnFTAsset(params: {
     assetAddress: string
     amount: bigint
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('BurnAssetFT', {
       asset_address: params.assetAddress,
       value: params.amount.toString()
@@ -226,7 +252,7 @@ export class NuklaiVMClient {
   async burnNFTAsset(params: {
     assetAddress: string
     assetNftAddress: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('BurnAssetNFT', {
       asset_address: params.assetAddress,
       asset_nft_address: params.assetNftAddress
@@ -238,7 +264,7 @@ export class NuklaiVMClient {
     assetAddress: string
     value: bigint
     memo: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('Transfer', {
       to: params.to,
       asset_address: params.assetAddress,
@@ -258,7 +284,7 @@ export class NuklaiVMClient {
     licenseURL: string
     metadata: string
     isCommunityDataset: boolean
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('CreateDataset', {
       asset_address: params.assetAddress,
       name: params.name,
@@ -281,7 +307,7 @@ export class NuklaiVMClient {
     licenseSymbol: string
     licenseURL: string
     isCommunityDataset: boolean
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('UpdateDataset', {
       dataset_address: params.datasetAddress,
       name: params.name,
@@ -299,7 +325,7 @@ export class NuklaiVMClient {
     datasetAddress: string
     dataLocation: string
     dataIdentifier: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('InitiateContributeDataset', {
       dataset_address: params.datasetAddress,
       data_location: params.dataLocation,
@@ -311,7 +337,7 @@ export class NuklaiVMClient {
     datasetContributionID: string
     datasetAddress: string
     datasetContributor: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('CompleteContributeDataset', {
       dataset_contribution_id: params.datasetContributionID,
       dataset_address: params.datasetAddress,
@@ -324,7 +350,7 @@ export class NuklaiVMClient {
     datasetAddress: string
     paymentAssetAddress: string
     datasetPricePerBlock: number
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('PublishDatasetMarketplace', {
       dataset_address: params.datasetAddress,
       payment_asset_address: params.paymentAssetAddress,
@@ -336,7 +362,7 @@ export class NuklaiVMClient {
     marketplaceAssetAddress: string
     paymentAssetAddress: string
     numBlocksToSubscribe: number
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('SubscribeDatasetMarketplace', {
       marketplace_asset_address: params.marketplaceAssetAddress,
       payment_asset_address: params.paymentAssetAddress,
@@ -347,7 +373,7 @@ export class NuklaiVMClient {
   async claimMarketplacePayment(params: {
     marketplaceAssetAddress: string
     paymentAssetAddress: string
-  }): Promise<TxResult> {
+  }): Promise<TransactionResult> {
     return this.sendAction('ClaimMarketplacePayment', {
       marketplace_asset_address: params.marketplaceAssetAddress,
       payment_asset_address: params.paymentAssetAddress
@@ -505,11 +531,37 @@ export class NuklaiVMClient {
   private async sendAction(
     actionName: string,
     data: Record<string, unknown>
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     if (!this.signer) {
       throw new Error('Signer not set')
     }
-    return await this.client.sendTransaction([{ actionName, data }])
+  
+    try {
+      const encoder = new TextEncoder();
+      const txData = encoder.encode(JSON.stringify({ actionName, data }));
+      const txId = bytesToHex(sha256(txData));
+  
+      const rawResult = await this.client.sendTransaction([{ actionName, data }]);
+
+      return {
+        txId,
+        result: {
+          timestamp: rawResult.timestamp,
+          success: rawResult.success,
+          units: rawResult.units,
+          fee: rawResult.fee,
+          results: rawResult.result.map(item => ({
+            ...item,
+          }))
+        }
+      };
+    } catch (error) {
+      console.error("Transaction failed:", {
+        error,
+        actionName
+      });
+      throw error;
+    }
   }
 
   convertToNativeTokens(formattedBalance: string): bigint {

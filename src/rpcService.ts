@@ -1,7 +1,7 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { NuklaiVMClient } from './client'
+import { NuklaiVMClient, TransactionResult } from './client'
 // import { config } from "@nuklai/hyperchain-sdk";
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { ActionData, ActionOutput } from 'hypersdk-client/dist/types'
@@ -82,7 +82,7 @@ export class RpcService {
     pauseUnpauseAdmin: string,
     freezeUnfreezeAdmin: string,
     enableDisableKYCAccountAdmin: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.createFungibleToken({
       name,
       symbol,
@@ -105,7 +105,7 @@ export class RpcService {
     pauseUnpauseAdmin: string,
     freezeUnfreezeAdmin: string,
     enableDisableKYCAccountAdmin: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.createNFTAsset({
       name,
       symbol,
@@ -127,7 +127,7 @@ export class RpcService {
     pauseUnpauseAdmin: string,
     freezeUnfreezeAdmin: string,
     enableDisableKYCAccountAdmin: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.createFractionalAsset({
       name,
       symbol,
@@ -145,7 +145,7 @@ export class RpcService {
     assetAddress: string,
     value: bigint,
     memo: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.transfer({
       to,
       assetAddress,
@@ -158,7 +158,7 @@ export class RpcService {
     to: string,
     assetAddress: string,
     amount: bigint
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.mintFTAsset({
       to,
       assetAddress,
@@ -170,7 +170,7 @@ export class RpcService {
     assetAddress: string,
     metadata: string,
     to: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.mintNFTAsset({
       assetAddress,
       metadata,
@@ -178,7 +178,7 @@ export class RpcService {
     })
   }
 
-  async burnFTAsset(assetAddress: string, amount: bigint): Promise<TxResult> {
+  async burnFTAsset(assetAddress: string, amount: bigint): Promise<TransactionResult> {
     return this.client.burnFTAsset({
       assetAddress,
       amount
@@ -188,7 +188,7 @@ export class RpcService {
   async burnNFTAsset(
     assetAddress: string,
     assetNftAddress: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.burnNFTAsset({
       assetAddress,
       assetNftAddress
@@ -205,7 +205,7 @@ export class RpcService {
     licenseURL: string,
     metadata: string,
     isCommunityDataset: boolean
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.createDataset({
       assetAddress,
       name,
@@ -228,7 +228,7 @@ export class RpcService {
     licenseSymbol: string,
     licenseURL: string,
     isCommunityDataset: boolean
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.updateDataset({
       datasetAddress,
       name,
@@ -245,7 +245,7 @@ export class RpcService {
     datasetAddress: string,
     dataLocation: string,
     dataIdentifier: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.initiateContributeDataset({
       datasetAddress,
       dataLocation,
@@ -257,7 +257,7 @@ export class RpcService {
     datasetContributionID: string,
     datasetAddress: string,
     datasetContributor: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.completeContributeDataset({
       datasetContributionID,
       datasetAddress,
@@ -269,7 +269,7 @@ export class RpcService {
     datasetAddress: string,
     paymentAssetAddress: string,
     datasetPricePerBlock: number
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.publishDatasetToMarketplace({
       datasetAddress,
       paymentAssetAddress,
@@ -281,7 +281,7 @@ export class RpcService {
     marketplaceAssetAddress: string,
     paymentAssetAddress: string,
     numBlocksToSubscribe: number
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.subscribeDatasetMarketplace({
       marketplaceAssetAddress,
       paymentAssetAddress,
@@ -292,7 +292,7 @@ export class RpcService {
   async claimMarketplacePayment(
     marketplaceAssetAddress: string,
     paymentAssetAddress: string
-  ): Promise<TxResult> {
+  ): Promise<TransactionResult> {
     return this.client.claimMarketplacePayment({
       marketplaceAssetAddress,
       paymentAssetAddress
