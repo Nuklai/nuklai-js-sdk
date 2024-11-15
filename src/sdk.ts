@@ -4,6 +4,7 @@ import {
   VM_NAME,
   VM_RPC_PREFIX,
 } from "./endpoints";
+import { Block } from "hypersdk-client/dist/apiTransformers";
 import { NuklaiVMClient } from "./client";
 
 export class NuklaiSDK {
@@ -16,8 +17,12 @@ export class NuklaiSDK {
     this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX);
   }
 
-  listenToBlocks(callback: (block: any) => void) {
-    return this.client.listenToBlocks((block: any) => callback(block));
+  public async listenToBlocks(
+    callback: (block: Block) => void,
+    includeEmpty?: boolean,
+    pollingRateMs?: number
+  ): Promise<() => void> {
+    return this.client.listenToBlocks(callback, includeEmpty, pollingRateMs);
   }
 }
 

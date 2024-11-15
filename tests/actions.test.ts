@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
+import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { NuklaiSDK } from '../src/sdk'
 
 const API_HOST = 'http://127.0.0.1:9650'
@@ -482,6 +483,126 @@ describe('NuklaiSDK Asset', () => {
     // Verify final states or clean up
     const ftBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
     console.log('Final FT balance:', ftBalance)
+  })
+})
+
+describe('Listening for Blocks', () => {
+  let sdk: NuklaiSDK
+  let abi: VMABI
+  let unsubscribe: Promise<() => void> | null = null
+
+  beforeAll(async () => {
+    try {
+      sdk = new NuklaiSDK(API_HOST)
+      sdk.rpcService.setSigner(TEST_ADDRESS_PRIVATE_KEY)
+      abi = await sdk.rpcService.fetchAbiFromServer()
+      
+      const isConnected = await sdk.rpcService.validateConnection()
+      if (!isConnected) {
+        throw new Error('Failed to connect')
+      }
+    } catch (error) {
+      console.error('Test failed:', error)
+      throw error
+    }
+  })
+
+  describe('Block Subscription', () => {
+    // Clean up after each test
+    afterEach(async () => {
+      if (unsubscribe) {
+        const unsub = await unsubscribe
+        unsub()
+        unsubscribe = null
+      }
+    })
+
+    it('should successfully subscribe to blocks', async () => {
+      try {
+        const receivedBlocks: Block[] = []
+        
+        await new Promise<void>(async (resolve, reject) => {
+          const unsub = await sdk.listenToBlocks((block: Block) => {
+            console.log('Received block:', {
+              height: block.block.height,
+              timestamp: block.block.timestamp,
+              txCount: block.block.txs.length
+            })
+            receivedBlocks.push(block)
+            if (receivedBlocks.length >= 2) {
+              resolve()
+            }
+          }, true)
+          unsubscribe = Promise.resolve(unsub)
+        })
+
+        expect(receivedBlocks.length).toBeGreaterThanOrEqual(2)
+        expect(receivedBlocks[0].blockID).toBeDefined()
+        expect(receivedBlocks[0].block.height).toBeGreaterThan(0)
+        
+        console.log('Successfully subscribed to block')
+      } catch (error) {
+        console.error('Block subscription test failed:', error)
+        throw error
+      }
+    }, 35000)
+
+    it('should handle block with transaction', async () => {
+      try {
+        const txPromise = new Promise<Block>(async (resolve) => {
+          const unsub = await sdk.listenToBlocks((block: Block) => {
+            if (block.block.txs.length > 0) {
+              resolve(block)
+            }
+          }, true)
+          unsubscribe = Promise.resolve(unsub)
+        })
+
+        const result = await sdk.rpcService.transfer(
+          TEST_ADDRESS2,
+          NAI_ASSET_ADDRESS,
+          BigInt(1),
+          'Test transfer'
+        )
+        expect(result.result.success).toBe(true)
+
+        const blockWithTx = await txPromise
+        expect(blockWithTx.block.txs.length).toBeGreaterThan(0)
+        
+        console.log('Successfully verified transaction in block:', {
+          blockHeight: blockWithTx.block.height,
+          txCount: blockWithTx.block.txs.length
+        })
+      } catch (error) {
+        console.error('Transaction block test failed:', error)
+        throw error
+      }
+    }, 35000)
+
+    it('should handle unsubscribe', async () => {
+      try {
+        let blockCount = 0
+        const unsub = await sdk.listenToBlocks(() => {
+          blockCount++
+        }, true)
+
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        unsub()
+
+        expect(blockCount).toBeGreaterThan(0)
+        console.log('Successfully unsubscribe from block')
+      } catch (error) {
+        console.error('Unsubscribe test failed:', error)
+        throw error
+      }
+    }, 5000)
+  })
+
+  afterAll(async () => {
+    if (unsubscribe) {
+      const unsub = await unsubscribe
+      unsub()
+    }
   })
 })
 

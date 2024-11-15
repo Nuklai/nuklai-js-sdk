@@ -5,6 +5,7 @@ import { HyperSDKClient } from 'hypersdk-client'
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
+import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex } from '@noble/hashes/utils';
@@ -592,16 +593,20 @@ export class NuklaiVMClient {
    * @param includeEmpty Optional parameter to include empty blocks (default: false)
    * @returns A function to unsubscribe from block updates
    */
-  listenToBlocks(
-    callback: (block: any) => void,
-    includeEmpty: boolean = false
-  ) {
+  public async listenToBlocks(
+    callback: (block: Block) => void,
+    includeEmpty: boolean = false,
+    pollingRateMs: number = 300
+  ): Promise<() => void> {
     try {
-      return this.client.listenToBlocks((block) => {
-        if (includeEmpty || block?.block?.txs?.length > 0) {
-          callback(block)
-        }
-      })
+      const unsubscribe = await this.client.listenToBlocks(
+        callback,
+        includeEmpty, 
+        pollingRateMs
+      )
+      return () => {
+        if (unsubscribe) unsubscribe()
+      }
     } catch (error) {
       console.error('Failed to initialize block listener:', error)
       throw error
