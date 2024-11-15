@@ -1,8 +1,8 @@
-import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { NuklaiSDK } from '../src/sdk'
 import {
   API_HOST,
   generateRandomString,
+  logTxResult,
   TEST_ADDRESS,
   TEST_ADDRESS_PRIVATE_KEY
 } from './utils'
@@ -57,14 +57,17 @@ async function datasetEx() {
       TEST_ADDRESS
     )
 
-    if (!createFracAssetTxResult.success) {
+    if (!createFracAssetTxResult.result.success) {
       throw new Error(
         `Failed to create token: ${JSON.stringify(createFracAssetTxResult)}`
       )
     }
 
-    const assetAddress = createFracAssetTxResult.result[0].asset_id
-    console.log('Token created with address:', assetAddress)
+    const assetAddress = createFracAssetTxResult.result.results[0].asset_id
+    console.log(
+      'Fractional Token created:',
+      logTxResult(createFracAssetTxResult)
+    )
 
     // Get asset info to verify creation
     const assetInfo = await sdk.rpcService.getAssetInfo(assetAddress)
@@ -95,17 +98,14 @@ async function datasetEx() {
       true // community dataset
     )
 
-    if (!createTxResult.success) {
+    if (!createTxResult.result.success) {
       throw new Error(
         `Failed to create dataset: ${JSON.stringify(createTxResult)}`
       )
     }
 
-    const datasetAddress = createTxResult.result[0].dataset_address // Note snake_case
-    console.log('Dataset created:', {
-      address: datasetAddress,
-      transactionDetails: logTxResult(createTxResult)
-    })
+    const datasetAddress = createTxResult.result.results[0].dataset_address // Note snake_case
+    console.log('Dataset created:', logTxResult(createTxResult))
 
     // Get dataset info to verify creation
     const datasetInfo = await sdk.rpcService.getDatasetInfo(datasetAddress)
@@ -122,7 +122,7 @@ async function datasetEx() {
       dataIdentifier
     )
 
-    if (!initiateTxResult.success) {
+    if (!initiateTxResult.result.success) {
       throw new Error(
         `Failed to initiate dataset contribution: ${JSON.stringify(
           initiateTxResult
@@ -130,11 +130,9 @@ async function datasetEx() {
       )
     }
 
-    const contributionId = initiateTxResult.result[0].dataset_contribution_id // Note snake_case
-    console.log('Contribution initiated:', {
-      contributionId,
-      transactionDetails: logTxResult(initiateTxResult)
-    })
+    const contributionId =
+      initiateTxResult.result.results[0].dataset_contribution_id // Note snake_case
+    console.log('Contribution initiated:', logTxResult(initiateTxResult))
 
     // Complete contribution
     console.log('Completing dataset contribution...')
@@ -144,7 +142,7 @@ async function datasetEx() {
       TEST_ADDRESS // contributor address
     )
 
-    if (!completeTxResult.success) {
+    if (!completeTxResult.result.success) {
       throw new Error(
         `Failed to complete dataset contribution: ${JSON.stringify(
           completeTxResult
@@ -152,10 +150,7 @@ async function datasetEx() {
       )
     }
 
-    console.log('Contribution completed:', {
-      details: completeTxResult.result[0],
-      transactionDetails: logTxResult(completeTxResult)
-    })
+    console.log('Contribution completed:', logTxResult(completeTxResult))
 
     // Get final dataset info
     const finalDatasetInfo = await sdk.rpcService.getDatasetInfo(datasetAddress)
@@ -173,21 +168,6 @@ async function datasetEx() {
       console.error('Unknown error:', error)
     }
     throw error
-  }
-}
-
-function logTxResult(result: TxResult) {
-  return {
-    success: result.success,
-    timestamp: new Date(result.timestamp).toISOString(),
-    fee: result.fee,
-    units: {
-      bandwidth: result.units.bandwidth,
-      compute: result.units.compute,
-      storage_read: result.units.storageRead, // Note snake_case
-      storage_allocate: result.units.storageAllocate,
-      storage_write: result.units.storageWrite
-    }
   }
 }
 

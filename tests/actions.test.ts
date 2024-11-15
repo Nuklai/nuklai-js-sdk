@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
+import { TransactionResult } from '../src/client'
 import { NuklaiSDK } from '../src/sdk'
 
 const API_HOST = 'http://127.0.0.1:9650'
@@ -86,20 +87,11 @@ describe('NuklaiSDK Asset', () => {
         )
 
         expect(result).toBeDefined()
-        expect(result.result.success).toBe(true);
+        expect(result.result.success).toBe(true)
         expect(result.result).toBeDefined()
-        console.log("Transaction ID:", result.txId);
 
-        console.log(
-          'Created FT asset: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
-        ftAddress = result.result.results[0].asset_id!;
+        console.log('Created FT asset:', logTxResult(result))
+        ftAddress = result.result.results[0].asset_id!
       } catch (error) {
         console.error('Failed to create FT asset:', error)
         throw error
@@ -114,18 +106,9 @@ describe('NuklaiSDK Asset', () => {
           ftAddress,
           mintAmount
         )
-        expect(result.result.success).toBe(true);
-        console.log("Transaction ID:", result.txId);
+        expect(result.result.success).toBe(true)
 
-        console.log(
-          'Minted FT tokens: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
+        console.log('Minted FT tokens: ', logTxResult(result))
       } catch (error) {
         console.error('Failed to mint FT tokens:', error)
         throw error
@@ -152,18 +135,9 @@ describe('NuklaiSDK Asset', () => {
           transferAmount,
           'Test transfer'
         )
-        expect(result.result.success).toBe(true);
-        console.log("Transaction ID:", result.txId);
+        expect(result.result.success).toBe(true)
 
-        console.log(
-          'FT transfer complete: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
+        console.log('FT transfer complete: ', logTxResult(result))
       } catch (error) {
         console.error('Failed to transfer FT tokens:', error)
         throw error
@@ -184,19 +158,10 @@ describe('NuklaiSDK Asset', () => {
           TEST_ADDRESS,
           TEST_ADDRESS
         )
-        expect(result.result.success).toBe(true);
-        console.log("Transaction ID:", result.txId);
+        expect(result.result.success).toBe(true)
 
-        console.log(
-          'Created NFT collection: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
-        nftAddress = result.result.results[0].asset_id!;
+        console.log('Created NFT collection: ', logTxResult(result))
+        nftAddress = result.result.results[0].asset_id!
       } catch (error) {
         console.error('Failed to create NFT collection:', error)
         throw error
@@ -214,17 +179,8 @@ describe('NuklaiSDK Asset', () => {
           }),
           TEST_ADDRESS
         )
-        expect(result.result.success).toBe(true);
-        console.log("Transaction ID:", result.txId);
-        console.log(
-          'Minted NFT: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
+        expect(result.result.success).toBe(true)
+        console.log('Minted NFT: ', logTxResult(result))
       } catch (error) {
         console.error('Failed to mint NFT:', error)
         throw error
@@ -256,19 +212,10 @@ describe('NuklaiSDK Asset', () => {
           TEST_ADDRESS,
           TEST_ADDRESS
         )
-        expect(result.result.success).toBe(true);
-        console.log("Transaction ID:", result.txId);
+        expect(result.result.success).toBe(true)
 
-        console.log(
-          'Created Fractional token: ',
-          JSON.stringify(
-            result.result.results[0],
-            (_, value) =>
-              typeof value === 'bigint' ? value.toString() : value,
-            2
-          )
-        )
-        fractionalAssetAddress = result.result.results[0].asset_id!;
+        console.log('Created Fractional token: ', logTxResult(result))
+        fractionalAssetAddress = result.result.results[0].asset_id!
       } catch (error) {
         console.error('Failed to create Fractional token:', error)
         throw error
@@ -299,21 +246,13 @@ describe('NuklaiSDK Asset', () => {
         JSON.stringify({ format: 'CSV', size: '1GB' }),
         true
       )
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Created dataset: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Created dataset: ', logTxResult(result))
       if (!result.result.results[0].dataset_address) {
-        throw new Error('Dataset address not found in result');
+        throw new Error('Dataset address not found in result')
       }
-      datasetAddress = result.result.results[0].dataset_address;
+      datasetAddress = result.result.results[0].dataset_address
       expect(datasetAddress).toBe(fractionalAssetAddress)
     })
 
@@ -323,21 +262,13 @@ describe('NuklaiSDK Asset', () => {
         'ipfs://QmTest...',
         'test-data-001'
       )
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Initiated dataset contribution: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Initiated dataset contribution: ', logTxResult(result))
       if (!result.result.results[0].dataset_contribution_id) {
-        throw new Error('Dataset contribution ID not found in result');
+        throw new Error('Dataset contribution ID not found in result')
       }
-      datasetContributionId = result.result.results[0].dataset_contribution_id;
+      datasetContributionId = result.result.results[0].dataset_contribution_id
     })
 
     it('should complete dataset contribution', async () => {
@@ -346,17 +277,9 @@ describe('NuklaiSDK Asset', () => {
         datasetAddress,
         TEST_ADDRESS
       )
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Completed dataset contribution: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Completed dataset contribution: ', logTxResult(result))
     })
 
     it('should get dataset info', async () => {
@@ -377,17 +300,9 @@ describe('NuklaiSDK Asset', () => {
         'https://opensource.org/licenses/MIT',
         true
       )
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Updated dataset: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Updated dataset: ', logTxResult(result))
     })
   })
 
@@ -399,13 +314,15 @@ describe('NuklaiSDK Asset', () => {
         NAI_ASSET_ADDRESS, // payment asset
         1000000000 // price per block
       )
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
+
+      console.log('Published dataset: ', logTxResult(result))
 
       if (!result.result.results[0].marketplace_asset_address) {
-        throw new Error('Marketplace asset address not found in result');
+        throw new Error('Marketplace asset address not found in result')
       }
-      marketplaceAssetAddress = result.result.results[0].marketplace_asset_address;
+      marketplaceAssetAddress =
+        result.result.results[0].marketplace_asset_address
       console.log('MP Asset Address:', marketplaceAssetAddress)
 
       await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -414,15 +331,6 @@ describe('NuklaiSDK Asset', () => {
         marketplaceAssetAddress
       )
       console.log('Marketplace Asset Info:', getmarketplaceAInfo)
-
-      console.log(
-        'Published dataset to marketplace: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
     })
 
     it('should subscribe to dataset', async () => {
@@ -438,18 +346,9 @@ describe('NuklaiSDK Asset', () => {
         NAI_ASSET_ADDRESS,
         minBlocksToSubscribe
       )
-      console.log('Subscribe result:', result)
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Subscribed to dataset: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Subscribed to dataset: ', logTxResult(result))
     })
 
     it('should claim marketplace payment', async () => {
@@ -464,17 +363,9 @@ describe('NuklaiSDK Asset', () => {
         const info = await sdk.rpcService.getAssetInfo(marketplaceAssetAddress)
         console.log('Marketplace state just before claim failed:', info)
       }
-      expect(result.result.success).toBe(true);
-      console.log("Transaction ID:", result.txId);
+      expect(result.result.success).toBe(true)
 
-      console.log(
-        'Claimed marketplace payment: ',
-        JSON.stringify(
-          result.result.results[0],
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
-      )
+      console.log('Claimed marketplace payment: ', logTxResult(result))
     })
   })
 
@@ -615,4 +506,30 @@ function generateRandomString(length: number): string {
     result += characters.charAt(Math.floor(Math.random() * characters.length))
   }
   return result
+}
+
+export function logTxResult(r: TransactionResult) {
+  const result = r.result
+  return {
+    txId: r.txId,
+    result: {
+      timestamp: new Date(result.timestamp).toISOString(),
+      success: result.success,
+      sponsor: result.sponsor,
+      units: {
+        bandwidth: result.units.bandwidth,
+        compute: result.units.compute,
+        storage_read: result.units.storageRead, // Note snake_case
+        storage_allocate: result.units.storageAllocate,
+        storage_write: result.units.storageWrite
+      },
+      fee: result.fee,
+      input: JSON.stringify(result.input, bigIntReplacer),
+      results: JSON.stringify(result.results, bigIntReplacer)
+    }
+  }
+}
+
+export function bigIntReplacer(_key: string, value: any): any {
+  return typeof value === 'bigint' ? value.toString() : value
 }

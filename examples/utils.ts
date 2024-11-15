@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { TransactionResult } from '../src/client'
 
 export const API_HOST = 'http://127.0.0.1:9650'
 export const NAI_ASSET_ADDRESS =
@@ -62,4 +63,30 @@ export function generateRandomString(length: number): string {
     result += characters.charAt(Math.floor(Math.random() * characters.length))
   }
   return result
+}
+
+export function logTxResult(r: TransactionResult) {
+  const result = r.result
+  return {
+    txId: r.txId,
+    result: {
+      timestamp: new Date(result.timestamp).toISOString(),
+      success: result.success,
+      sponsor: result.sponsor,
+      units: {
+        bandwidth: result.units.bandwidth,
+        compute: result.units.compute,
+        storage_read: result.units.storageRead, // Note snake_case
+        storage_allocate: result.units.storageAllocate,
+        storage_write: result.units.storageWrite
+      },
+      fee: result.fee,
+      input: JSON.stringify(result.input, bigIntReplacer),
+      results: JSON.stringify(result.results, bigIntReplacer)
+    }
+  }
+}
+
+export function bigIntReplacer(_key: string, value: any): any {
+  return typeof value === 'bigint' ? value.toString() : value
 }

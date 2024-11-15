@@ -2,6 +2,7 @@ import { NuklaiSDK } from '../src/sdk'
 import {
   API_HOST,
   generateRandomString,
+  logTxResult,
   NAI_ASSET_ADDRESS,
   TEST_ADDRESS,
   TEST_ADDRESS2,
@@ -55,7 +56,7 @@ async function fungibleTokenEx() {
       'Test transfer'
     )
 
-    if (!transferTxResult.success) {
+    if (!transferTxResult.result.success) {
       throw new Error(
         `Failed to transfer tokens: ${JSON.stringify(transferTxResult)}`
       )
@@ -76,14 +77,14 @@ async function fungibleTokenEx() {
       TEST_ADDRESS
     )
 
-    if (!createTxResult.success) {
+    if (!createTxResult.result.success) {
       throw new Error(
         `Failed to create token: ${JSON.stringify(createTxResult)}`
       )
     }
 
-    const assetAddress = createTxResult.result[0].asset_id
-    console.log('Token created with address:', assetAddress)
+    const assetAddress = createTxResult.result.results[0].asset_id
+    console.log('Token created:', logTxResult(createTxResult))
 
     // Get asset info to verify creation
     const assetInfo = await sdk.rpcService.getAssetInfo(assetAddress)
@@ -98,10 +99,10 @@ async function fungibleTokenEx() {
       mintAmount
     )
 
-    if (!mintTxResult.success) {
+    if (!mintTxResult.result.success) {
       throw new Error(`Failed to mint tokens: ${JSON.stringify(mintTxResult)}`)
     }
-    console.log('Tokens minted successfully')
+    console.log('Token minted:', logTxResult(mintTxResult))
 
     // Get final balances
     const finalBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)

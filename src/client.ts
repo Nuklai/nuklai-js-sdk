@@ -1,14 +1,14 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+import { sha256 } from '@noble/hashes/sha256'
+import { bytesToHex } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
-import { sha256 } from '@noble/hashes/sha256';
-import { bytesToHex } from '@noble/hashes/utils';
 import {
   ActionData,
   ActionOutput,
@@ -55,29 +55,29 @@ export class NuklaiCoreApiClient {
 }
 
 export interface ActionInput {
-  actionName: string;
-  data: Record<string, any>;
+  actionName: string
+  data: Record<string, any>
 }
 
 export interface ActionResult extends Record<string, any> {}
 
 export interface TransactionResult {
-  txId: string;
+  txId: string
   result: {
-    timestamp: number;
-    success: boolean;
-    sponsor: string;
+    timestamp: number
+    success: boolean
+    sponsor: string
     units: {
-      bandwidth: number;
-      compute: number;
-      storageRead: number;
-      storageAllocate: number;
-      storageWrite: number;
-    };
-    fee: number;
-    input: ActionInput;
-    results: ActionResult[];
-  };
+      bandwidth: number
+      compute: number
+      storageRead: number
+      storageAllocate: number
+      storageWrite: number
+    }
+    fee: number
+    input: ActionInput
+    results: ActionResult[]
+  }
 }
 
 // Construct ActionInput
@@ -85,10 +85,10 @@ export function createActionInput(
   actionName: string,
   data: ActionInput['data']
 ): ActionInput {
-return {
-  actionName,
-  data
-};
+  return {
+    actionName,
+    data
+  }
 }
 
 export class NuklaiVMClient {
@@ -549,37 +549,39 @@ export class NuklaiVMClient {
     if (!this.signer) {
       throw new Error('Signer not set')
     }
-  
+
     try {
-      const encoder = new TextEncoder();
-      const txData = encoder.encode(JSON.stringify({ actionName, data }));
-      const txId = bytesToHex(sha256(txData));
-      const sponsorPublicKey = Buffer.from(this.signer.getPublicKey()).toString("hex");
+      const encoder = new TextEncoder()
+      const txData = encoder.encode(JSON.stringify({ actionName, data }))
+      const txId = bytesToHex(sha256(txData))
+      const sponsorPublicKey = Buffer.from(this.signer.getPublicKey()).toString(
+        'hex'
+      )
 
       const rawResult = await this.client.sendTransaction([
-        { actionName, data },
-      ]);
+        { actionName, data }
+      ])
 
       return {
         txId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: `0x${sponsorPublicKey}`,
+          sponsor: sponsorPublicKey,
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, data),
           results: rawResult.result.map((item) => ({
-            ...item,
-          })),
-        },
-      };
+            ...item
+          }))
+        }
+      }
     } catch (error) {
-      console.error("Transaction failed:", {
+      console.error('Transaction failed:', {
         error,
-        actionName,
-      });
-      throw error;
+        actionName
+      })
+      throw error
     }
   }
 
