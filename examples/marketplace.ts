@@ -1,8 +1,8 @@
-import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { NuklaiSDK } from '../src/sdk'
 import {
   API_HOST,
   generateRandomString,
+  logTxResult,
   NAI_ASSET_ADDRESS,
   TEST_ADDRESS,
   TEST_ADDRESS_PRIVATE_KEY
@@ -58,14 +58,17 @@ async function marketplaceEx() {
       TEST_ADDRESS
     )
 
-    if (!createFracAssetTxResult.success) {
+    if (!createFracAssetTxResult.result.success) {
       throw new Error(
         `Failed to create token: ${JSON.stringify(createFracAssetTxResult)}`
       )
     }
 
-    const assetAddress = createFracAssetTxResult.result[0].asset_id
-    console.log('Token created with address:', assetAddress)
+    const assetAddress = createFracAssetTxResult.result.results[0].asset_id
+    console.log(
+      'Fractional Token created:',
+      logTxResult(createFracAssetTxResult)
+    )
 
     // Get asset info to verify creation
     const assetInfo = await sdk.rpcService.getAssetInfo(assetAddress)
@@ -96,17 +99,14 @@ async function marketplaceEx() {
       true // community dataset
     )
 
-    if (!createTxResult.success) {
+    if (!createTxResult.result.success) {
       throw new Error(
         `Failed to create dataset: ${JSON.stringify(createTxResult)}`
       )
     }
 
-    const datasetAddress = createTxResult.result[0].dataset_address // Note snake_case
-    console.log('Dataset created:', {
-      address: datasetAddress,
-      transactionDetails: logTxResult(createTxResult)
-    })
+    const datasetAddress = createTxResult.result.results[0].dataset_address // Note snake_case
+    console.log('Dataset created:', logTxResult(createTxResult))
 
     // Get dataset info to verify creation
     const datasetInfo = await sdk.rpcService.getDatasetInfo(datasetAddress)
@@ -120,7 +120,7 @@ async function marketplaceEx() {
       1000000000 // price per block
     )
 
-    if (!publishTxResult.success) {
+    if (!publishTxResult.result.success) {
       throw new Error(
         `Failed to publish dataset to marketplace: ${JSON.stringify(
           publishTxResult
@@ -129,11 +129,8 @@ async function marketplaceEx() {
     }
 
     const marketplaceAssetId =
-      publishTxResult.result[0].marketplace_asset_address
-    console.log('Dataset published to marketplace:', {
-      marketplaceAssetId,
-      transactionDetails: logTxResult(publishTxResult)
-    })
+      publishTxResult.result.results[0].marketplace_asset_address
+    console.log('Published dataset:', logTxResult(publishTxResult))
 
     // Subscribe to dataset
     console.log('Subscribing to dataset...')
@@ -144,19 +141,15 @@ async function marketplaceEx() {
       minBlocksToSubscribe // number of blocks
     )
 
-    if (!subscribeTxResult.success) {
+    if (!subscribeTxResult.result.success) {
       throw new Error(
         `Failed to subscribe to dataset: ${JSON.stringify(subscribeTxResult)}`
       )
     }
 
     const subscriptionNftAddress =
-      subscribeTxResult.result[0].subscription_nft_address
-    console.log('Subscription complete:', {
-      subscriptionNftAddress,
-      subscriptionDetails: subscribeTxResult.result[0],
-      transactionDetails: logTxResult(subscribeTxResult)
-    })
+      subscribeTxResult.result.results[0].subscription_nft_address
+    console.log('Subscription complete:', logTxResult(subscribeTxResult))
 
     // Get subscription NFT info
     const subscriptionInfo = await sdk.rpcService.getAssetInfo(
@@ -175,16 +168,13 @@ async function marketplaceEx() {
       NAI_ASSET_ADDRESS // payment asset address
     )
 
-    if (!claimTxResult.success) {
+    if (!claimTxResult.result.success) {
       throw new Error(
         `Failed to claim marketplace payment: ${JSON.stringify(claimTxResult)}`
       )
     }
 
-    console.log('Payment claimed:', {
-      claimDetails: claimTxResult.result[0],
-      transactionDetails: logTxResult(claimTxResult)
-    })
+    console.log('Payment claimed:', logTxResult(claimTxResult))
 
     // Get final balances and info
     const finalBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
@@ -200,21 +190,6 @@ async function marketplaceEx() {
       console.error('Unknown error:', error)
     }
     throw error
-  }
-}
-
-function logTxResult(result: TxResult) {
-  return {
-    success: result.success,
-    timestamp: new Date(result.timestamp).toISOString(),
-    fee: result.fee,
-    units: {
-      bandwidth: result.units.bandwidth,
-      compute: result.units.compute,
-      storage_read: result.units.storageRead,
-      storage_allocate: result.units.storageAllocate,
-      storage_write: result.units.storageWrite
-    }
   }
 }
 

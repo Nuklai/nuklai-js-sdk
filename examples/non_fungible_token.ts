@@ -2,6 +2,7 @@ import { NuklaiSDK } from '../src/sdk'
 import {
   API_HOST,
   generateRandomString,
+  logTxResult,
   TEST_ADDRESS,
   TEST_ADDRESS_PRIVATE_KEY
 } from './utils'
@@ -56,14 +57,14 @@ async function nonFungibleTokenEx() {
       TEST_ADDRESS
     )
 
-    if (!createTxResult.success) {
+    if (!createTxResult.result.success) {
       throw new Error(
         `Failed to create NFT collection: ${JSON.stringify(createTxResult)}`
       )
     }
 
-    const collectionAddress = createTxResult.result[0].asset_id
-    console.log('NFT collection created with address:', collectionAddress)
+    const collectionAddress = createTxResult.result.results[0].asset_id
+    console.log('Created NFT collection:', logTxResult(createTxResult))
 
     // Get collection info to verify creation
     const collectionInfo = await sdk.rpcService.getAssetInfo(collectionAddress)
@@ -84,11 +85,12 @@ async function nonFungibleTokenEx() {
       TEST_ADDRESS // mint to our address
     )
 
-    if (!mintTxResult.success) {
+    if (!mintTxResult.result.success) {
       throw new Error(`Failed to mint NFT: ${JSON.stringify(mintTxResult)}`)
     }
+    console.log('Minted NFT:', logTxResult(mintTxResult))
 
-    const nftAddress = mintTxResult.result[0].asset_nft_address
+    const nftAddress = mintTxResult.result.results[0].asset_nft_address
     console.log('NFT minted with address:', nftAddress)
 
     // Get NFT info to verify minting
