@@ -6,7 +6,6 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "private": false,
   "exports": {
     ".": {
       "import": "./dist/index.esm.js",
@@ -83,12 +82,13 @@
     "hypersdk-client": "^0.4.13"
   },
   "browser": {
-    "crypto": "crypto-browserify",
-    "stream": "stream-browserify",
     "buffer": "buffer",
-    "zlib": "browserify-zlib",
-    "util": "util",
+    "crypto": "crypto-browserify",
+    "events": "events",
     "process": "process",
-    "events": "events"
-  }
+    "stream": "stream-browserify",
+    "util": "util",
+    "zlib": "browserify-zlib"
+  },
+  "packageManager": "yarn@4.3.1+sha512.af78262d7d125afbfeed740602ace8c5e4405cd7f4735c08feb327286b2fdb2390fbca01589bfd1f50b1240548b74806767f5a063c94b67e431aabd0d86f7774"
 }
