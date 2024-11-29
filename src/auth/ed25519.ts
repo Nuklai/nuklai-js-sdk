@@ -157,4 +157,7 @@ export class ED25519Factory implements AuthFactory {
     }
     return loadHex(hex, PRIVATE_KEY_LENGTH)
   }
+    static publicKeyToHex(publicKey: PublicKey): string {
+    return Buffer.from(publicKey).toString('hex');
+  }
 }

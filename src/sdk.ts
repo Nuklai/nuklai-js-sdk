@@ -36,7 +36,7 @@ export class NuklaiSDK {
     return {
       privateKey: ED25519Factory.privateKeyToHex(privateKey),
       publicKey: ED25519Factory.publicKeyToHex(publicKey),
-      addres: Address.newAddress(0, publicKey).toString(),
+      address: Address.newAddress(0, publicKey).toString(),
     };
   }
 
@@ -44,11 +44,8 @@ export class NuklaiSDK {
     const { privateKey, publicKey } = BLSFactory.generateKeyPair();
     return {
       privateKey: BLSFactory.privateKeyToHex(privateKey),
-      publicKey: BLS.publicKeyToHex(publicKey),
-      address: Address.newAddress(
-        2,
-        BLSFactory.publicKeyFromPrivateKey(privateKey)
-      ).toString(),
+      publicKey: Buffer.from(publicKeyBytes).toString('hex'),
+      address: Address.newAddress(2, publicKeyBytes).toString()
     };
   }
 
@@ -63,12 +60,13 @@ export class NuklaiSDK {
         publicKey: ED25519Factory.publicKeyToHex(publicKey),
       };
     } else {
-      const publicKey = BLSFactory.publicKeyFromPrivateKey(
-        BLSFactory.hexToPrivateKey(privateKey)
-      );
+      const blsPrivateKey = BLSFactory.hexToPrivateKey(privateKey);
+      const publicKey = BLSFactory.publicKeyFromPrivateKey(blsPrivateKey);
+      const publicKeyBytes = bls.publicKeyToBytes(publicKey);
+
       return {
-        address: Address.newAddress(2, publicKey).toString(),
-        publicKey: BLS.publicKeyToHex(publicKey),
+        address: Address.newAddress(2, publicKeyBytes).toString(),
+        publicKey: Buffer.from(publicKeyBytes).toString('hex')
       };
     }
   }
