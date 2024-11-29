@@ -48,6 +48,28 @@ const sdk = new NuklaiSDK({
 sdk.rpcService.setSigner("your-private-key-here");
 ```
 
+### Wallet Management
+
+```typescript
+const sdk = new NuklaiSDK();
+
+// Generate a new ED25519 wallet
+const wallet = sdk.generateED25519Wallet();
+console.log(wallet.address);
+console.log(wallet.privateKey);
+console.log(wallet.publicKey);
+
+// Import an existing wallet
+const imported = sdk.importWallet(privateKeyHex, 'ed25519');
+console.log(imported.address);
+
+// Set a signer
+sdk.setSigner(privateKeyHex, 'ed25519');
+
+// Validate an address
+const isValid = sdk.validateAddress('nuklai1...');
+```
+
 ### Asset Management
 
 ```javascript
