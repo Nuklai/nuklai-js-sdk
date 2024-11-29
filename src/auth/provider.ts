@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { bls } from "@avalabs/avalanchejs";
 import { base64ToUint8Array, isBase64 } from "../utils/base64";
 import { isHex } from "../utils/hex";

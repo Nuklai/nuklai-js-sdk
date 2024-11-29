@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { bls } from '@avalabs/avalanchejs'
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { randomBytes } from '@noble/hashes/utils'

@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { getPublicKey } from '@noble/ed25519'
 import { randomBytes } from '@noble/hashes/utils'
 import { Buffer } from 'buffer'
