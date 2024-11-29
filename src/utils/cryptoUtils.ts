@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { sha256 } from '@noble/hashes/sha256';
 import { sha512 } from '@noble/hashes/sha512';
 
