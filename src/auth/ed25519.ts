@@ -17,10 +17,10 @@ import {
   Signature,
   sign,
   verify
-} from '../crypto/ed25519'
-import { Address } from '../utils/address'
-import { loadHex, toHex } from '../utils/hex'
-import { bufferEquals } from '../utils/utils'
+} from '../crypto'
+import { Address } from '../utils'
+import { loadHex, toHex } from '../utils'
+import { bufferEquals } from '../utils'
 import { Auth, AuthFactory } from './auth'
 
 export const Ed25519AuthSize = PUBLIC_KEY_LENGTH + SIGNATURE_LENGTH
@@ -148,14 +148,14 @@ export class ED25519Factory implements AuthFactory {
   }
 
   static hexToPrivateKey(hex: string): SecretKey {
-    let privateKeyBytes = Buffer.from(hex, 'hex')
+    let privateKeyBytes = Uint8Array.from(Buffer.from(hex, 'hex'));
     if (privateKeyBytes.length === PRIVATE_KEY_LENGTH + PUBLIC_KEY_LENGTH) {
-      privateKeyBytes = privateKeyBytes.subarray(0, PRIVATE_KEY_LENGTH)
-      return loadHex(toHex(privateKeyBytes), PRIVATE_KEY_LENGTH)
+      privateKeyBytes = privateKeyBytes.subarray(0, PRIVATE_KEY_LENGTH);
+      return loadHex(toHex(privateKeyBytes), PRIVATE_KEY_LENGTH);
     } else if (privateKeyBytes.length !== PRIVATE_KEY_LENGTH) {
-      throw new Error('Invalid combined key size')
+      throw new Error('Invalid combined key size');
     }
-    return loadHex(hex, PRIVATE_KEY_LENGTH)
+    return loadHex(hex, PRIVATE_KEY_LENGTH);
   }
     static publicKeyToHex(publicKey: PublicKey): string {
     return Buffer.from(publicKey).toString('hex');
