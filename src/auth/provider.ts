@@ -2,12 +2,11 @@
 // See the file LICENSE for licensing terms.
 
 import { bls } from "@avalabs/avalanchejs";
-import { base64ToUint8Array, isBase64 } from "../utils/base64";
-import { isHex } from "../utils/hex";
+import { base64ToUint8Array, isBase64 } from "../utils";
+import { isHex } from "../utils";
 import { Auth, AuthFactory } from "./auth";
 import { BLS, BLSFactory } from "./bls";
 import { ED25519, ED25519Factory } from "./ed25519";
-import { Buffer } from "buffer";
 
 export type AuthType = "bls" | "ed25519";
 
@@ -29,7 +28,8 @@ export function getAuthFactory(
   const privateKeyHex = Buffer.from(privateKeyBytes).toString("hex");
 
   if (authType === "bls") {
-    const privateKey = BLSFactory.hexToPrivateKey(privateKeyHex);
+    const privateKeyUint8 = new Uint8Array(Buffer.from(privateKeyHex, "hex"));
+    const privateKey = bls.secretKeyFromBytes(privateKeyUint8);
     return new BLSFactory(privateKey);
   } else if (authType === "ed25519") {
     const privateKey = ED25519Factory.hexToPrivateKey(privateKeyHex);
