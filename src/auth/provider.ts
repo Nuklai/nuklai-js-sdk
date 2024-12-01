@@ -13,7 +13,7 @@ export type AuthType = "bls" | "ed25519";
 
 function decodePrivateKey(privateKey: string): Uint8Array {
   if (isHex(privateKey)) {
-    return Buffer.from(privateKey, "hex");
+    return new Uint8Array(Buffer.from(privateKey, "hex"));
   } else if (isBase64(privateKey)) {
     return base64ToUint8Array(privateKey);
   } else {

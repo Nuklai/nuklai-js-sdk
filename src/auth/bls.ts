@@ -153,4 +153,8 @@ export class BLSFactory implements AuthFactory {
   static hexToPublicKey(hex: string): bls.PublicKey {
     return bls.publicKeyFromBytes(new Uint8Array(Buffer.from(hex, 'hex')));
   }
+
+  static hexToPrivateKey(hex: string): bls.SecretKey {
+  return bls.secretKeyFromBytes(new Uint8Array(Buffer.from(hex, 'hex')));
+  }
 }
