@@ -5,7 +5,7 @@ import { getPublicKey } from '@noble/ed25519'
 import { randomBytes } from '@noble/hashes/utils'
 import { Buffer } from 'buffer'
 import _ from 'lodash'
-import { Codec } from '../codec/codec'
+import { Codec } from '../codec'
 import { EMPTY_ADDRESS } from '../constants/consts'
 import { ED25519_COMPUTE_UNITS, ED25519_ID } from '../constants/hypervm'
 import {
@@ -101,7 +101,7 @@ export class ED25519 implements Auth {
   }
 
   static hexToPublicKey(hex: string): PublicKey {
-    return Buffer.from(hex, 'hex')
+    return new Uint8Array(Buffer.from(hex, 'hex'));
   }
 }
 
@@ -157,7 +157,8 @@ export class ED25519Factory implements AuthFactory {
     }
     return loadHex(hex, PRIVATE_KEY_LENGTH);
   }
-    static publicKeyToHex(publicKey: PublicKey): string {
+
+  static publicKeyToHex(publicKey: PublicKey): string {
     return Buffer.from(publicKey).toString('hex');
   }
 }

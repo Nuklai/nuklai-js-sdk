@@ -6,11 +6,11 @@ import { bls12_381 } from '@noble/curves/bls12-381'
 import { randomBytes } from '@noble/hashes/utils'
 import { Buffer } from 'buffer'
 import _ from 'lodash'
-import { Codec } from '../codec/codec'
+import { Codec } from '../codec'
 import { EMPTY_ADDRESS } from '../constants/consts'
 import { BLS_COMPUTE_UNITS, BLS_ID } from '../constants/hypervm'
-import { Address } from '../utils/address'
-import { bufferEquals } from '../utils/utils'
+import { Address } from '../utils'
+import { bufferEquals } from '../utils'
 import { Auth, AuthFactory } from './auth'
 
 export const BlsAuthSize = bls.PUBLIC_KEY_LENGTH + bls.SIGNATURE_LENGTH
@@ -103,7 +103,7 @@ export class BLS implements Auth {
   }
 
   static hexToPublicKey(hex: string): bls.PublicKey {
-    return bls.publicKeyFromBytes(Buffer.from(hex, 'hex'))
+    return bls.publicKeyFromBytes(new Uint8Array(Buffer.from(hex, 'hex')));
   }
 }
 
@@ -150,7 +150,11 @@ export class BLSFactory implements AuthFactory {
     return Buffer.from(bls.secretKeyToBytes(privateKey)).toString('hex')
   }
 
+  static hexToPublicKey(hex: string): bls.PublicKey {
+    return bls.publicKeyFromBytes(new Uint8Array(Buffer.from(hex, 'hex')));
+  }
+
   static hexToPrivateKey(hex: string): bls.SecretKey {
-    return bls.secretKeyFromBytes(Buffer.from(hex, 'hex'))
+    return bls.secretKeyFromBytes(new Uint8Array(Buffer.from(hex, 'hex')));
   }
 }
