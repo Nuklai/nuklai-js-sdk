@@ -4,7 +4,6 @@ import {
   VM_NAME,
   VM_RPC_PREFIX,
 } from "./endpoints";
-import { Block } from "hypersdk-client/dist/apiTransformers";
 import { NuklaiVMClient } from "./client";
 import {
   AuthType,
@@ -15,14 +14,17 @@ import {
 } from "./auth";
 import { Address } from "./utils";
 import { ed25519 } from "@noble/curves/ed25519";
+import { bls } from "@avalabs/avalanchejs";
 
 export class NuklaiSDK {
   public rpcService: RpcService;
   private client: NuklaiVMClient;
 
   constructor(baseApiUrl = MAINNET_PUBLIC_API_BASE_URL, privateKey?: string) {
+    // Initialize RPC service with proper configuration
     this.rpcService = new RpcService(baseApiUrl);
 
+    // Initialize client with correct VM name and RPC prefix
     this.client = new NuklaiVMClient(baseApiUrl, VM_NAME, VM_RPC_PREFIX);
 
     if (privateKey) {
@@ -30,9 +32,10 @@ export class NuklaiSDK {
     }
   }
 
+  // Wallet Management Methods
+
   public generateED25519Wallet() {
     const { privateKey, publicKey } = ED25519Factory.generateKeyPair();
-
     return {
       privateKey: ED25519Factory.privateKeyToHex(privateKey),
       publicKey: ED25519Factory.publicKeyToHex(publicKey),
@@ -42,10 +45,12 @@ export class NuklaiSDK {
 
   public generateBLSWallet() {
     const { privateKey, publicKey } = BLSFactory.generateKeyPair();
+    const bytes = bls.publicKeyToBytes(publicKey);
+
     return {
       privateKey: BLSFactory.privateKeyToHex(privateKey),
-      publicKey: Buffer.from(publicKeyBytes).toString('hex'),
-      address: Address.newAddress(2, publicKeyBytes).toString()
+      publicKey: Buffer.from(bytes).toString("hex"),
+      address: Address.newAddress(2, bytes).toString(),
     };
   }
 
@@ -62,11 +67,11 @@ export class NuklaiSDK {
     } else {
       const blsPrivateKey = BLSFactory.hexToPrivateKey(privateKey);
       const publicKey = BLSFactory.publicKeyFromPrivateKey(blsPrivateKey);
-      const publicKeyBytes = bls.publicKeyToBytes(publicKey);
+      const bytes = bls.publicKeyToBytes(publicKey);
 
       return {
-        address: Address.newAddress(2, publicKeyBytes).toString(),
-        publicKey: Buffer.from(publicKeyBytes).toString('hex')
+        address: Address.newAddress(2, bytes).toString(),
+        publicKey: Buffer.from(bytes).toString("hex"),
       };
     }
   }
@@ -84,12 +89,9 @@ export class NuklaiSDK {
     }
   }
 
-  public async listenToBlocks(
-    callback: (block: Block) => void,
-    includeEmpty?: boolean,
-    pollingRateMs?: number
-  ): Promise<() => void> {
-    return this.client.listenToBlocks(callback, includeEmpty, pollingRateMs);
+  // Expose block subscription functionality with proper typing
+  listenToBlocks(callback: (block: any) => void) {
+    return this.client.listenToBlocks((block: any) => callback(block));
   }
 }
 
@@ -98,5 +100,4 @@ export {
   VM_NAME,
   VM_RPC_PREFIX,
 } from "./endpoints";
-
 export type { AuthType } from "./auth/provider";
