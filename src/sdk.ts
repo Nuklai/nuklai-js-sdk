@@ -13,6 +13,7 @@ import {
   getAuthFactory,
 } from "./auth";
 import { Address } from "./utils";
+import {formatAddress} from "./utils/format";
 import { ed25519 } from "@noble/curves/ed25519";
 import { bls } from "@avalabs/avalanchejs";
 
@@ -34,56 +35,91 @@ export class NuklaiSDK {
 
   // Wallet Management Methods
 
+  private convertToHexAddress(address: string): string {
+    try {
+      return formatAddress(address);
+    } catch (error) {
+      throw new Error('Invalid address format');
+    }
+  }
+
   public generateED25519Wallet() {
     const { privateKey, publicKey } = ED25519Factory.generateKeyPair();
+    const rawAddress = Address.newAddress(0, publicKey);
+    const hexAddress = this.convertToHexAddress(rawAddress.toString());
+
     return {
       privateKey: ED25519Factory.privateKeyToHex(privateKey),
       publicKey: ED25519Factory.publicKeyToHex(publicKey),
-      address: Address.newAddress(0, publicKey).toString(),
+      address: hexAddress
     };
   }
 
   public generateBLSWallet() {
     const { privateKey, publicKey } = BLSFactory.generateKeyPair();
     const bytes = bls.publicKeyToBytes(publicKey);
+    console.log('BLS publicKey bytes:', Buffer.from(bytes).toString('hex'));
+
+    const rawAddress = Address.newAddress(2, bytes);
+    console.log('Raw BLS address:', rawAddress.toString());
+
+    const hexAddress = this.convertToHexAddress(rawAddress.toString());
+    console.log('Formatted BLS address:', hexAddress);
 
     return {
       privateKey: BLSFactory.privateKeyToHex(privateKey),
-      publicKey: Buffer.from(bytes).toString("hex"),
-      address: Address.newAddress(2, bytes).toString(),
+      publicKey: Buffer.from(bytes).toString('hex'),
+      address: hexAddress
     };
   }
 
-  public importWallet(privateKey: string, type: AuthType = "ed25519") {
+  public importWallet(privateKey: string, type: AuthType = 'ed25519') {
     const factory = getAuthFactory(type, privateKey);
-    if (type === "ed25519") {
-      const publicKey = ED25519Factory.publicKeyFromPrivateKey(
-        ED25519Factory.hexToPrivateKey(privateKey)
-      );
+    if (type === 'ed25519') {
+      const decodedKey = ED25519Factory.hexToPrivateKey(privateKey);
+      const publicKey = ED25519Factory.publicKeyFromPrivateKey(decodedKey);
+      const rawAddress = Address.newAddress(0, publicKey);
       return {
-        address: Address.newAddress(0, publicKey).toString(),
-        publicKey: ED25519Factory.publicKeyToHex(publicKey),
+        address: formatAddress(rawAddress.toString()),
+        publicKey: ED25519Factory.publicKeyToHex(publicKey)
       };
     } else {
-      const blsPrivateKey = BLSFactory.hexToPrivateKey(privateKey);
+      const decodedKey = new Uint8Array(Buffer.from(privateKey, 'hex'));
+      const blsPrivateKey = bls.secretKeyFromBytes(decodedKey);
       const publicKey = BLSFactory.publicKeyFromPrivateKey(blsPrivateKey);
       const bytes = bls.publicKeyToBytes(publicKey);
-
+      const rawAddress = Address.newAddress(2, bytes);
       return {
-        address: Address.newAddress(2, bytes).toString(),
-        publicKey: Buffer.from(bytes).toString("hex"),
+        address: formatAddress(rawAddress.toString()),
+        publicKey: Buffer.from(bytes).toString('hex')
       };
     }
   }
 
-  setSigner(privateKey: string, type: AuthType = "ed25519") {
+  public setSigner(privateKey: string, type: AuthType = 'ed25519') {
+    if (!privateKey || privateKey.length < 64) {
+      throw new Error("Private key is required and must be at least 64 characters");
+    }
     this.rpcService.setSigner(privateKey);
   }
 
   public validateAddress(address: string): boolean {
     try {
-      Address.fromString(address);
-      return true;
+      if (!address) return false;
+
+      // Clean the address
+      const cleanAddress = address.toLowerCase().trim();
+
+      // Here: Handling different address formats:
+      // 1. ED25519 addresses start with 0000
+      // 2. BLS addresses start with 0002 (due to type ID 2)
+      // Both are followed by 64 hex chars
+      if (cleanAddress.startsWith('0000') || cleanAddress.startsWith('0002')) {
+        // Total length should be 68 (4 chars prefix + 64 chars address)
+        return /^(?:0000|0002)[0-9a-f]{64}$/i.test(cleanAddress);
+      }
+
+      return false;
     } catch {
       return false;
     }

@@ -10,6 +10,7 @@ import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import {formatTransactionResponse} from "./utils/format";
+import {isBrowserEnvironment} from "./utils";
 import {
   ActionData,
   ActionOutput,
@@ -121,21 +122,36 @@ export class NuklaiVMClient {
   }
 
   public async setSigner(privateKey: string) {
-    // TODO: Only private key type ed25519 is supported(secpk256r1 and bls are not supported)
-    // Slice the string to keep only the first 64 hex characters (32 bytes)
-    const privateKeyOnly = privateKey.slice(0, 64)
+    if (!privateKey) {
+      throw new Error("Private key is required");
+    }
 
-    // Convert the hex string to a Uint8Array
+    // Clean private key (remove any prefix like 0x)
+    const cleanKey = privateKey.replace('0x', '');
+
+    // Ensure the key is the correct length (32 bytes = 64 hex chars)
+    if (cleanKey.length < 64) {
+      throw new Error("Invalid private key length");
+    }
+
+    // Take only first 64 characters if longer
+    const privateKeyOnly = cleanKey.slice(0, 64);
+
     const privateKeyArray = new Uint8Array(
-      privateKeyOnly.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
-    )
+        privateKeyOnly.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
+    );
 
-    this.signer = new PrivateKeySigner(privateKeyArray)
+    this.signer = new PrivateKeySigner(privateKeyArray);
+
+    if (isBrowserEnvironment()) {
+      window.dispatchEvent(new CustomEvent('signerConnected', { detail: this.signer }));
+    }
+
 
     await this.client.connectWallet({
-      type: 'private-key',
-      privateKey: privateKeyArray
-    })
+      type: "private-key",
+      privateKey: privateKeyArray,
+    });
   }
 
   async createFungibleToken(params: {

@@ -47,12 +47,22 @@ export class Address {
 
   static newAddress(authTypeID: number, publicKeyBytes: Uint8Array): Address {
     if (![ED25519_ID, SECP256R1_ID, BLS_ID].includes(authTypeID)) {
-      throw new Error('invalid auth type')
+      throw new Error('invalid auth type');
     }
-    const address = new Uint8Array(ADDRESS_LEN)
-    address[0] = authTypeID
-    address.set(ToID(publicKeyBytes), 1)
-    return Address.fromBytes(address)[0]
+
+    const address = new Uint8Array(ADDRESS_LEN);
+    address[0] = authTypeID;
+
+    if (authTypeID === BLS_ID) {
+      const id = ToID(publicKeyBytes);
+      console.log('BLS ID:', Buffer.from(id).toString('hex'));
+      address.set(id, 1);
+    } else {
+      address.set(ToID(publicKeyBytes), 1);
+    }
+
+    console.log('Created address bytes:', Buffer.from(address).toString('hex'));
+    return new Address(address);
   }
 
   static formatAddress(address: Uint8Array): string {

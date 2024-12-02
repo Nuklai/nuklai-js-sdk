@@ -11,13 +11,15 @@ import { ED25519, ED25519Factory } from "./ed25519";
 export type AuthType = "bls" | "ed25519";
 
 function decodePrivateKey(privateKey: string): Uint8Array {
+  if (!privateKey) {
+    throw new Error("Private key is required");
+  }
   if (isHex(privateKey)) {
     return new Uint8Array(Buffer.from(privateKey, "hex"));
   } else if (isBase64(privateKey)) {
     return base64ToUint8Array(privateKey);
-  } else {
-    throw new Error("Unsupported private key format");
   }
+  throw new Error("Unsupported private key format");
 }
 
 export function getAuthFactory(

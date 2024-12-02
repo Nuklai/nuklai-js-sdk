@@ -1,5 +1,6 @@
 import {Buffer} from 'buffer';
 import {encodeBase58Check} from './crypto';
+import {utils} from "@avalabs/avalanchejs";
 
 export function formatTxHash(hash: string): string {
     const cleanHex = hash.replace('0x', '');
@@ -8,14 +9,33 @@ export function formatTxHash(hash: string): string {
 }
 
 export function formatAddress(address: string): string {
+    if (!address) throw new Error("Address is required");
+
+    // If already in 00 format, validate and return
+    if (address.startsWith('00') && /^00[0-9a-f]{64}$/i.test(address)) {
+        return address.toLowerCase();
+    }
+
+    // Handle nuklai1 bech32 format
     if (address.startsWith('nuklai1')) {
-        address = address.slice(7);
+        const decoded = utils.parseBech32(address)[1];
+        return '00' + Buffer.from(decoded).toString('hex').toLowerCase();
     }
-    // Ensure address starts with "00"
-    if (!address.startsWith('00')) {
-        return '00' + address;
+
+    // Strip any prefix and get clean hex
+    let cleanHex = address
+        .replace(/^0x/i, '')
+        .replace(/^00/i, '')
+        .toLowerCase();
+
+    // Safety, if it's shorter than 64 chars, pad with zeros
+    if (cleanHex.length < 64) {
+        cleanHex = cleanHex.padStart(64, '0');
+    } else if (cleanHex.length > 64) {
+        cleanHex = cleanHex.slice(-64);
     }
-    return address;
+
+    return `00${cleanHex}`;
 }
 
 export function formatBlockHash(hash: string): string {
