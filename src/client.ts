@@ -9,6 +9,7 @@ import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
+import {formatTransactionResponse} from "./utils/format";
 import {
   ActionData,
   ActionOutput,
@@ -562,28 +563,30 @@ export class NuklaiVMClient {
         { actionName, data }
       ])
 
-      return {
+      // Format the response
+      return formatTransactionResponse({
         txId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: sponsorPublicKey,
+          sponsor: `${sponsorPublicKey}`,
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, data),
           results: rawResult.result.map((item) => ({
-            ...item
-          }))
-        }
-      }
+            ...item,
+          })),
+        },
+      });
     } catch (error) {
-      console.error('Transaction failed:', {
+      console.error("Transaction failed:", {
         error,
-        actionName
-      })
-      throw error
+        actionName,
+      });
+      throw error;
     }
   }
+
 
   convertToNativeTokens(formattedBalance: string): bigint {
     return this.client.convertToNativeTokens(formattedBalance)
