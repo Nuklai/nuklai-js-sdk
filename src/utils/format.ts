@@ -1,40 +1,25 @@
-import { Buffer } from 'buffer';
-
-export function encodeToBase58(input: Uint8Array): string {
-    const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    let n = BigInt('0x' + Buffer.from(input).toString('hex'));
-    let result = '';
-    while (n > 0) {
-        const remainder = Number(n % BigInt(58));
-        n = n / BigInt(58);
-        result = BASE58_ALPHABET[remainder] + result;
-    }
-    // Add the leading zeros
-    for (let i = 0; i < input.length && input[i] === 0; i++) {
-        result = BASE58_ALPHABET[0] + result;
-    }
-    return result;
-}
+import {Buffer} from 'buffer';
+import {encodeBase58Check} from './crypto';
 
 export function formatTxHash(hash: string): string {
-    // Remove '0x' prefix if present
     const cleanHex = hash.replace('0x', '');
-    // Convert hex to Uint8Array
     const bytes = new Uint8Array(Buffer.from(cleanHex, 'hex'));
-    // Convert to base58check format
-    return encodeToBase58(bytes);
-}
-
-export function formatBlockHash(hash: string): string {
-    return formatTxHash(hash);
+    return encodeBase58Check(bytes);
 }
 
 export function formatAddress(address: string): string {
-    // Ensure the address starts with "00"
+    if (address.startsWith('nuklai1')) {
+        address = address.slice(7);
+    }
+    // Ensure address starts with "00"
     if (!address.startsWith('00')) {
         return '00' + address;
     }
     return address;
+}
+
+export function formatBlockHash(hash: string): string {
+    return formatTxHash(hash);
 }
 
 export function formatTransactionResponse(response: any): any {
@@ -45,11 +30,26 @@ export function formatTransactionResponse(response: any): any {
         txId: formatTxHash(response.txId),
         result: {
             ...response.result,
+            timestamp: response.result.timestamp,
+            success: response.result.success,
             sponsor: formatAddress(response.result.sponsor),
+            units: {
+                bandwidth: response.result.units?.bandwidth || 0,
+                compute: response.result.units?.compute || 0,
+                storageRead: response.result.units?.storageRead || 0,
+                storageAllocate: response.result.units?.storageAllocate || 0,
+                storageWrite: response.result.units?.storageWrite || 0
+            },
+            fee: response.result.fee,
             blockHash: response.result.blockHash ? formatBlockHash(response.result.blockHash) : undefined,
             results: response.result.results?.map((result: any) => ({
                 ...result,
+                // Format all addresses and hashes in results
                 address: result.address ? formatAddress(result.address) : undefined,
+                asset_id: result.asset_id ? formatAddress(result.asset_id) : undefined,
+                dataset_address: result.dataset_address ? formatAddress(result.dataset_address) : undefined,
+                payment_asset_address: result.payment_asset_address ? formatAddress(result.payment_asset_address) : undefined,
+                marketplace_asset_address: result.marketplace_asset_address ? formatAddress(result.marketplace_asset_address) : undefined,
             }))
         }
     };

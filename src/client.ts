@@ -554,7 +554,7 @@ export class NuklaiVMClient {
     try {
       const encoder = new TextEncoder()
       const txData = encoder.encode(JSON.stringify({ actionName, data }))
-      const txId = bytesToHex(sha256(txData))
+      const rawTxId = bytesToHex(sha256(txData));
       const sponsorPublicKey = Buffer.from(this.signer.getPublicKey()).toString(
         'hex'
       )
@@ -565,17 +565,15 @@ export class NuklaiVMClient {
 
       // Format the response
       return formatTransactionResponse({
-        txId,
+        txId: rawTxId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: `${sponsorPublicKey}`,
+          sponsor: sponsorPublicKey,
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, data),
-          results: rawResult.result.map((item) => ({
-            ...item,
-          })),
+          results: rawResult.result
         },
       });
     } catch (error) {
