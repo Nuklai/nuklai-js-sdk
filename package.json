@@ -80,6 +80,7 @@
     "@nuklai/hyperchain-sdk": "^0.2.1",
     "bech32": "^2.0.0",
     "big-integer": "^1.6.52",
+    "bs58check": "^4.0.0",
     "hypersdk-client": "^0.4.13",
     "lodash": "^4.17.21"
   },

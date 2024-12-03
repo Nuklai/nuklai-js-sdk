@@ -1,42 +1,55 @@
 import {Buffer} from 'buffer';
 import {encodeBase58Check} from './crypto';
 import {utils} from "@avalabs/avalanchejs";
+import bs58check from 'bs58check';
 
 export function formatTxHash(hash: string): string {
-    const cleanHex = hash.replace('0x', '');
-    const bytes = new Uint8Array(Buffer.from(cleanHex, 'hex'));
-    return encodeBase58Check(bytes);
+    try {
+        // Check if already correctly formatted (~49 chars, base58check)
+        if (/^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{48,50}$/.test(hash)) {
+            return hash;
+        }
+
+        // Remove 0x prefix and validate 32 bytes (64 hex chars)
+        const cleanHex = hash.replace(/^0x/i, '');
+        if (cleanHex.length !== 64) {
+            return ""; // Return empty string for invalid hashes
+        }
+
+        // Convert hex to bytes
+        const hashBytes = Buffer.from(cleanHex, 'hex');
+        return encodeBase58Check(hashBytes);
+    } catch (error) {
+        throw new Error("Invalid transaction hash format");
+    }
 }
 
 export function formatAddress(address: string): string {
-    if (!address) throw new Error("Address is required");
-
-    // If already in 00 format, validate and return
-    if (address.startsWith('00') && /^00[0-9a-f]{64}$/i.test(address)) {
-        return address.toLowerCase();
+    if (!address) {
+        throw new Error("Invalid address");
     }
 
-    // Handle nuklai1 bech32 format
-    if (address.startsWith('nuklai1')) {
-        const decoded = utils.parseBech32(address)[1];
-        return '00' + Buffer.from(decoded).toString('hex').toLowerCase();
+    try {
+        // Handle Bech32 format
+        if (address.startsWith("nuklai1")) {
+            const [hrp, decoded] = utils.parseBech32(address);
+            if (hrp !== "nuklai") {
+                throw new Error("Invalid address format");
+            }
+            return Buffer.from(decoded).toString("hex");
+        }
+
+        // Handle hex format - strip all prefixes
+        const cleanHex = address.replace(/^0x/i, "").replace(/^00/i, "");
+        if (!/^[0-9a-f]{64}$/i.test(cleanHex)) {
+            throw new Error("Invalid address format");
+        }
+        return cleanHex.toLowerCase();
+    } catch (error) {
+        throw new Error("Invalid address");
     }
-
-    // Strip any prefix and get clean hex
-    let cleanHex = address
-        .replace(/^0x/i, '')
-        .replace(/^00/i, '')
-        .toLowerCase();
-
-    // Safety, if it's shorter than 64 chars, pad with zeros
-    if (cleanHex.length < 64) {
-        cleanHex = cleanHex.padStart(64, '0');
-    } else if (cleanHex.length > 64) {
-        cleanHex = cleanHex.slice(-64);
-    }
-
-    return `00${cleanHex}`;
 }
+
 
 export function formatBlockHash(hash: string): string {
     return formatTxHash(hash);

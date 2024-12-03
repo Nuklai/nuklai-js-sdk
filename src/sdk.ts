@@ -13,7 +13,7 @@ import {
   getAuthFactory,
 } from "./auth";
 import { Address } from "./utils";
-import {formatAddress} from "./utils/format";
+import {formatAddress, formatTxHash} from "./utils/format";
 import { ed25519 } from "@noble/curves/ed25519";
 import { bls } from "@avalabs/avalanchejs";
 
@@ -39,8 +39,16 @@ export class NuklaiSDK {
     try {
       return formatAddress(address);
     } catch (error) {
-      throw new Error('Invalid address format');
+      throw new Error('Invalid address');
     }
+  }
+
+  public formatTxHash(hash: string): string {
+    return formatTxHash(hash);
+  }
+
+  public formatAddress(address: string): string {
+    return formatAddress(address);
   }
 
   public generateED25519Wallet() {

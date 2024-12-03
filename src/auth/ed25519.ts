@@ -17,7 +17,7 @@ import {
   Signature,
   sign,
   verify
-} from '../crypto'
+} from './crypto'
 import { Address } from '../utils'
 import { loadHex, toHex } from '../utils'
 import { bufferEquals } from '../utils'

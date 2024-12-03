@@ -7,7 +7,7 @@ import {
   verify as ed25519Verify,
   etc
 } from '@noble/ed25519'
-import { getSha512 } from '../utils/cryptoUtils'
+import { getSha512 } from '../../utils/cryptoUtils'
 
 export type PublicKey = Uint8Array
 export type SecretKey = Uint8Array
