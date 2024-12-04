@@ -13,9 +13,9 @@ export function doubleSha256(data: Uint8Array): Uint8Array {
 }
 
 // Encapsulate the Base58Check encoding using bs58check library
-export function encodeBase58Check(input: Uint8Array): string {
-    return bs58check.encode(new Uint8Array(Buffer.from(input)));
-}
+// export function encodeBase58Check(input: Uint8Array): string {
+//     return bs58check.encode(Buffer.from(input));
+// }
 
 export function cb58Encode(input: Uint8Array): string {
     // Calculate checksum using double SHA256

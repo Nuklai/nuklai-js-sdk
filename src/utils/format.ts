@@ -1,55 +1,70 @@
 import {Buffer} from 'buffer';
-import {encodeBase58Check} from './crypto';
 import {utils} from "@avalabs/avalanchejs";
-import bs58check from 'bs58check';
+import {cb58Encode} from "./crypto";
 
 export function formatTxHash(hash: string): string {
+    if (!hash || !hash.trim()) {
+        throw new Error("Invalid transaction hash format");
+    }
+
     try {
-        // Check if already correctly formatted (~49 chars, base58check)
-        if (/^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{48,50}$/.test(hash)) {
-            return hash;
+        // Remove 0x prefix and clean hash
+        const cleanHash = hash.replace(/^0x/i, '').toLowerCase();
+        if (!/^[0-9a-f]{64}$/i.test(cleanHash)) {
+            throw new Error("Invalid transaction hash format");
         }
 
-        // Remove 0x prefix and validate 32 bytes (64 hex chars)
-        const cleanHex = hash.replace(/^0x/i, '');
-        if (cleanHex.length !== 64) {
-            return ""; // Return empty string for invalid hashes
-        }
-
-        // Convert hex to bytes
-        const hashBytes = Buffer.from(cleanHex, 'hex');
-        return encodeBase58Check(hashBytes);
+        // Convert to bytes and encode
+        const bytes = new Uint8Array(Buffer.from(cleanHash, 'hex'));
+        return cb58Encode(bytes);
     } catch (error) {
         throw new Error("Invalid transaction hash format");
     }
 }
 
 export function formatAddress(address: string): string {
-    if (!address) {
+    if (!address || !address.trim()) {
         throw new Error("Invalid address");
+    }
+
+    // Clean input
+    const cleanAddress = address.trim().toLowerCase();
+
+    // Check if already formatted
+    if (/^00[0-9a-f]{64}$/.test(cleanAddress)) {
+        return cleanAddress;
     }
 
     try {
-        // Handle Bech32 format
-        if (address.startsWith("nuklai1")) {
-            const [hrp, decoded] = utils.parseBech32(address);
-            if (hrp !== "nuklai") {
-                throw new Error("Invalid address format");
+        // Handle Bech32 address format
+        if (cleanAddress.startsWith("nuklai1")) {
+            try {
+                const [_, data] = utils.parseBech32(cleanAddress);
+                return `00${Buffer.from(data).toString("hex")}`;
+            } catch (e) {
+                throw new Error("Invalid address");
             }
-            return Buffer.from(decoded).toString("hex");
         }
 
-        // Handle hex format - strip all prefixes
-        const cleanHex = address.replace(/^0x/i, "").replace(/^00/i, "");
+        // Handle 0x prefix
+        const withoutPrefix = cleanAddress.replace(/^0x/i, "");
+
+        // Clean and format hex address
+        const cleanHex = withoutPrefix.replace(/^00/i, "");
+
+        // Validate hex string
         if (!/^[0-9a-f]{64}$/i.test(cleanHex)) {
-            throw new Error("Invalid address format");
+            throw new Error("Invalid address");
         }
-        return cleanHex.toLowerCase();
+
+        return `00${cleanHex}`;
     } catch (error) {
+        if (error instanceof Error && error.message === "Unknown letter") {
+            throw error;
+        }
         throw new Error("Invalid address");
     }
 }
-
 
 export function formatBlockHash(hash: string): string {
     return formatTxHash(hash);
