@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import {Buffer} from 'buffer';
 import {utils} from "@avalabs/avalanchejs";
 import {cb58Encode} from "./crypto";

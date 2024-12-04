@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
