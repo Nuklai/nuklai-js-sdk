@@ -4,10 +4,9 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
-import { TxResult } from 'hypersdk-client/dist/apiTransformers'
+import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
-import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import {
   ActionData,
@@ -15,6 +14,7 @@ import {
   SignerIface
 } from 'hypersdk-client/dist/types'
 import { NuklaiABI } from './abi'
+import { newED25519Address } from './codec/address'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   VM_NAME,
@@ -554,9 +554,7 @@ export class NuklaiVMClient {
       const encoder = new TextEncoder()
       const txData = encoder.encode(JSON.stringify({ actionName, data }))
       const txId = bytesToHex(sha256(txData))
-      const sponsorPublicKey = Buffer.from(this.signer.getPublicKey()).toString(
-        'hex'
-      )
+      const sponsor = newED25519Address(this.signer.getPublicKey())
 
       const rawResult = await this.client.sendTransaction([
         { actionName, data }
@@ -567,7 +565,7 @@ export class NuklaiVMClient {
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: sponsorPublicKey,
+          sponsor: sponsor,
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, data),
@@ -603,7 +601,7 @@ export class NuklaiVMClient {
     try {
       const unsubscribe = await this.client.listenToBlocks(
         callback,
-        includeEmpty, 
+        includeEmpty,
         pollingRateMs
       )
       return () => {
