@@ -2,7 +2,6 @@
 // See the file LICENSE for licensing terms.
 
 import { NuklaiVMClient, TransactionResult } from './client'
-// import { config } from "@nuklai/hyperchain-sdk";
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { ActionData, ActionOutput } from 'hypersdk-client/dist/types'
 import { VM_NAME, VM_RPC_PREFIX } from './endpoints'
