@@ -257,11 +257,11 @@ export class RpcService {
     datasetAddress: string,
     datasetContributor: string
   ): Promise<TransactionResult> {
-    return this.client.completeContributeDataset({
+    return this.client.completeContributeDataset(
       datasetContributionID,
       datasetAddress,
       datasetContributor
-    })
+    )
   }
 
   async publishDatasetToMarketplace(

@@ -358,16 +358,24 @@ export class NuklaiVMClient {
     })
   }
 
-  async completeContributeDataset(params: {
-    datasetContributionID: string
-    datasetAddress: string
-    datasetContributor: string
-  }): Promise<TransactionResult> {
+  async completeContributeDataset(
+      datasetContributionID: string,
+      datasetAddress: string,
+      datasetContributor: string
+  ): Promise<TransactionResult> {
+    let formattedContributor = datasetContributor;
+    if (!formattedContributor.startsWith('0x')) {
+      const addressBytes = hexToBytes(datasetContributor);
+      const hash = sha256(addressBytes);
+      const checksum = hash.slice(-4);
+      formattedContributor = `0x${datasetContributor}${bytesToHex(checksum)}`;
+    }
+
     return this.sendAction('CompleteContributeDataset', {
-      dataset_contribution_id: params.datasetContributionID,
-      dataset_address: params.datasetAddress,
-      dataset_contributor: params.datasetContributor
-    })
+      dataset_contribution_id: datasetContributionID,
+      dataset_address: datasetAddress,
+      dataset_contributor: formattedContributor
+    });
   }
 
   // Marketplace
