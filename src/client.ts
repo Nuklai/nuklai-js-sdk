@@ -2,12 +2,12 @@
 // See the file LICENSE for licensing terms.
 
 import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex } from '@noble/hashes/utils'
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
 import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
-import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
-import {EphemeralSigner, PrivateKeySigner} from 'hypersdk-client/dist/PrivateKeySigner'
+import { addressBytesFromPubKey, addressHexFromPubKey, Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
+import { EphemeralSigner, PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import {
   ActionData,
   ActionOutput,
@@ -537,41 +537,56 @@ export class NuklaiVMClient {
     }
 
     try {
-      const serializedAction = this.marshaler.encodeTyped(
-        actionData.actionName,
-        JSON.stringify(actionData.data)
-      )
+      // Format addresses in the action data
+      const formattedData = await this.formatAddressFields(actionData.data);
 
-      const publicKeyString = Buffer.from(this.signer.getPublicKey()).toString(
-        'hex'
-      )
+      // Check for Address type support through the encode method.
+      try {
+        this.marshaler.encode('Address', JSON.stringify({ value: [] }));
+      } catch (error) {
+        if (error instanceof Error && !error.message.includes('Type Address not found')) {
+          // If the error is not about missing type, then Address type exists
+          const serializedAction = this.marshaler.encodeTyped(
+              actionData.actionName,
+              JSON.stringify(formattedData)
+          );
 
-      return await this.httpClient.executeActions(
-        [serializedAction],
-        publicKeyString
-      )
+          // Get the properly formatted address for the public key
+          const publicKeyAddress = addressHexFromPubKey(this.signer.getPublicKey());
+
+          return await this.httpClient.executeActions(
+              [serializedAction],
+              publicKeyAddress
+          );
+        }
+      }
+      throw new Error('Address type not properly configured in ABI');
     } catch (error) {
-      console.error('Failed to execute action:', error)
-      throw error
+      console.error('Failed to execute action:', error);
+      throw error;
     }
   }
 
   private async sendAction(
-    actionName: string,
-    data: Record<string, unknown>
+      actionName: string,
+      data: Record<string, unknown>
   ): Promise<TransactionResult> {
     if (!this.signer) {
       throw new Error('Signer not set')
     }
 
     try {
+      const formattedData = await this.formatAddressFields(data);
+
       const encoder = new TextEncoder()
-      const txData = encoder.encode(JSON.stringify({ actionName, data }))
+      const txData = encoder.encode(JSON.stringify({ actionName, data: formattedData }))
       const txId = bytesToHex(sha256(txData))
-      const sponsor = newED25519Address(this.signer.getPublicKey())
+
+      // Get sponsor address with proper formatting
+      const sponsorAddress = addressHexFromPubKey(this.signer.getPublicKey())
 
       const rawResult = await this.client.sendTransaction([
-        { actionName, data }
+        { actionName, data: formattedData }
       ])
 
       return {
@@ -579,10 +594,10 @@ export class NuklaiVMClient {
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: sponsor,
+          sponsor: sponsorAddress,
           units: rawResult.units,
           fee: rawResult.fee,
-          input: createActionInput(actionName, data),
+          input: createActionInput(actionName, formattedData),
           results: rawResult.result.map((item) => ({
             ...item
           }))
@@ -595,6 +610,35 @@ export class NuklaiVMClient {
       })
       throw error
     }
+  }
+
+// Helper method to format address fields
+  private async formatAddressFields(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const formatted: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string' &&
+          (key.toLowerCase().includes('address') ||
+              key.toLowerCase().includes('admin') ||
+              key === 'to' ||
+              key === 'from')) {
+        // Add 0x prefix if missing
+        if (!value.startsWith('0x')) {
+          const addressBytes = hexToBytes(value);
+          const hash = sha256(addressBytes);
+          const checksum = hash.slice(-4);
+          formatted[key] = `0x${value}${bytesToHex(checksum)}`;
+        } else {
+          formatted[key] = value;
+        }
+      } else if (value && typeof value === 'object') {
+        formatted[key] = await this.formatAddressFields(value as Record<string, unknown>);
+      } else {
+        formatted[key] = value;
+      }
+    }
+
+    return formatted;
   }
 
   convertToNativeTokens(formattedBalance: string): bigint {
