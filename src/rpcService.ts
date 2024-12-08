@@ -3,7 +3,7 @@
 
 import { NuklaiVMClient, TransactionResult } from './client'
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
-import { ActionData, ActionOutput } from 'hypersdk-client/dist/types'
+import {ActionData, ActionOutput, SignerIface} from 'hypersdk-client/dist/types'
 import { VM_NAME, VM_RPC_PREFIX } from './endpoints'
 
 const DEFAULT_TIMEOUT = 30000
@@ -38,8 +38,8 @@ export class RpcService {
   }
 
   // Method to set signer after construction
-  setSigner(privateKey: string) {
-    this.client.setSigner(privateKey)
+  setSigner(input: string | SignerIface) {
+    this.client.setSigner(input);
   }
 
   // async getAllValidators(): Promise<ActionOutput> {
