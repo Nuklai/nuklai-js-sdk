@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import {MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK, VM_NAME, VM_RPC_PREFIX} from '../src/sdk'

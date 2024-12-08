@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { PrivateKeySigner, EphemeralSigner } from 'hypersdk-client/dist/PrivateKeySigner';
 import { SignerIface } from 'hypersdk-client/dist/types';
 import { addressBytesFromPubKey, addressHexFromPubKey } from 'hypersdk-client/dist/Marshaler';

@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { RpcService } from "./rpcService";
 import { MAINNET_PUBLIC_API_BASE_URL, VM_NAME, VM_RPC_PREFIX } from "./endpoints";
 import { Block } from "hypersdk-client/dist/apiTransformers";

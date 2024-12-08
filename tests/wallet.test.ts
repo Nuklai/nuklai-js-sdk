@@ -1,3 +1,6 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK } from '../src/sdk';
 import { NuklaiWallet } from '../src/wallet';
