@@ -315,6 +315,13 @@ export class RpcService {
     )
   }
 
+  async getAssetBalance(address: string, assetAddress: string): Promise<string> {
+    return this.executeWithTimeout(
+      () => this.client.getAssetBalance(address, assetAddress),
+      'Failed to get asset balance'
+    )
+  }
+
   async getDatasetInfo(datasetID: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
         () => this.client.makeVmRequest('dataset', { dataset: datasetID }),

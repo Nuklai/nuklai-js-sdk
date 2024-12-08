@@ -491,6 +491,22 @@ export class NuklaiVMClient {
     }
   }
 
+  public async getAssetBalance(address: string, assetAddress: string): Promise<string> {
+    try {
+      // Add '00' prefix if not present for API calls
+      const apiAddress = address.startsWith("00") ? address : `00${address}`;
+
+      const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
+        "balance",
+        { address: apiAddress, asset: assetAddress }
+      );
+      return this.client.formatNativeTokens(BigInt(result.amount));
+    } catch (error) {
+      console.error('Asset balance query failed:', error);
+      throw error;
+    }
+  }
+
   async getTransactionStatus(txID: string): Promise<TxResult> {
     try {
       return await this.httpClient.makeIndexerRequest('tx', { txID })

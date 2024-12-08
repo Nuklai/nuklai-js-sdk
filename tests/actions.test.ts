@@ -130,6 +130,17 @@ describe('NuklaiSDK Asset', () => {
       }
     })
 
+    it('should get asset balance', async () => {
+      try {
+        const balance = await sdk.rpcService.getAssetBalance(TEST_ADDRESS, ftAddress)
+        expect(balance).toBeDefined()
+        console.log('Asset balance:', balance)
+      } catch (error) {
+        console.error('Asset balance check failed:', error)
+        throw error
+      }
+    })
+
     it('should transfer fungible tokens', async () => {
       try {
         const transferAmount = BigInt(1) // 1 token
