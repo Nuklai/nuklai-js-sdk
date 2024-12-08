@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { bytesToHex } from '@noble/hashes/utils';
 import { ed25519 } from '@noble/curves/ed25519';
 import {NuklaiSDK} from "../src";
+import {NuklaiWallet} from "../src/wallet";
 
 const API_HOST = 'http://127.0.0.1:9650';
 const TEST_PRIVATE_KEY = '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7';
