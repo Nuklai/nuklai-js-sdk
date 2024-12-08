@@ -1,10 +1,14 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { TransactionResult } from '../src/client'
-import { NuklaiSDK } from '../src/sdk'
+import { NuklaiSDK } from '../src'
+import {MAINNET_PUBLIC_API_BASE_URL} from "../src/endpoints";
 
-const API_HOST = 'http://127.0.0.1:9650'
+const API_HOST = MAINNET_PUBLIC_API_BASE_URL
 const NAI_ASSET_ADDRESS =
   '00cf77495ce1bdbf11e5e45463fad5a862cb6cc0a20e00e658c4ac3355dcdc64bb'
 const TEST_ADDRESS =
@@ -122,6 +126,17 @@ describe('NuklaiSDK Asset', () => {
         console.log('FT asset info:', info)
       } catch (error) {
         console.error('Failed to get FT asset info:', error)
+        throw error
+      }
+    })
+
+    it('should get asset balance', async () => {
+      try {
+        const balance = await sdk.rpcService.getAssetBalance(TEST_ADDRESS, ftAddress)
+        expect(balance).toBeDefined()
+        console.log('Asset balance:', balance)
+      } catch (error) {
+        console.error('Asset balance check failed:', error)
         throw error
       }
     })
