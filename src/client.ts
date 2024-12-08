@@ -7,7 +7,7 @@ import { HyperSDKClient } from 'hypersdk-client'
 import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
 import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
-import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
+import {EphemeralSigner, PrivateKeySigner} from 'hypersdk-client/dist/PrivateKeySigner'
 import {
   ActionData,
   ActionOutput,
@@ -119,23 +119,34 @@ export class NuklaiVMClient {
     this.marshaler = new Marshaler(NuklaiABI)
   }
 
-  public async setSigner(privateKey: string) {
-    // TODO: Only private key type ed25519 is supported(secpk256r1 and bls are not supported)
-    // Slice the string to keep only the first 64 hex characters (32 bytes)
-    const privateKeyOnly = privateKey.slice(0, 64)
+  public async setSigner(input: string | SignerIface) {
+    if (typeof input === 'string') {
+      // Handle private key string
+      const privateKeyOnly = input.slice(0, 64);
+      const privateKeyArray = new Uint8Array(
+        privateKeyOnly
+          .match(/.{1,2}/g)!
+          .map((byte: string) => parseInt(byte, 16))
+      );
+      this.signer = new PrivateKeySigner(privateKeyArray);
+      await this.client.connectWallet({
+        type: "private-key",
+        privateKey: privateKeyArray,
+      });
+    } else {
+      // For any SignerIface, we use ephemeral type but keep the actual signer
+      this.signer = input;
+      await this.client.connectWallet({
+        type: 'ephemeral'
+      });
 
-    // Convert the hex string to a Uint8Array
-    const privateKeyArray = new Uint8Array(
-      privateKeyOnly.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
-    )
-
-    this.signer = new PrivateKeySigner(privateKeyArray)
-
-    await this.client.connectWallet({
-      type: 'private-key',
-      privateKey: privateKeyArray
-    })
+      // Override the client's internal signer methods with our signer
+      if ('signTx' in this.client) {
+        (this.client as any).signer = this.signer;
+      }
+    }
   }
+
 
   async createFungibleToken(params: {
     name: string
@@ -395,19 +406,22 @@ export class NuklaiVMClient {
   }
 
   // Query Methods
-  // Update the getBalance method to use httpClient
   public async getBalance(address: string): Promise<string> {
     try {
+      // Add '00' prefix if not present for API calls
+      const apiAddress = address.startsWith("00") ? address : `00${address}`;
+
       const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
-        'balance',
-        { address, asset: 'NAI' }
-      )
-      return this.client.formatNativeTokens(BigInt(result.amount))
+        "balance",
+        { address: apiAddress, asset: "NAI" }
+      );
+      return this.client.formatNativeTokens(BigInt(result.amount));
     } catch (error) {
-      console.error('Balance query failed:', error)
-      throw error
+      console.error('Balance query failed:', error);
+      throw error;
     }
   }
+
 
   // Validator Methods
   async getAllValidators(): Promise<ActionOutput> {

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { TransactionResult } from '../src/client'
-import { NuklaiSDK } from '../src/sdk'
+import { NuklaiSDK } from '../src'
 import {MAINNET_PUBLIC_API_BASE_URL} from "../src/endpoints";
 
 const API_HOST = MAINNET_PUBLIC_API_BASE_URL

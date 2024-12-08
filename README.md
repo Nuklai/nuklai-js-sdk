@@ -50,19 +50,36 @@ sdk.rpcService.setSigner("your-private-key-here");
 
 ### Wallet Generation
 
-```js
+```javascript
 // Create SDK instance
 const sdk = new NuklaiSDK();
+
 // Create a new random wallet
 const wallet = sdk.createWallet();
 console.log("Wallet address:", wallet.getAddress());
+
 // Or import an existing wallet
 const importedWallet = sdk.importWalletFromPrivateKey("your-private-key-hex");
+
 // Check wallet connection
 if (sdk.isWalletConnected()) {
     // Use wallet features
     const address = sdk.getAddress();
 }
+```
+
+### Signer
+
+```typescript
+// Using a private key string (old way)
+await sdk.rpcService.setSigner(privateKeyString);
+
+// Using a wallet's signer (new way)
+await sdk.rpcService.setSigner(wallet.getSigner());
+
+// Using any custom signer that implements SignerIface
+await sdk.rpcService.setSigner(customSigner);
+
 ```
 
 ### Asset Management
