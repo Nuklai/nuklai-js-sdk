@@ -48,6 +48,23 @@ const sdk = new NuklaiSDK({
 sdk.rpcService.setSigner("your-private-key-here");
 ```
 
+### Wallet Generation
+
+```js
+// Create SDK instance
+const sdk = new NuklaiSDK();
+// Create a new random wallet
+const wallet = sdk.createWallet();
+console.log("Wallet address:", wallet.getAddress());
+// Or import an existing wallet
+const importedWallet = sdk.importWalletFromPrivateKey("your-private-key-hex");
+// Check wallet connection
+if (sdk.isWalletConnected()) {
+    // Use wallet features
+    const address = sdk.getAddress();
+}
+```
+
 ### Asset Management
 
 ```javascript
