@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { MAINNET_PUBLIC_API_BASE_URL, NuklaiSDK } from '../src/sdk';
 import { NuklaiWallet } from '../src/wallet';
+import { bytesToHex } from '@noble/hashes/utils';
 
 const API_HOST = MAINNET_PUBLIC_API_BASE_URL;
 const TEST_PRIVATE_KEY = '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd0';
@@ -131,6 +132,25 @@ describe('NuklaiSDK Wallet Integration', () => {
             expect(shortWallet.getAddress()).toBeDefined();
             expect(shortWallet.getAddress()).not.toBe(TEST_ADDRESS);
             expect(longWallet.getAddress()).toBe(TEST_ADDRESS);
+        });
+        it('should verify signer is properly setup for transaction signing', () => {
+            const wallet = sdk.importWalletFromPrivateKey(TEST_PRIVATE_KEY);
+            const address = wallet.getAddress();
+            const signer = wallet.getSigner();
+
+            console.log('Wallet signer test:');
+            console.log('  Wallet Address:', address);
+            console.log('  Full Address:', wallet.getFullAddress());
+            console.log('  Public Key:', wallet.getPublicKey());
+            console.log('  Signer Status:', signer ? 'Successfully created' : 'Failed to create');
+            console.log('  Signer Public Key:', bytesToHex(signer.getPublicKey()));
+            console.log('  Has SignTx Function:', typeof signer.signTx === 'function' ? 'Yes' : 'No');
+            console.log('  Signer Matches Wallet:', wallet.getSigner() === signer ? 'Yes' : 'No');
+
+            expect(signer).toBeDefined();
+            expect(typeof signer.signTx).toBe('function');
+            expect(wallet.getSigner()).toBe(signer);
+            expect(bytesToHex(signer.getPublicKey())).toBe(wallet.getPublicKey());
         });
     });
 });
