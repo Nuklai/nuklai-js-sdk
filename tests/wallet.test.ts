@@ -90,5 +90,47 @@ describe('NuklaiSDK Wallet Integration', () => {
             console.log('  Wallet 1 Address:', address1);
             console.log('  Wallet 2 Address:', address2);
         });
+        it('should handle different private key formats correctly', () => {
+            // Has 0x prefix
+            const withPrefix = `0x${TEST_PRIVATE_KEY}`;
+            const wallet1 = sdk.importWalletFromPrivateKey(withPrefix);
+
+            // No prefix
+            const wallet2 = sdk.importWalletFromPrivateKey(TEST_PRIVATE_KEY);
+
+            console.log('Private key format test:');
+            console.log('  With prefix Address:', wallet1.getAddress());
+            console.log('  Without prefix Address:', wallet2.getAddress());
+            console.log('  Full Address (with prefix):', wallet1.getFullAddress());
+            console.log('  Full Address (without prefix):', wallet2.getFullAddress());
+
+            expect(wallet1.getAddress()).toBe(wallet2.getAddress());
+            expect(wallet1.getAddress()).toBe(TEST_ADDRESS);
+        });
+
+        it('should handle different private key formats and values', () => {
+            const validWallet = sdk.importWalletFromPrivateKey(TEST_PRIVATE_KEY);
+            console.log("Private key values test:");
+            console.log("  Valid key Address:", validWallet.getAddress());
+            // Has 0x prefix
+            const withPrefix = `0x${TEST_PRIVATE_KEY}`;
+            const prefixWallet = sdk.importWalletFromPrivateKey(withPrefix);
+            console.log("  Prefix key Address:", prefixWallet.getAddress());
+
+
+            const shortKey = "1234";
+            const shortWallet = sdk.importWalletFromPrivateKey(shortKey);
+            console.log("  Short key Address:", shortWallet.getAddress());
+
+            const longKey = TEST_PRIVATE_KEY + "extracharacters";
+            const longWallet = sdk.importWalletFromPrivateKey(longKey);
+            console.log("  Long key Address:", longWallet.getAddress());
+
+            expect(validWallet.getAddress()).toBe(TEST_ADDRESS);
+            expect(prefixWallet.getAddress()).toBe(TEST_ADDRESS);
+            expect(shortWallet.getAddress()).toBeDefined();
+            expect(shortWallet.getAddress()).not.toBe(TEST_ADDRESS);
+            expect(longWallet.getAddress()).toBe(TEST_ADDRESS);
+        });
     });
 });
