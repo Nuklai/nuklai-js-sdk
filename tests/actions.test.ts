@@ -52,15 +52,10 @@ describe('NuklaiSDK Asset', () => {
 
   describe('Basic Connectivity', () => {
     it('should get native token balance', async () => {
-      try {
-        const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-        expect(balance).toBeDefined()
-        console.log('Native balance:', balance)
-      } catch (error) {
-        console.error('Balance check failed:', error)
-        throw error
-      }
-    })
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS);
+      expect(balance).toBeDefined();
+      console.log('Native balance:', balance);
+    });
 
     it('should get validator information', async () => {
       const validators = await sdk.rpcService.getAllValidators()
@@ -131,15 +126,10 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should get asset balance', async () => {
-      try {
-        const balance = await sdk.rpcService.getAssetBalance(TEST_ADDRESS, ftAddress)
-        expect(balance).toBeDefined()
-        console.log('Asset balance:', balance)
-      } catch (error) {
-        console.error('Asset balance check failed:', error)
-        throw error
-      }
-    })
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress);
+      expect(balance).toBeDefined();
+      console.log('Asset balance:', balance);
+    });
 
     it('should transfer fungible tokens', async () => {
       try {

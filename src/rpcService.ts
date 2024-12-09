@@ -299,26 +299,17 @@ export class RpcService {
   }
 
   // Query Methods
-  async getBalance(address: string): Promise<string> {
-    try {
-      return await this.client.getBalance(address)
-    } catch (error) {
-      console.error('Failed to get balance:', error)
-      throw error
-    }
+  async getBalance(address: string, assetAddress?: string): Promise<string> {
+    return this.executeWithTimeout(
+      () => this.client.getBalance(address, assetAddress),
+      'Failed to get balance'
+    );
   }
 
   async getAssetInfo(assetAddress: string): Promise<ActionOutput> {
     return this.executeWithTimeout(
       () => this.client.makeVmRequest('asset', { asset: assetAddress }),
       'Failed to get asset info'
-    )
-  }
-
-  async getAssetBalance(address: string, assetAddress: string): Promise<string> {
-    return this.executeWithTimeout(
-      () => this.client.getAssetBalance(address, assetAddress),
-      'Failed to get asset balance'
     )
   }
 

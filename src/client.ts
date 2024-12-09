@@ -414,14 +414,15 @@ export class NuklaiVMClient {
   }
 
   // Query Methods
-  public async getBalance(address: string): Promise<string> {
+  public async getBalance(address: string, assetAddress?: string): Promise<string> {
     try {
       // Add '00' prefix if not present for API calls
       const apiAddress = address.startsWith("00") ? address : `00${address}`;
+      const asset = assetAddress || "NAI";
 
       const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
         "balance",
-        { address: apiAddress, asset: "NAI" }
+        { address: apiAddress, asset }
       );
       return this.client.formatNativeTokens(BigInt(result.amount));
     } catch (error) {
@@ -429,7 +430,6 @@ export class NuklaiVMClient {
       throw error;
     }
   }
-
 
   // Validator Methods
   async getAllValidators(): Promise<ActionOutput> {
@@ -488,22 +488,6 @@ export class NuklaiVMClient {
     } catch (error) {
       console.error('Failed to get asset info:', error)
       throw error
-    }
-  }
-
-  public async getAssetBalance(address: string, assetAddress: string): Promise<string> {
-    try {
-      // Add '00' prefix if not present for API calls
-      const apiAddress = address.startsWith("00") ? address : `00${address}`;
-
-      const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
-        "balance",
-        { address: apiAddress, asset: assetAddress }
-      );
-      return this.client.formatNativeTokens(BigInt(result.amount));
-    } catch (error) {
-      console.error('Asset balance query failed:', error);
-      throw error;
     }
   }
 
