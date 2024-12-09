@@ -2,6 +2,7 @@
 // See the file LICENSE for licensing terms.
 
 import * as crypto from 'crypto'
+import { sha256 } from '@noble/hashes/sha256'
 
 // Constants
 const ADDRESS_LEN = 33 // Address length (type ID + 32-byte hash)
@@ -9,7 +10,7 @@ const ED25519_ID = 0 // ED25519 Type ID
 
 // Utility function to compute SHA-256 hash
 function computeHash256Array(input: Uint8Array): Uint8Array {
-  return new Uint8Array(crypto.createHash('sha256').update(input).digest())
+    return sha256(input)
 }
 
 // Function to create an address
