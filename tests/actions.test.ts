@@ -54,7 +54,9 @@ describe('NuklaiSDK Asset', () => {
     it('should get native token balance', async () => {
       const balance = await sdk.rpcService.getBalance(TEST_ADDRESS);
       expect(balance).toBeDefined();
-      console.log('Native balance:', balance);
+      expect(typeof balance).toBe('string');
+      expect(BigInt(balance)).toBeGreaterThan(0);
+      console.log('Raw Native balance:', balance);
     });
 
     it('should get validator information', async () => {
@@ -128,7 +130,9 @@ describe('NuklaiSDK Asset', () => {
     it('should get asset balance', async () => {
       const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress);
       expect(balance).toBeDefined();
-      console.log('Asset balance:', balance);
+      expect(typeof balance).toBe('string');
+      expect(BigInt(balance)).toBe(BigInt('1000000000000000000'));
+      console.log('Raw Asset balance:', balance);
     });
 
     it('should transfer fungible tokens', async () => {
@@ -377,9 +381,11 @@ describe('NuklaiSDK Asset', () => {
   // Clean up or final verifications
   afterAll(async () => {
     // Verify final states or clean up
-    const ftBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-    console.log('Final FT balance:', ftBalance)
-  })
+    const ftbalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+    expect(ftbalance).toBeDefined();
+    expect(typeof ftbalance).toBe('string');
+    console.log('Raw Final balance:', ftbalance);
+  });
 })
 
 describe('Listening for Blocks', () => {

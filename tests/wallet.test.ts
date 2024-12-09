@@ -32,8 +32,9 @@ describe('NuklaiSDK Wallet Integration', () => {
 
             try {
                 const balance = await sdk.rpcService.getBalance(address);
-                console.log('  Initial Balance:', balance);
                 expect(balance).toBeDefined();
+                expect(typeof balance).toBe('string');
+                console.log('  Raw Initial Balance:', balance);
             } catch (error) {
                 console.log('  Balance check failed (expected on new wallet):', error);
             }

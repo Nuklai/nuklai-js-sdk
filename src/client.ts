@@ -418,13 +418,12 @@ export class NuklaiVMClient {
     try {
       // Add '00' prefix if not present for API calls
       const apiAddress = address.startsWith("00") ? address : `00${address}`;
-      const asset = assetAddress || "NAI";
-
       const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
         "balance",
-        { address: apiAddress, asset }
+        { address: apiAddress, asset: assetAddress || "NAI" }
       );
-      return this.client.formatNativeTokens(BigInt(result.amount));
+      // Return raw amount, let frontend handle decimal formatting
+      return result.amount.toString();
     } catch (error) {
       console.error('Balance query failed:', error);
       throw error;
