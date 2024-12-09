@@ -150,8 +150,10 @@ const transferResult = await sdk.rpcService.transfer(
 const nativeBalance = await sdk.rpcService.getBalance("address");
 
 // Get any asset balance by passing asset address
-const assetBalance = await sdk.rpcService.getBalance("address", "assetAddress");
+const assetBalance = await sdk.rpcService.getBalance("address", "assetAddress");;
 ```
+
+> NOTE: Balance is returned as raw strings without decimal formatting. Use asset decimals info from `getAssetInfo()` to correctly format & display the balance corectly.
 
 ### Dataset Operations
 
