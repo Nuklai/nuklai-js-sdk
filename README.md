@@ -146,7 +146,11 @@ const transferResult = await sdk.rpcService.transfer(
 ### Check Address Balance
 
 ```javascript
-const balance = await sdk.rpcService.getBalance("address");
+// Get native NAI token balance
+const nativeBalance = await sdk.rpcService.getBalance("address");
+
+// Get any asset balance by passing asset address
+const assetBalance = await sdk.rpcService.getBalance("address", "assetAddress");
 ```
 
 ### Dataset Operations
