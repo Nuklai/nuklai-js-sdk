@@ -1,9 +1,28 @@
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
 
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+export function cb58Encode(bytes: Uint8Array): string {
+    let x = BigInt(`0x${bytesToHex(bytes)}`);
+    let result = '';
+
+    while (x > 0) {
+        const remainder = Number(x % 58n);
+        result = BASE58_ALPHABET[remainder] + result;
+        x = x / 58n;
+    }
+
+    for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+        result = '1' + result;
+    }
+
+    return result;
+}
+
 /**
  * Generate a transaction ID according to Avalanche format
- * Returns a 32-byte hash as a hex string
+ * Returns a 32-byte hash as a CB58-encoded string
  */
 export function generateTxID(actionName: string, data: Record<string, unknown>): string {
     const encoder = new TextEncoder();
@@ -21,7 +40,8 @@ export function generateTxID(actionName: string, data: Record<string, unknown>):
     // Generate SHA256 hash of the tx data
     const hash = sha256(encoder.encode(txData));
 
-    return bytesToHex(hash);
+    // Convert the hash to a CB58-encoded string
+    return cb58Encode(hash);
 }
 
 function formatAddress(address: string): string {

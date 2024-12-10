@@ -62,22 +62,22 @@ export interface ActionInput {
 export interface ActionResult extends Record<string, any> {}
 
 export interface TransactionResult {
-  txId: string
+  txId: string;
   result: {
-    timestamp: number
-    success: boolean
-    sponsor: string
+    timestamp: number;
+    success: boolean;
+    sponsor: string;
     units: {
-      bandwidth: number
-      compute: number
-      storageRead: number
-      storageAllocate: number
-      storageWrite: number
-    }
-    fee: number
-    input: ActionInput
-    results: ActionResult[]
-  }
+      bandwidth: number;
+      compute: number;
+      storageRead: number;
+      storageAllocate: number;
+      storageWrite: number;
+    };
+    fee: number;
+    input: ActionInput;
+    results: ActionResult[];
+  };
 }
 
 // Construct ActionInput
