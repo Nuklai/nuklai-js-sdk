@@ -6,15 +6,15 @@ import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
 import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
-import { addressBytesFromPubKey, addressHexFromPubKey, Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
-import { EphemeralSigner, PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
+import { addressHexFromPubKey, Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
+import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import {
   ActionData,
   ActionOutput,
   SignerIface
 } from 'hypersdk-client/dist/types'
 import { NuklaiABI } from './abi'
-import { newED25519Address } from './codec/address'
+import {generateTxID} from "./utils/utils";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   VM_NAME,
@@ -585,9 +585,8 @@ export class NuklaiVMClient {
     try {
       const formattedData = await this.formatAddressFields(data);
 
-      const encoder = new TextEncoder()
-      const txData = encoder.encode(JSON.stringify({ actionName, data: formattedData }))
-      const txId = bytesToHex(sha256(txData))
+      // Generate txId in Avalanche format
+      const txId = generateTxID(actionName, formattedData);
 
       // Get sponsor address with proper formatting
       const sponsorAddress = addressHexFromPubKey(this.signer.getPublicKey())
