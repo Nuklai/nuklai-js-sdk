@@ -1,10 +1,14 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
 import { TransactionResult } from '../src/client'
-import { NuklaiSDK } from '../src/sdk'
+import { NuklaiSDK } from '../src'
+import {MAINNET_PUBLIC_API_BASE_URL} from "../src/endpoints";
 
-const API_HOST = 'http://127.0.0.1:9650'
+const API_HOST = MAINNET_PUBLIC_API_BASE_URL
 const NAI_ASSET_ADDRESS =
   '00cf77495ce1bdbf11e5e45463fad5a862cb6cc0a20e00e658c4ac3355dcdc64bb'
 const TEST_ADDRESS =
@@ -48,15 +52,12 @@ describe('NuklaiSDK Asset', () => {
 
   describe('Basic Connectivity', () => {
     it('should get native token balance', async () => {
-      try {
-        const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-        expect(balance).toBeDefined()
-        console.log('Native balance:', balance)
-      } catch (error) {
-        console.error('Balance check failed:', error)
-        throw error
-      }
-    })
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS);
+      expect(balance).toBeDefined();
+      expect(typeof balance).toBe('string');
+      expect(BigInt(balance)).toBeGreaterThan(0);
+      console.log('Raw Native balance:', balance);
+    });
 
     it('should get validator information', async () => {
       const validators = await sdk.rpcService.getAllValidators()
@@ -125,6 +126,14 @@ describe('NuklaiSDK Asset', () => {
         throw error
       }
     })
+
+    it('should get asset balance', async () => {
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress);
+      expect(balance).toBeDefined();
+      expect(typeof balance).toBe('string');
+      expect(BigInt(balance)).toBe(BigInt('1000000000000000000'));
+      console.log('Raw Asset balance:', balance);
+    });
 
     it('should transfer fungible tokens', async () => {
       try {
@@ -372,9 +381,11 @@ describe('NuklaiSDK Asset', () => {
   // Clean up or final verifications
   afterAll(async () => {
     // Verify final states or clean up
-    const ftBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-    console.log('Final FT balance:', ftBalance)
-  })
+    const ftbalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+    expect(ftbalance).toBeDefined();
+    expect(typeof ftbalance).toBe('string');
+    console.log('Raw Final balance:', ftbalance);
+  });
 })
 
 describe('Listening for Blocks', () => {
