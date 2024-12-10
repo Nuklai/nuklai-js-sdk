@@ -14,7 +14,7 @@ import {
   SignerIface
 } from 'hypersdk-client/dist/types'
 import { NuklaiABI } from './abi'
-import {generateTxID} from "./utils/utils";
+import { generateTxID, formatAddressFields, formatAddressForBalance } from "./utils/utils";
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   VM_NAME,
@@ -363,18 +363,10 @@ export class NuklaiVMClient {
       datasetAddress: string,
       datasetContributor: string
   ): Promise<TransactionResult> {
-    let formattedContributor = datasetContributor;
-    if (!formattedContributor.startsWith('0x')) {
-      const addressBytes = hexToBytes(datasetContributor);
-      const hash = sha256(addressBytes);
-      const checksum = hash.slice(-4);
-      formattedContributor = `0x${datasetContributor}${bytesToHex(checksum)}`;
-    }
-
     return this.sendAction('CompleteContributeDataset', {
       dataset_contribution_id: datasetContributionID,
       dataset_address: datasetAddress,
-      dataset_contributor: formattedContributor
+      dataset_contributor: datasetContributor
     });
   }
 
@@ -416,11 +408,14 @@ export class NuklaiVMClient {
   // Query Methods
   public async getBalance(address: string, assetAddress?: string): Promise<string> {
     try {
-      // Add '00' prefix if not present for API calls
-      const apiAddress = address.startsWith("00") ? address : `00${address}`;
+      const formattedAddress = formatAddressForBalance(address);
+      const assetId = assetAddress
+        ? formatAddressForBalance(assetAddress)
+        : 'NAI';
+
       const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
-        "balance",
-        { address: apiAddress, asset: assetAddress || "NAI" }
+        'balance',
+        { address: formattedAddress, asset: assetId }
       );
       // Return raw amount, let frontend handle decimal formatting
       return result.amount.toString();
@@ -545,7 +540,7 @@ export class NuklaiVMClient {
 
     try {
       // Format addresses in the action data
-      const formattedData = await this.formatAddressFields(actionData.data);
+      const formattedData = await formatAddressFields(actionData.data);
 
       // Check for Address type support through the encode method.
       try {
@@ -554,16 +549,16 @@ export class NuklaiVMClient {
         if (error instanceof Error && !error.message.includes('Type Address not found')) {
           // If the error is not about missing type, then Address type exists
           const serializedAction = this.marshaler.encodeTyped(
-              actionData.actionName,
-              JSON.stringify(formattedData)
+            actionData.actionName,
+            JSON.stringify(formattedData)
           );
 
           // Get the properly formatted address for the public key
           const publicKeyAddress = addressHexFromPubKey(this.signer.getPublicKey());
 
           return await this.httpClient.executeActions(
-              [serializedAction],
-              publicKeyAddress
+            [serializedAction],
+            publicKeyAddress
           );
         }
       }
@@ -575,76 +570,46 @@ export class NuklaiVMClient {
   }
 
   private async sendAction(
-      actionName: string,
-      data: Record<string, unknown>
+    actionName: string,
+    data: Record<string, unknown>
   ): Promise<TransactionResult> {
     if (!this.signer) {
-      throw new Error('Signer not set')
+      throw new Error('Signer not set');
     }
 
     try {
-      const formattedData = await this.formatAddressFields(data);
+      // Format addresses in the action data
+      const formattedData = await formatAddressFields(data);
 
-      // Generate txId in Avalanche format
+      // Generate txID with formatted data
       const txId = generateTxID(actionName, formattedData);
 
-      // Get sponsor address with proper formatting
-      const sponsorAddress = addressHexFromPubKey(this.signer.getPublicKey())
-
+      // Send transaction
       const rawResult = await this.client.sendTransaction([
         { actionName, data: formattedData }
-      ])
+      ]);
 
       return {
         txId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: sponsorAddress,
+          sponsor: addressHexFromPubKey(this.signer.getPublicKey()),
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, formattedData),
           results: rawResult.result.map((item) => ({
-            ...item
+            ...item,
           }))
         }
-      }
+      };
     } catch (error) {
       console.error('Transaction failed:', {
         error,
-        actionName
-      })
-      throw error
+        actionName,
+      });
+      throw error;
     }
-  }
-
-// Helper method to format address fields
-  private async formatAddressFields(data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const formatted: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(data)) {
-      if (typeof value === 'string' &&
-          (key.toLowerCase().includes('address') ||
-              key.toLowerCase().includes('admin') ||
-              key === 'to' ||
-              key === 'from')) {
-        // Add 0x prefix if missing
-        if (!value.startsWith('0x')) {
-          const addressBytes = hexToBytes(value);
-          const hash = sha256(addressBytes);
-          const checksum = hash.slice(-4);
-          formatted[key] = `0x${value}${bytesToHex(checksum)}`;
-        } else {
-          formatted[key] = value;
-        }
-      } else if (value && typeof value === 'object') {
-        formatted[key] = await this.formatAddressFields(value as Record<string, unknown>);
-      } else {
-        formatted[key] = value;
-      }
-    }
-
-    return formatted;
   }
 
   convertToNativeTokens(formattedBalance: string): bigint {

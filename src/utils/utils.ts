@@ -1,24 +1,92 @@
-import { base58 } from "@scure/base";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
 
-export function generateTxID(
-  actionName: string,
-  data: Record<string, unknown>
-): string {
-  // Encode the transaction data
-  const encoder = new TextEncoder();
-  const txData = encoder.encode(JSON.stringify({ actionName, data }));
+/**
+ * Generate a transaction ID according to Avalanche format
+ * Returns a 32-byte hash as a hex string
+ */
+export function generateTxID(actionName: string, data: Record<string, unknown>): string {
+    const encoder = new TextEncoder();
 
-  // Get SHA256 hash
-  const hash = sha256(txData);
+    const txData = JSON.stringify({
+        actionName,
+        data
+    }, (_, value) => {
+        if (typeof value === 'bigint') {
+            return value.toString();
+        }
+        return value;
+    });
 
-  // CB58 encode (base58 with 32-byte length limit and checksum)
-  const checksumHash = sha256(hash);
-  const checksum = checksumHash.slice(-4);
+    // Generate SHA256 hash of the tx data
+    const hash = sha256(encoder.encode(txData));
 
-  // Combine hash and checksum before base58 encoding
-  const combined = new Uint8Array([...hash, ...checksum]);
+    return bytesToHex(hash);
+}
 
-  // Return base58 encoded string
-  return base58.encode(combined);
+function formatAddress(address: string): string {
+    const cleanAddr = address.replace(/^(0x|00)/, '');
+    const paddedAddr = cleanAddr.padStart(66, '0');
+
+    // Calculate checksum from the full bytes
+    const addrBytes = hexToBytes(paddedAddr);
+    const hash = sha256(addrBytes);
+    const checksum = bytesToHex(hash.slice(-4));
+
+    // Return in the exact format expected: (0x + address + checksum)
+    return `0x${paddedAddr}${checksum}`;
+}
+
+function formatAddressWithChecksum(address: string): string {
+    const cleanAddr = address.replace(/^(0x|00)/, '');
+
+    const addressBytes = hexToBytes(cleanAddr);
+    const hash = sha256(addressBytes);
+    const checksum = bytesToHex(hash.slice(-4));
+
+    return cleanAddr + checksum;
+}
+
+export async function formatAddressFields(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const addressFields = [
+        'asset_address', 'dataset_address', 'marketplace_asset_address',
+        'payment_asset_address', 'asset_nft_address', 'mint_admin',
+        'pause_unpause_admin', 'freeze_unfreeze_admin',
+        'enable_disable_kyc_account_admin', 'to', 'dataset_contributor'
+    ];
+
+    const formatted: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'string' && addressFields.includes(key)) {
+            try {
+                formatted[key] = formatAddress(value);
+            } catch (error) {
+                formatted[key] = value;
+            }
+        } else if (value && typeof value === 'object') {
+            formatted[key] = await formatAddressFields(value as Record<string, unknown>);
+        } else {
+            formatted[key] = value;
+        }
+    }
+
+    return formatted;
+}
+
+export function formatAddressForAPI(address: string): string {
+    // Remove any existing prefixes and checksum
+    const cleanAddr = address.replace(/^(0x|00)/, '').slice(0, 64);
+
+    // Add 00 prefix for API calls
+    return `00${cleanAddr}`;
+}
+
+/**
+ * Format an address for balance queries
+ */
+export function formatAddressForBalance(address: string): string {
+    const apiFormat = formatAddressForAPI(address);
+    // For balance queries, we don't need the checksum
+    return apiFormat.slice(0, 66);
 }
