@@ -57,16 +57,6 @@ function formatAddress(address: string): string {
     return `0x${paddedAddr}${checksum}`;
 }
 
-function formatAddressWithChecksum(address: string): string {
-    const cleanAddr = address.replace(/^(0x|00)/, '');
-
-    const addressBytes = hexToBytes(cleanAddr);
-    const hash = sha256(addressBytes);
-    const checksum = bytesToHex(hash.slice(-4));
-
-    return cleanAddr + checksum;
-}
-
 export async function formatAddressFields(data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const addressFields = [
         'asset_address', 'dataset_address', 'marketplace_asset_address',

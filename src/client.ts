@@ -1,8 +1,6 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
 import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
