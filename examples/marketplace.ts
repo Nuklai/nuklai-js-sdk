@@ -64,7 +64,7 @@ async function marketplaceEx() {
       )
     }
 
-    const assetAddress = createFracAssetTxResult.result.results[0].asset_id
+    const assetAddress = createFracAssetTxResult.result.results[0].asset_address
     console.log(
       'Fractional Token created:',
       logTxResult(createFracAssetTxResult)

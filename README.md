@@ -292,7 +292,7 @@ const ftResult = await sdk.rpcService.createFTAsset(
 // After creation, mint some tokens
 const mintResult = await sdk.rpcService.mintFTAsset(
   "receiver-address",
-  ftResult.result[0].asset_id,
+  ftResult.result[0].asset_address,
   BigInt("1000000000000000000")
 );
 ```

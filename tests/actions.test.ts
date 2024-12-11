@@ -92,7 +92,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result).toBeDefined()
 
         console.log('Created FT asset:', logTxResult(result))
-        ftAddress = result.result.results[0].asset_id!
+        ftAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create FT asset:', error)
         throw error
@@ -170,7 +170,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result.success).toBe(true)
 
         console.log('Created NFT collection: ', logTxResult(result))
-        nftAddress = result.result.results[0].asset_id!
+        nftAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create NFT collection:', error)
         throw error
@@ -224,7 +224,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result.success).toBe(true)
 
         console.log('Created Fractional token: ', logTxResult(result))
-        fractionalAssetAddress = result.result.results[0].asset_id!
+        fractionalAssetAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create Fractional token:', error)
         throw error
