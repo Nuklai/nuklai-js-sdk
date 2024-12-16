@@ -597,11 +597,8 @@ export class NuklaiVMClient {
     }
 
     try {
-      // Format addresses in the action data
-      const formattedData = await formatAddressFields(data)
-
       // Generate txID with formatted data
-      const txId = generateTxID(actionName, formattedData)
+      const txId = generateTxID(actionName, data)
 
       // Send transaction
       const rawResult = await this.client.sendTransaction([
@@ -625,7 +622,7 @@ export class NuklaiVMClient {
           sponsor: addressHexFromPubKey(this.signer.getPublicKey()),
           units: rawResult.units,
           fee: rawResult.fee,
-          input: createActionInput(actionName, formattedData),
+          input: createActionInput(actionName, data),
           results: resultsObject
         }
       }
