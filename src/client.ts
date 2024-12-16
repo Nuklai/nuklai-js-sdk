@@ -605,7 +605,7 @@ export class NuklaiVMClient {
 
       // Send transaction
       const rawResult = await this.client.sendTransaction([
-        { actionName, data: formattedData }
+        { actionName, data }
       ])
 
       // Parse result string to obj if string

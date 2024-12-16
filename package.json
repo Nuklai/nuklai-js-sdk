@@ -23,10 +23,11 @@
     "build": "tsc && node build.js",
     "test": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs",
     "test:watch": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --watch --config jest.config.mjs",
-    "test:manual": "node --loader ts-node/esm scripts/test-rpc.ts",
     "examples": "NODE_OPTIONS='--loader ts-node/esm' node --experimental-specifier-resolution=node examples/run-examples.ts",
-    "test:connection": "ts-node --esm examples/test-connection.js",
-    "test:actions": "ts-node --esm examples/test-actions.js"
+    "test:rpc": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/rpc.test.ts",
+    "test:connection": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/connection.test.ts",
+    "test:wallet": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/wallet.test.ts",
+    "test:actions": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/actions.test.ts"
   },
   "repository": {
     "type": "git",

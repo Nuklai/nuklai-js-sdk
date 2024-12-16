@@ -27,13 +27,9 @@ describe('NuklaiSDK Asset', () => {
 
   beforeAll(async () => {
     try {
-      console.log('Initializing SDK')
       sdk = new NuklaiSDK(API_HOST)
 
-      console.log('Setting signer')
       sdk.rpcService.setSigner(TEST_ADDRESS_PRIVATE_KEY)
-
-      console.log('Fetching ABI from server')
 
       abi = await sdk.rpcService.fetchAbiFromServer()
       console.log(
@@ -132,7 +128,9 @@ describe('NuklaiSDK Asset', () => {
       const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress)
       expect(balance).toBeDefined()
       expect(typeof balance).toBe('string')
-      expect(BigInt(balance)).toBe(BigInt('1000000000000000000'))
+      expect(stringifyWithBigInt(balance)).toBe(
+        stringifyWithBigInt('1000000000000000000')
+      )
       console.log('Raw Asset balance:', balance)
     })
 
