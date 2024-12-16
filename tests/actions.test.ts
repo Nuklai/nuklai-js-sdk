@@ -516,7 +516,10 @@ function generateRandomString(length: number): string {
 }
 
 export function logTxResult(r: TransactionResult) {
-  const result = r.result
+  const result = r.result;
+  const firstResult = result.results['0'] || {};
+  const { actor, receiver, ...otherProps } = firstResult;
+
   return {
     txId: r.txId,
     result: {
@@ -532,9 +535,15 @@ export function logTxResult(r: TransactionResult) {
       },
       fee: result.fee,
       input: JSON.stringify(result.input, bigIntReplacer),
-      results: JSON.stringify(result.results, bigIntReplacer)
+      results: JSON.stringify({
+        '0': {
+          actor,
+          receiver,
+          ...otherProps
+        }
+      }, bigIntReplacer)
     }
-  }
+  };
 }
 
 export function bigIntReplacer(_key: string, value: any): any {

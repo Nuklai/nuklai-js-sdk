@@ -57,7 +57,11 @@ export interface ActionInput {
   data: Record<string, any>
 }
 
-export interface ActionResult extends Record<string, any> {}
+export interface ActionResult extends Record<string, any> {
+  actor: string;
+  receiver: string;
+  [key: string]: any;
+}
 
 export interface TransactionResult {
   txId: string;
@@ -74,7 +78,7 @@ export interface TransactionResult {
     };
     fee: number;
     input: ActionInput;
-    results: ActionResult[];
+    results: Record<string, ActionResult>;
   };
 }
 
@@ -542,25 +546,26 @@ export class NuklaiVMClient {
 
       // Check for Address type support through the encode method.
       try {
-        this.marshaler.encode('Address', JSON.stringify({ value: [] }));
-      } catch (error) {
-        if (error instanceof Error && !error.message.includes('Type Address not found')) {
-          // If the error is not about missing type, then Address type exists
-          const serializedAction = this.marshaler.encodeTyped(
-            actionData.actionName,
-            JSON.stringify(formattedData)
-          );
+        const serializedAction = this.marshaler.encodeTyped(
+          actionData.actionName,
+          JSON.stringify(formattedData)
+        );
 
           // Get the properly formatted address for the public key
           const publicKeyAddress = addressHexFromPubKey(this.signer.getPublicKey());
 
-          return await this.httpClient.executeActions(
-            [serializedAction],
-            publicKeyAddress
-          );
+        const results = await this.httpClient.executeActions(
+          [serializedAction],
+          publicKeyAddress
+        );
+
+        return results;
+      } catch (error) {
+        if (error instanceof Error && !error.message.includes('Type Address not found')) {
+          throw error;
         }
+        throw new Error('Address type not properly configured in ABI');
       }
-      throw new Error('Address type not properly configured in ABI');
     } catch (error) {
       console.error('Failed to execute action:', error);
       throw error;
@@ -587,6 +592,14 @@ export class NuklaiVMClient {
         { actionName, data: formattedData }
       ]);
 
+      // Parse result string to obj if string
+      let parsedResults = rawResult.result;
+      if (typeof rawResult.result === 'string') {
+        parsedResults = JSON.parse(rawResult.result);
+      }
+
+      const resultsObject = typeof parsedResults === 'object' ? parsedResults : {};
+
       return {
         txId,
         result: {
@@ -596,9 +609,7 @@ export class NuklaiVMClient {
           units: rawResult.units,
           fee: rawResult.fee,
           input: createActionInput(actionName, formattedData),
-          results: rawResult.result.map((item) => ({
-            ...item,
-          }))
+          results: resultsObject
         }
       };
     } catch (error) {
