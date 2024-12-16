@@ -4,15 +4,16 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
-import { TransactionResult } from '../src/client'
 import { NuklaiSDK } from '../src'
-import { TEST_CONFIG } from './config';
+import { TransactionResult } from '../src/client'
+import { stringifyWithBigInt } from '../src/utils/jsonUtils'
+import { TEST_CONFIG } from './config'
 
-const API_HOST = TEST_CONFIG.API_HOST;
-const NAI_ASSET_ADDRESS = TEST_CONFIG.NAI_ASSET_ADDRESS;
-const TEST_ADDRESS = TEST_CONFIG.TEST_ADDRESS;
-const TEST_ADDRESS2 = TEST_CONFIG.TEST_ADDRESS2;
-const TEST_ADDRESS_PRIVATE_KEY = TEST_CONFIG.TEST_PRIVATE_KEY;
+const API_HOST = TEST_CONFIG.API_HOST
+const NAI_ASSET_ADDRESS = TEST_CONFIG.NAI_ASSET_ADDRESS
+const TEST_ADDRESS = TEST_CONFIG.TEST_ADDRESS
+const TEST_ADDRESS2 = TEST_CONFIG.TEST_ADDRESS2
+const TEST_ADDRESS_PRIVATE_KEY = TEST_CONFIG.TEST_PRIVATE_KEY
 
 describe('NuklaiSDK Asset', () => {
   let sdk: NuklaiSDK
@@ -26,9 +27,13 @@ describe('NuklaiSDK Asset', () => {
 
   beforeAll(async () => {
     try {
+      console.log('Initializing SDK')
       sdk = new NuklaiSDK(API_HOST)
 
+      console.log('Setting signer')
       sdk.rpcService.setSigner(TEST_ADDRESS_PRIVATE_KEY)
+
+      console.log('Fetching ABI from server')
 
       abi = await sdk.rpcService.fetchAbiFromServer()
       console.log(
@@ -48,12 +53,12 @@ describe('NuklaiSDK Asset', () => {
 
   describe('Basic Connectivity', () => {
     it('should get native token balance', async () => {
-      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS);
-      expect(balance).toBeDefined();
-      expect(typeof balance).toBe('string');
-      expect(BigInt(balance)).toBeGreaterThan(0);
-      console.log('Raw Native balance:', balance);
-    });
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+      expect(balance).toBeDefined()
+      expect(typeof balance).toBe('string')
+      expect(BigInt(balance)).toBeGreaterThan(0)
+      console.log('Raw Native balance:', balance)
+    })
 
     it('should get validator information', async () => {
       const validators = await sdk.rpcService.getAllValidators()
@@ -124,12 +129,12 @@ describe('NuklaiSDK Asset', () => {
     })
 
     it('should get asset balance', async () => {
-      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress);
-      expect(balance).toBeDefined();
-      expect(typeof balance).toBe('string');
-      expect(BigInt(balance)).toBe(BigInt('1000000000000000000'));
-      console.log('Raw Asset balance:', balance);
-    });
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress)
+      expect(balance).toBeDefined()
+      expect(typeof balance).toBe('string')
+      expect(BigInt(balance)).toBe(BigInt('1000000000000000000'))
+      console.log('Raw Asset balance:', balance)
+    })
 
     it('should transfer fungible tokens', async () => {
       try {
@@ -177,7 +182,7 @@ describe('NuklaiSDK Asset', () => {
       try {
         const result = await sdk.rpcService.mintNFTAsset(
           nftAddress,
-          JSON.stringify({
+          stringifyWithBigInt({
             name: 'Test NFT #1',
             description: 'First test NFT',
             attributes: []
@@ -248,7 +253,7 @@ describe('NuklaiSDK Asset', () => {
         'MIT',
         'MIT',
         'https://opensource.org/licenses/MIT',
-        JSON.stringify({ format: 'CSV', size: '1GB' }),
+        stringifyWithBigInt({ format: 'CSV', size: '1GB' }),
         true
       )
       expect(result.result.success).toBe(true)
@@ -378,10 +383,10 @@ describe('NuklaiSDK Asset', () => {
   afterAll(async () => {
     // Verify final states or clean up
     const ftbalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-    expect(ftbalance).toBeDefined();
-    expect(typeof ftbalance).toBe('string');
-    console.log('Raw Final balance:', ftbalance);
-  });
+    expect(ftbalance).toBeDefined()
+    expect(typeof ftbalance).toBe('string')
+    console.log('Raw Final balance:', ftbalance)
+  })
 })
 
 describe('Listening for Blocks', () => {
@@ -394,7 +399,7 @@ describe('Listening for Blocks', () => {
       sdk = new NuklaiSDK(API_HOST)
       sdk.rpcService.setSigner(TEST_ADDRESS_PRIVATE_KEY)
       abi = await sdk.rpcService.fetchAbiFromServer()
-      
+
       const isConnected = await sdk.rpcService.validateConnection()
       if (!isConnected) {
         throw new Error('Failed to connect')
@@ -418,7 +423,7 @@ describe('Listening for Blocks', () => {
     it('should successfully subscribe to blocks', async () => {
       try {
         const receivedBlocks: Block[] = []
-        
+
         await new Promise<void>(async (resolve, reject) => {
           const unsub = await sdk.listenToBlocks((block: Block) => {
             console.log('Received block:', {
@@ -437,7 +442,7 @@ describe('Listening for Blocks', () => {
         expect(receivedBlocks.length).toBeGreaterThanOrEqual(2)
         expect(receivedBlocks[0].blockID).toBeDefined()
         expect(receivedBlocks[0].block.height).toBeGreaterThan(0)
-        
+
         console.log('Successfully subscribed to block')
       } catch (error) {
         console.error('Block subscription test failed:', error)
@@ -466,7 +471,7 @@ describe('Listening for Blocks', () => {
 
         const blockWithTx = await txPromise
         expect(blockWithTx.block.txs.length).toBeGreaterThan(0)
-        
+
         console.log('Successfully verified transaction in block:', {
           blockHeight: blockWithTx.block.height,
           txCount: blockWithTx.block.txs.length
@@ -484,7 +489,7 @@ describe('Listening for Blocks', () => {
           blockCount++
         }, true)
 
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         unsub()
 
         expect(blockCount).toBeGreaterThan(0)
@@ -516,9 +521,9 @@ function generateRandomString(length: number): string {
 }
 
 export function logTxResult(r: TransactionResult) {
-  const result = r.result;
-  const firstResult = result.results['0'] || {};
-  const { actor, receiver, ...otherProps } = firstResult;
+  const result = r.result
+  const firstResult = result.results['0'] || {}
+  const { actor, receiver, ...otherProps } = firstResult
 
   return {
     txId: r.txId,
@@ -534,18 +539,14 @@ export function logTxResult(r: TransactionResult) {
         storage_write: result.units.storageWrite
       },
       fee: result.fee,
-      input: JSON.stringify(result.input, bigIntReplacer),
-      results: JSON.stringify({
+      input: stringifyWithBigInt(result.input),
+      results: stringifyWithBigInt({
         '0': {
           actor,
           receiver,
           ...otherProps
         }
-      }, bigIntReplacer)
+      })
     }
-  };
-}
-
-export function bigIntReplacer(_key: string, value: any): any {
-  return typeof value === 'bigint' ? value.toString() : value
+  }
 }

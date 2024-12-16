@@ -2416,21 +2416,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nuklai/hyperchain-sdk@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@nuklai/hyperchain-sdk@npm:0.2.1"
-  dependencies:
-    "@avalabs/avalanchejs": "npm:^4.0.5"
-    "@noble/curves": "npm:^1.4.0"
-    "@noble/ed25519": "npm:^2.1.0"
-    bech32: "npm:^2.0.0"
-    big-integer: "npm:^1.6.52"
-    lodash: "npm:^4.17.21"
-    ws: "npm:^8.17.1"
-  checksum: 10c0/6d5bf4de1da62d4d8a489c0061ecfbb7df70e77888c5a4afe1c9fcd8f1de4762bfc1c53579a4b3bf588ea34414e84e9e215cb8084dd1575860f7ac35d81c4dc4
-  languageName: node
-  linkType: hard
-
 "@nuklai/nuklai-sdk@workspace:.":
   version: 0.0.0-use.local
   resolution: "@nuklai/nuklai-sdk@workspace:."
@@ -2443,7 +2428,6 @@ __metadata:
     "@jest/globals": "npm:^29.7.0"
     "@noble/curves": "npm:^1.4.0"
     "@noble/ed25519": "npm:^2.1.0"
-    "@nuklai/hyperchain-sdk": "npm:^0.2.1"
     "@types/jest": "npm:^29.5.14"
     "@types/node": "npm:^20.12.10"
     "@types/node-fetch": "npm:^2.6.11"
@@ -5425,13 +5409,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
-  languageName: node
-  linkType: hard
-
 "loose-envify@npm:^1.0.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
@@ -7299,21 +7276,6 @@ __metadata:
     imurmurhash: "npm:^0.1.4"
     signal-exit: "npm:^3.0.7"
   checksum: 10c0/a2c282c95ef5d8e1c27b335ae897b5eca00e85590d92a3fd69a437919b7b93ff36a69ea04145da55829d2164e724bc62202cdb5f4b208b425aba0807889375c7
-  languageName: node
-  linkType: hard
-
-"ws@npm:^8.17.1":
-  version: 8.18.0
-  resolution: "ws@npm:8.18.0"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ">=5.0.2"
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 10c0/25eb33aff17edcb90721ed6b0eb250976328533ad3cd1a28a274bd263682e7296a6591ff1436d6cbc50fa67463158b062f9d1122013b361cec99a05f84680e06
   languageName: node
   linkType: hard
 
