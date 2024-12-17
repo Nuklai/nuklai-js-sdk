@@ -1,6 +1,6 @@
 {
   "name": "@nuklai/nuklai-sdk",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A JavaScript SDK for interacting with the Nuklai blockchain, providing modular services for HyperVM and NuklaiVM.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -23,10 +23,11 @@
     "build": "tsc && node build.js",
     "test": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs",
     "test:watch": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --watch --config jest.config.mjs",
-    "test:manual": "node --loader ts-node/esm scripts/test-rpc.ts",
     "examples": "NODE_OPTIONS='--loader ts-node/esm' node --experimental-specifier-resolution=node examples/run-examples.ts",
-    "test:connection": "ts-node --esm examples/test-connection.js",
-    "test:actions": "ts-node --esm examples/test-actions.js"
+    "test:rpc": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/rpc.test.ts",
+    "test:connection": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/connection.test.ts",
+    "test:wallet": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/wallet.test.ts",
+    "test:actions": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --config jest.config.mjs tests/actions.test.ts"
   },
   "repository": {
     "type": "git",
@@ -76,10 +77,9 @@
     "@avalabs/avalanchejs": "^4.0.5",
     "@noble/curves": "^1.4.0",
     "@noble/ed25519": "^2.1.0",
-    "@nuklai/hyperchain-sdk": "^0.2.1",
     "bech32": "^2.0.0",
     "big-integer": "^1.6.52",
-    "hypersdk-client": "^0.4.13"
+    "hypersdk-client": "^0.4.14"
   },
   "browser": {
     "buffer": "buffer",

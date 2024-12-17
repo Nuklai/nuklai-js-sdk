@@ -2,9 +2,8 @@
 // See the file LICENSE for licensing terms.
 
 import { NuklaiVMClient, TransactionResult } from './client'
-// import { config } from "@nuklai/hyperchain-sdk";
 import { TxResult } from 'hypersdk-client/dist/apiTransformers'
-import { ActionData, ActionOutput } from 'hypersdk-client/dist/types'
+import {ActionData, ActionOutput, SignerIface} from 'hypersdk-client/dist/types'
 import { VM_NAME, VM_RPC_PREFIX } from './endpoints'
 
 const DEFAULT_TIMEOUT = 30000
@@ -39,8 +38,8 @@ export class RpcService {
   }
 
   // Method to set signer after construction
-  setSigner(privateKey: string) {
-    this.client.setSigner(privateKey)
+  setSigner(input: string | SignerIface) {
+    this.client.setSigner(input);
   }
 
   // async getAllValidators(): Promise<ActionOutput> {
@@ -258,11 +257,11 @@ export class RpcService {
     datasetAddress: string,
     datasetContributor: string
   ): Promise<TransactionResult> {
-    return this.client.completeContributeDataset({
+    return this.client.completeContributeDataset(
       datasetContributionID,
       datasetAddress,
       datasetContributor
-    })
+    )
   }
 
   async publishDatasetToMarketplace(
@@ -300,13 +299,11 @@ export class RpcService {
   }
 
   // Query Methods
-  async getBalance(address: string): Promise<string> {
-    try {
-      return await this.client.getBalance(address)
-    } catch (error) {
-      console.error('Failed to get balance:', error)
-      throw error
-    }
+  async getBalance(address: string, assetAddress?: string): Promise<string> {
+    return this.executeWithTimeout(
+      () => this.client.getBalance(address, assetAddress),
+      'Failed to get balance'
+    );
   }
 
   async getAssetInfo(assetAddress: string): Promise<ActionOutput> {

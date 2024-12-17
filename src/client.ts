@@ -1,12 +1,14 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex } from '@noble/hashes/utils'
 import { HyperSDKClient } from 'hypersdk-client'
 import { Block, TxResult } from 'hypersdk-client/dist/apiTransformers'
 import { HyperSDKHTTPClient } from 'hypersdk-client/dist/HyperSDKHTTPClient'
-import { Marshaler, VMABI } from 'hypersdk-client/dist/Marshaler'
+import {
+  addressHexFromPubKey,
+  Marshaler,
+  VMABI
+} from 'hypersdk-client/dist/Marshaler'
 import { PrivateKeySigner } from 'hypersdk-client/dist/PrivateKeySigner'
 import {
   ActionData,
@@ -14,12 +16,17 @@ import {
   SignerIface
 } from 'hypersdk-client/dist/types'
 import { NuklaiABI } from './abi'
-import { newED25519Address } from './codec/address'
 import {
   MAINNET_PUBLIC_API_BASE_URL,
   VM_NAME,
   VM_RPC_PREFIX
 } from './endpoints'
+import { stringifyWithBigInt } from './utils/jsonUtils'
+import {
+  formatAddressFields,
+  formatAddressForBalance,
+  generateTxID
+} from './utils/utils'
 
 export class NuklaiCoreApiClient {
   private httpClient: HyperSDKHTTPClient
@@ -59,7 +66,11 @@ export interface ActionInput {
   data: Record<string, any>
 }
 
-export interface ActionResult extends Record<string, any> {}
+export interface ActionResult extends Record<string, any> {
+  actor: string
+  receiver: string
+  [key: string]: any
+}
 
 export interface TransactionResult {
   txId: string
@@ -76,7 +87,7 @@ export interface TransactionResult {
     }
     fee: number
     input: ActionInput
-    results: ActionResult[]
+    results: Record<string, ActionResult>
   }
 }
 
@@ -119,22 +130,32 @@ export class NuklaiVMClient {
     this.marshaler = new Marshaler(NuklaiABI)
   }
 
-  public async setSigner(privateKey: string) {
-    // TODO: Only private key type ed25519 is supported(secpk256r1 and bls are not supported)
-    // Slice the string to keep only the first 64 hex characters (32 bytes)
-    const privateKeyOnly = privateKey.slice(0, 64)
+  public async setSigner(input: string | SignerIface) {
+    if (typeof input === 'string') {
+      // Handle private key string
+      const privateKeyOnly = input.slice(0, 64)
+      const privateKeyArray = new Uint8Array(
+        privateKeyOnly
+          .match(/.{1,2}/g)!
+          .map((byte: string) => parseInt(byte, 16))
+      )
+      this.signer = new PrivateKeySigner(privateKeyArray)
+      await this.client.connectWallet({
+        type: 'private-key',
+        privateKey: privateKeyArray
+      })
+    } else {
+      // For any SignerIface, we use ephemeral type but keep the actual signer
+      this.signer = input
+      await this.client.connectWallet({
+        type: 'ephemeral'
+      })
 
-    // Convert the hex string to a Uint8Array
-    const privateKeyArray = new Uint8Array(
-      privateKeyOnly.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
-    )
-
-    this.signer = new PrivateKeySigner(privateKeyArray)
-
-    await this.client.connectWallet({
-      type: 'private-key',
-      privateKey: privateKeyArray
-    })
+      // Override the client's internal signer methods with our signer
+      if ('signTx' in this.client) {
+        ;(this.client as any).signer = this.signer
+      }
+    }
   }
 
   async createFungibleToken(params: {
@@ -347,15 +368,15 @@ export class NuklaiVMClient {
     })
   }
 
-  async completeContributeDataset(params: {
-    datasetContributionID: string
-    datasetAddress: string
+  async completeContributeDataset(
+    datasetContributionID: string,
+    datasetAddress: string,
     datasetContributor: string
-  }): Promise<TransactionResult> {
+  ): Promise<TransactionResult> {
     return this.sendAction('CompleteContributeDataset', {
-      dataset_contribution_id: params.datasetContributionID,
-      dataset_address: params.datasetAddress,
-      dataset_contributor: params.datasetContributor
+      dataset_contribution_id: datasetContributionID,
+      dataset_address: datasetAddress,
+      dataset_contributor: datasetContributor
     })
   }
 
@@ -395,14 +416,22 @@ export class NuklaiVMClient {
   }
 
   // Query Methods
-  // Update the getBalance method to use httpClient
-  public async getBalance(address: string): Promise<string> {
+  public async getBalance(
+    address: string,
+    assetAddress?: string
+  ): Promise<string> {
     try {
+      const formattedAddress = formatAddressForBalance(address)
+      const assetId = assetAddress
+        ? formatAddressForBalance(assetAddress)
+        : 'NAI'
+
       const result = await this.httpClient.makeVmAPIRequest<{ amount: number }>(
         'balance',
-        { address, asset: 'NAI' }
+        { address: formattedAddress, asset: assetId }
       )
-      return this.client.formatNativeTokens(BigInt(result.amount))
+      // Return raw amount, let frontend handle decimal formatting
+      return result.amount.toString()
     } catch (error) {
       console.error('Balance query failed:', error)
       throw error
@@ -523,19 +552,36 @@ export class NuklaiVMClient {
     }
 
     try {
-      const serializedAction = this.marshaler.encodeTyped(
-        actionData.actionName,
-        JSON.stringify(actionData.data)
-      )
+      // Format addresses in the action data
+      const formattedData = await formatAddressFields(actionData.data)
 
-      const publicKeyString = Buffer.from(this.signer.getPublicKey()).toString(
-        'hex'
-      )
+      // Check for Address type support through the encode method.
+      try {
+        const serializedAction = this.marshaler.encodeTyped(
+          actionData.actionName,
+          stringifyWithBigInt(formattedData)
+        )
 
-      return await this.httpClient.executeActions(
-        [serializedAction],
-        publicKeyString
-      )
+        // Get the properly formatted address for the public key
+        const publicKeyAddress = addressHexFromPubKey(
+          this.signer.getPublicKey()
+        )
+
+        const results = await this.httpClient.executeActions(
+          [serializedAction],
+          publicKeyAddress
+        )
+
+        return results
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          !error.message.includes('Type Address not found')
+        ) {
+          throw error
+        }
+        throw new Error('Address type not properly configured in ABI')
+      }
     } catch (error) {
       console.error('Failed to execute action:', error)
       throw error
@@ -551,27 +597,35 @@ export class NuklaiVMClient {
     }
 
     try {
-      const encoder = new TextEncoder()
-      const txData = encoder.encode(JSON.stringify({ actionName, data }))
-      const txId = bytesToHex(sha256(txData))
-      const sponsor = newED25519Address(this.signer.getPublicKey())
+      const formattedData = await formatAddressFields(data)
 
+      // Generate txID with formatted data
+      const txId = generateTxID(actionName, formattedData)
+
+      // Send transaction
       const rawResult = await this.client.sendTransaction([
-        { actionName, data }
+        { actionName, data: formattedData }
       ])
+
+      // Parse result string to obj if string
+      let parsedResults = rawResult.result
+      if (typeof rawResult.result === 'string') {
+        parsedResults = JSON.parse(rawResult.result)
+      }
+
+      const resultsObject =
+        typeof parsedResults === 'object' ? parsedResults : {}
 
       return {
         txId,
         result: {
           timestamp: rawResult.timestamp,
           success: rawResult.success,
-          sponsor: sponsor,
+          sponsor: addressHexFromPubKey(this.signer.getPublicKey()),
           units: rawResult.units,
           fee: rawResult.fee,
-          input: createActionInput(actionName, data),
-          results: rawResult.result.map((item) => ({
-            ...item
-          }))
+          input: createActionInput(actionName, formattedData),
+          results: resultsObject
         }
       }
     } catch (error) {

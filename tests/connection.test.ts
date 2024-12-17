@@ -1,12 +1,14 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
-import { NuklaiSDK, VM_NAME, VM_RPC_PREFIX } from '../src/sdk'
+import { NuklaiSDK, VM_NAME, VM_RPC_PREFIX} from '../src/sdk'
+import { TEST_CONFIG } from './config';
 
-const API_HOST = 'http://127.0.0.1:9650'
-const DEMO_ADDRESS =
-  '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9'
-const TEST_ADDRESS_PRIVATE_KEY =
-  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7'
+const API_HOST = TEST_CONFIG.API_HOST;
+const DEMO_ADDRESS = TEST_CONFIG.TEST_ADDRESS;
+const TEST_ADDRESS_PRIVATE_KEY = TEST_CONFIG.TEST_PRIVATE_KEY;
 
 describe('NuklaiSDK Basic Functionality', () => {
   let sdk: NuklaiSDK
