@@ -2439,7 +2439,7 @@ __metadata:
     esbuild: "npm:^0.21.5"
     esbuild-plugin-alias: "npm:^0.2.1"
     events: "npm:^3.3.0"
-    hypersdk-client: "npm:^0.4.13"
+    hypersdk-client: "npm:^0.4.14"
     jest: "npm:^29.7.0"
     jest-ts-webcompat-resolver: "npm:^1.0.0"
     path: "npm:^0.12.7"
@@ -4523,9 +4523,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hypersdk-client@npm:^0.4.13":
-  version: 0.4.13
-  resolution: "hypersdk-client@npm:0.4.13"
+"hypersdk-client@npm:^0.4.14":
+  version: 0.4.14
+  resolution: "hypersdk-client@npm:0.4.14"
   dependencies:
     "@metamask/sdk": "npm:^0.29.2"
     "@noble/curves": "npm:^1.6.0"
@@ -4533,7 +4533,7 @@ __metadata:
     "@scure/base": "npm:^1.1.8"
     lossless-json: "npm:^4.0.1"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10c0/f71f0008eba97e746091a581b4b5d6f57d2993e8784ad077e6c7ab946dd39ed2e7e0e23b30a6f9c4bf7431005d359fee49635bf7650539feaf9f08a3e1b793e1
+  checksum: 10c0/322034587d28ab2a7e692e1b0c64e4331f16d843b080dd40aca68e237b14f3d10a9546f0e7dcf475bb55b6c5a85e6e6517969faed6358ef2a041718516b9ff8a
   languageName: node
   linkType: hard
 
