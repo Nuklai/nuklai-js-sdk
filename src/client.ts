@@ -597,6 +597,7 @@ export class NuklaiVMClient {
     }
 
     try {
+      // Format the data
       const formattedData = await formatAddressFields(data)
 
       // Generate txID with formatted data
@@ -607,7 +608,7 @@ export class NuklaiVMClient {
         { actionName, data: formattedData }
       ])
 
-      // Parse result string to obj if string
+      // Parse and return results
       let parsedResults = rawResult.result
       if (typeof rawResult.result === 'string') {
         parsedResults = JSON.parse(rawResult.result)
