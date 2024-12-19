@@ -9,14 +9,15 @@ export function cb58Encode(bytes: Uint8Array): string {
   let x = BigInt(`0x${bytesToHex(bytes)}`)
   let result = ''
 
-  while (x > 0) {
-    const remainder = Number(x % 58n)
-    result = BASE58_ALPHABET[remainder] + result
-    x = x / 58n
+  while (x > 0n) {
+    const remainder = Number(x % 58n);
+    result = BASE58_ALPHABET[remainder] + result;
+    x = x / 58n;
   }
 
+  // Handle leading zeros
   for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
-    result = '1' + result
+    result = BASE58_ALPHABET[0] + result
   }
 
   return result
@@ -26,16 +27,18 @@ export function cb58Encode(bytes: Uint8Array): string {
  * Generate a transaction ID according to Avalanche format
  * Returns a 32-byte hash as a CB58-encoded string
  */
-export function generateTxID(
-  actionName: string,
-  data: Record<string, unknown>
-): string {
-  const encoder = new TextEncoder()
+export function generateTxID(actionName: string, data: Record<string, unknown>): string {
+  const encoder = new TextEncoder();
 
-  const txData = stringifyWithBigInt({
+  const txData = JSON.stringify({
     actionName,
     data
-  })
+  }, (_, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  });
 
   // Generate SHA256 hash of the tx data
   const hash = sha256(encoder.encode(txData))
