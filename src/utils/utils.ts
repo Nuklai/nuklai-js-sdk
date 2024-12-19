@@ -1,5 +1,6 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
+import { stringifyWithBigInt } from './jsonUtils'
 
 const BASE58_ALPHABET =
   '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -32,18 +33,7 @@ export function generateTxID(
 ): string {
   const encoder = new TextEncoder()
 
-  const txData = JSON.stringify(
-    {
-      actionName,
-      data
-    },
-    (_, value) => {
-      if (typeof value === 'bigint') {
-        return value.toString()
-      }
-      return value
-    }
-  )
+  const txData = stringifyWithBigInt({ actionName, data })
 
   // Generate SHA256 hash of the tx data
   const hash = sha256(encoder.encode(txData))
