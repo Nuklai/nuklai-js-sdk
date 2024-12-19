@@ -63,7 +63,7 @@ async function nonFungibleTokenEx() {
       )
     }
 
-    const collectionAddress = createTxResult.result.results[0].asset_id
+    const collectionAddress = createTxResult.result.results[0].asset_address
     console.log('Created NFT collection:', logTxResult(createTxResult))
 
     // Get collection info to verify creation

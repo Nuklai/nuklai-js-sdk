@@ -1,18 +1,19 @@
+// Copyright (C) 2024, Nuklai. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 import { VMABI } from 'hypersdk-client/dist/Marshaler'
 import { Block } from 'hypersdk-client/dist/apiTransformers'
+import { NuklaiSDK } from '../src'
 import { TransactionResult } from '../src/client'
-import { NuklaiSDK } from '../src/sdk'
+import { stringifyWithBigInt } from '../src/utils/jsonUtils'
+import { TEST_CONFIG } from './config'
 
-const API_HOST = 'http://127.0.0.1:9650'
-const NAI_ASSET_ADDRESS =
-  '00cf77495ce1bdbf11e5e45463fad5a862cb6cc0a20e00e658c4ac3355dcdc64bb'
-const TEST_ADDRESS =
-  '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9'
-const TEST_ADDRESS2 =
-  '002b5d019495996310f81c6a26a4dd9eeb9a3f3be1bac0a9294436713aecc84496'
-const TEST_ADDRESS_PRIVATE_KEY =
-  '323b1d8f4eed5f0da9da93071b034f2dce9d2d22692c172f3cb252a64ddfafd01b057de320297c29ad0c1f589ea216869cf1938d88c9fbd70d6748323dbf2fa7'
+const API_HOST = TEST_CONFIG.API_HOST
+const NAI_ASSET_ADDRESS = TEST_CONFIG.NAI_ASSET_ADDRESS
+const TEST_ADDRESS = TEST_CONFIG.TEST_ADDRESS
+const TEST_ADDRESS2 = TEST_CONFIG.TEST_ADDRESS2
+const TEST_ADDRESS_PRIVATE_KEY = TEST_CONFIG.TEST_PRIVATE_KEY
 
 describe('NuklaiSDK Asset', () => {
   let sdk: NuklaiSDK
@@ -48,14 +49,11 @@ describe('NuklaiSDK Asset', () => {
 
   describe('Basic Connectivity', () => {
     it('should get native token balance', async () => {
-      try {
-        const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-        expect(balance).toBeDefined()
-        console.log('Native balance:', balance)
-      } catch (error) {
-        console.error('Balance check failed:', error)
-        throw error
-      }
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+      expect(balance).toBeDefined()
+      expect(typeof balance).toBe('string')
+      expect(BigInt(balance)).toBeGreaterThan(0)
+      console.log('Raw Native balance:', balance)
     })
 
     it('should get validator information', async () => {
@@ -91,7 +89,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result).toBeDefined()
 
         console.log('Created FT asset:', logTxResult(result))
-        ftAddress = result.result.results[0].asset_id!
+        ftAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create FT asset:', error)
         throw error
@@ -124,6 +122,16 @@ describe('NuklaiSDK Asset', () => {
         console.error('Failed to get FT asset info:', error)
         throw error
       }
+    })
+
+    it('should get asset balance', async () => {
+      const balance = await sdk.rpcService.getBalance(TEST_ADDRESS, ftAddress)
+      expect(balance).toBeDefined()
+      expect(typeof balance).toBe('string')
+      expect(stringifyWithBigInt(balance)).toBe(
+        stringifyWithBigInt('1000000000000000000')
+      )
+      console.log('Raw Asset balance:', balance)
     })
 
     it('should transfer fungible tokens', async () => {
@@ -161,7 +169,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result.success).toBe(true)
 
         console.log('Created NFT collection: ', logTxResult(result))
-        nftAddress = result.result.results[0].asset_id!
+        nftAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create NFT collection:', error)
         throw error
@@ -172,7 +180,7 @@ describe('NuklaiSDK Asset', () => {
       try {
         const result = await sdk.rpcService.mintNFTAsset(
           nftAddress,
-          JSON.stringify({
+          stringifyWithBigInt({
             name: 'Test NFT #1',
             description: 'First test NFT',
             attributes: []
@@ -215,7 +223,7 @@ describe('NuklaiSDK Asset', () => {
         expect(result.result.success).toBe(true)
 
         console.log('Created Fractional token: ', logTxResult(result))
-        fractionalAssetAddress = result.result.results[0].asset_id!
+        fractionalAssetAddress = result.result.results[0].asset_address!
       } catch (error) {
         console.error('Failed to create Fractional token:', error)
         throw error
@@ -243,7 +251,7 @@ describe('NuklaiSDK Asset', () => {
         'MIT',
         'MIT',
         'https://opensource.org/licenses/MIT',
-        JSON.stringify({ format: 'CSV', size: '1GB' }),
+        stringifyWithBigInt({ format: 'CSV', size: '1GB' }),
         true
       )
       expect(result.result.success).toBe(true)
@@ -372,8 +380,10 @@ describe('NuklaiSDK Asset', () => {
   // Clean up or final verifications
   afterAll(async () => {
     // Verify final states or clean up
-    const ftBalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
-    console.log('Final FT balance:', ftBalance)
+    const ftbalance = await sdk.rpcService.getBalance(TEST_ADDRESS)
+    expect(ftbalance).toBeDefined()
+    expect(typeof ftbalance).toBe('string')
+    console.log('Raw Final balance:', ftbalance)
   })
 })
 
@@ -387,7 +397,7 @@ describe('Listening for Blocks', () => {
       sdk = new NuklaiSDK(API_HOST)
       sdk.rpcService.setSigner(TEST_ADDRESS_PRIVATE_KEY)
       abi = await sdk.rpcService.fetchAbiFromServer()
-      
+
       const isConnected = await sdk.rpcService.validateConnection()
       if (!isConnected) {
         throw new Error('Failed to connect')
@@ -411,7 +421,7 @@ describe('Listening for Blocks', () => {
     it('should successfully subscribe to blocks', async () => {
       try {
         const receivedBlocks: Block[] = []
-        
+
         await new Promise<void>(async (resolve, reject) => {
           const unsub = await sdk.listenToBlocks((block: Block) => {
             console.log('Received block:', {
@@ -430,7 +440,7 @@ describe('Listening for Blocks', () => {
         expect(receivedBlocks.length).toBeGreaterThanOrEqual(2)
         expect(receivedBlocks[0].blockID).toBeDefined()
         expect(receivedBlocks[0].block.height).toBeGreaterThan(0)
-        
+
         console.log('Successfully subscribed to block')
       } catch (error) {
         console.error('Block subscription test failed:', error)
@@ -459,7 +469,7 @@ describe('Listening for Blocks', () => {
 
         const blockWithTx = await txPromise
         expect(blockWithTx.block.txs.length).toBeGreaterThan(0)
-        
+
         console.log('Successfully verified transaction in block:', {
           blockHeight: blockWithTx.block.height,
           txCount: blockWithTx.block.txs.length
@@ -477,7 +487,7 @@ describe('Listening for Blocks', () => {
           blockCount++
         }, true)
 
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         unsub()
 
         expect(blockCount).toBeGreaterThan(0)
@@ -510,6 +520,9 @@ function generateRandomString(length: number): string {
 
 export function logTxResult(r: TransactionResult) {
   const result = r.result
+  const firstResult = result.results['0'] || {}
+  const { actor, receiver, ...otherProps } = firstResult
+
   return {
     txId: r.txId,
     result: {
@@ -524,12 +537,14 @@ export function logTxResult(r: TransactionResult) {
         storage_write: result.units.storageWrite
       },
       fee: result.fee,
-      input: JSON.stringify(result.input, bigIntReplacer),
-      results: JSON.stringify(result.results, bigIntReplacer)
+      input: stringifyWithBigInt(result.input),
+      results: stringifyWithBigInt({
+        '0': {
+          actor,
+          receiver,
+          ...otherProps
+        }
+      })
     }
   }
-}
-
-export function bigIntReplacer(_key: string, value: any): any {
-  return typeof value === 'bigint' ? value.toString() : value
 }
