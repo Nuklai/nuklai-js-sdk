@@ -1,6 +1,6 @@
 {
   "name": "@nuklai/nuklai-sdk",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A JavaScript SDK for interacting with the Nuklai blockchain, providing modular services for HyperVM and NuklaiVM.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -79,7 +79,7 @@
     "@noble/ed25519": "^2.1.0",
     "bech32": "^2.0.0",
     "big-integer": "^1.6.52",
-    "hypersdk-client": "^0.4.14"
+    "hypersdk-client": "^0.4.15"
   },
   "browser": {
     "buffer": "buffer",

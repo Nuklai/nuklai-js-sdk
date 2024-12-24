@@ -25,7 +25,6 @@ import { stringifyWithBigInt } from './utils/jsonUtils'
 import {
   formatAddressFields,
   formatAddressForBalance,
-  generateTxID
 } from './utils/utils'
 
 export class NuklaiCoreApiClient {
@@ -600,11 +599,8 @@ export class NuklaiVMClient {
       // Format the data
       const formattedData = await formatAddressFields(data)
 
-      // Generate txID with formatted data
-      const txId = generateTxID(actionName, formattedData)
-
       // Send transaction
-      const rawResult = await this.client.sendTransaction([
+      const { txId, result: rawResult } = await this.client.sendTransaction([
         { actionName, data: formattedData }
       ])
 

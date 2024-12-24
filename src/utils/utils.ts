@@ -23,25 +23,6 @@ export function cb58Encode(bytes: Uint8Array): string {
   return result
 }
 
-/**
- * Generate a transaction ID according to Avalanche format
- * Returns a 32-byte hash as a CB58-encoded string
- */
-export function generateTxID(
-  actionName: string,
-  data: Record<string, unknown>
-): string {
-  const encoder = new TextEncoder()
-
-  const txData = stringifyWithBigInt({ actionName, data })
-
-  // Generate SHA256 hash of the tx data
-  const hash = sha256(encoder.encode(txData))
-
-  // Convert the hash to a CB58-encoded string
-  return cb58Encode(hash)
-}
-
 function isAddress(value: unknown): boolean {
   if (typeof value !== 'string') return false
 
