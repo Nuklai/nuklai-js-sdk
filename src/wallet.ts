@@ -8,15 +8,27 @@ import { hexToBytes, bytesToHex } from '@noble/hashes/utils';
 
 export class NuklaiWallet {
     private readonly signer: SignerIface;
+    private readonly privateKeyHex?: string;
 
-    constructor(privateKey?: Uint8Array) {
+    constructor(privateKey?: Uint8Array, fullPrivateKeyHex?: string) {
         if (privateKey) {
             if (privateKey.length !== 32) {
                 throw new Error('Private key must be 32 bytes');
             }
             this.signer = new PrivateKeySigner(privateKey);
+
+            if (fullPrivateKeyHex) {
+                this.privateKeyHex = fullPrivateKeyHex;
+            } else {
+                const pubKey = this.signer.getPublicKey();
+                this.privateKeyHex = bytesToHex(privateKey) + bytesToHex(pubKey);
+            }
         } else {
-            this.signer = new EphemeralSigner();
+            const randomPrivateKey = new Uint8Array(32);
+            crypto.getRandomValues(randomPrivateKey);
+            this.signer = new PrivateKeySigner(randomPrivateKey);
+            const pubKey = this.signer.getPublicKey();
+            this.privateKeyHex = bytesToHex(randomPrivateKey) + bytesToHex(pubKey);
         }
     }
 
@@ -47,6 +59,10 @@ export class NuklaiWallet {
         return bytesToHex(this.signer.getPublicKey());
     }
 
+    public getPrivateKey(): string | undefined {
+        return this.privateKeyHex;
+    }
+
     /**
      * Get the signer interface
      */
@@ -66,12 +82,12 @@ export class NuklaiWallet {
      * @param privateKeyHex - Private key in hex format (with or without '0x' prefix)
      */
     public static fromPrivateKey(privateKeyHex: string): NuklaiWallet {
-        const cleanHex = privateKeyHex.replace('0x', '').slice(0, 64);
-        const privateKeyBytes = hexToBytes(cleanHex);
-
+        const cleanHex = privateKeyHex.replace('0x', '');
+        const privateKeyBytes = hexToBytes(cleanHex.slice(0, 64));
+        
         // Make sure we have exactly 32 bytes
         const buffer = new Uint8Array(32);
         buffer.set(privateKeyBytes);
-        return new NuklaiWallet(buffer);
+        return new NuklaiWallet(buffer, cleanHex);
     }
 }
