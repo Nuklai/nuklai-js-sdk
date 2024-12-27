@@ -58,6 +58,10 @@ const sdk = new NuklaiSDK();
 const wallet = sdk.createWallet();
 console.log("Wallet address:", wallet.getAddress());
 
+// Get wallet's private key
+const privateKey = wallet.getPrivateKey();
+console.log("Private key:", privateKey); // Returns the 128-character private key string
+
 // Or import an existing wallet
 const importedWallet = sdk.importWalletFromPrivateKey("your-private-key-hex");
 
@@ -79,7 +83,6 @@ await sdk.rpcService.setSigner(wallet.getSigner());
 
 // Using any custom signer that implements SignerIface
 await sdk.rpcService.setSigner(customSigner);
-
 ```
 
 ### Asset Management
@@ -150,7 +153,7 @@ const transferResult = await sdk.rpcService.transfer(
 const nativeBalance = await sdk.rpcService.getBalance("address");
 
 // Get any asset balance by passing asset address
-const assetBalance = await sdk.rpcService.getBalance("address", "assetAddress");;
+const assetBalance = await sdk.rpcService.getBalance("address", "assetAddress");
 ```
 
 > NOTE: Balance is returned as raw strings without decimal formatting. Use asset decimals info from `getAssetInfo()` to correctly format & display the balance corectly.
@@ -269,7 +272,10 @@ All methods are accessible through the `sdk.rpcService` instance. Below is a com
 | `getAssetInfo()`            | Get's asset details          | `assetAddress: string`                     | `Promise<ActionOutput>` |
 | `getDatasetBalance()`       | Get's dataset balance        | - `address: string`<br>- `assetID: string` | `Promise<ActionOutput>` |
 | `getDatasetNFTInfo()`       | Get's NFT details            | `nftID: string`                            | `Promise<ActionOutput>` |
-| `getPendingContributions()` | Lists pending contributions | `datasetID: string`                        | `Promise<ActionOutput>` |
+| `getPendingContributions()` | Lists pending contributions  | `datasetID: string`                        | `Promise<ActionOutput>` |
+| `getPrivateKey()`           | Get's wallet's private key   | None                                       | `string`                |
+| `getAddress()`              | Get's wallet's address       | None                                       | `string`                |
+| `getPublicKey()`            | Get's wallet's public key    | None                                       | `string`                |
 
 ### Usage Example
 
