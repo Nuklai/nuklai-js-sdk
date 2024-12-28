@@ -63,18 +63,18 @@ describe('NuklaiSDK Wallet Integration', () => {
         });
 
         it('should maintain wallet state through reconnection', async () => {
-          const wallet = sdk.createWallet();
-          const address = wallet.getAddress();
+            const wallet = sdk.createWallet();
+            const address = wallet.getAddress();
 
-          // Initial connection
-          sdk.connectWallet(wallet);
-          expect(sdk.isWalletConnected()).toBe(true);
-          expect(sdk.getAddress()).toBe(address);
+            // Initial connection
+            sdk.connectWallet(wallet);
+            expect(sdk.isWalletConnected()).toBe(true);
+            expect(sdk.getAddress()).toBe(address);
 
-          // Reconnect
-          sdk.connectWallet(wallet);
-          expect(sdk.isWalletConnected()).toBe(true);
-          expect(sdk.getAddress()).toBe(address);
+            // Reconnect
+            sdk.connectWallet(wallet);
+            expect(sdk.isWalletConnected()).toBe(true);
+            expect(sdk.getAddress()).toBe(address);
         });
 
         it('should handle multiple wallets correctly', async () => {
@@ -156,6 +156,36 @@ describe('NuklaiSDK Wallet Integration', () => {
             expect(typeof signer.signTx).toBe('function');
             expect(wallet.getSigner()).toBe(signer);
             expect(bytesToHex(signer.getPublicKey())).toBe(wallet.getPublicKey());
+        });
+        it('should correctly retrieve private key from imported wallet', () => {
+            const wallet = sdk.importWalletFromPrivateKey(TEST_PRIVATE_KEY);
+            const retrievedPrivateKey = wallet.getPrivateKey();
+
+            console.log('Private key test:');
+            console.log('  Original:', TEST_PRIVATE_KEY);
+            console.log('  Retrieved:', retrievedPrivateKey);
+
+            expect(retrievedPrivateKey).toBe(TEST_PRIVATE_KEY);
+        });
+
+        it('should generate and retrieve valid private key for new wallet', () => {
+            const wallet = sdk.createWallet();
+            const privateKey = wallet.getPrivateKey();
+            const address = wallet.getAddress();
+
+            console.log('Random wallet private key test:');
+            console.log('  Generated private key:', privateKey);
+            console.log('  Address:', address);
+
+            expect(privateKey).toBeDefined();
+            expect(typeof privateKey).toBe('string');
+            expect(privateKey?.length).toBe(128);
+
+            // Verify I can recreate the wallet from private key
+            if (privateKey) {
+                const recreatedWallet = sdk.importWalletFromPrivateKey(privateKey);
+                expect(recreatedWallet.getAddress()).toBe(address);
+            }
         });
     });
 });

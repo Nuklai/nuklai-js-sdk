@@ -1,6 +1,8 @@
 // Copyright (C) 2024, Nuklai. All rights reserved.
 // See the file LICENSE for licensing terms.
 
+// API_HOST: 'http://99.81.105.110:9650',
+
 export const TEST_CONFIG = {
   API_HOST: 'http://127.0.0.1:9650',
   TEST_ADDRESS: '00c4cb545f748a28770042f893784ce85b107389004d6a0e0d6d7518eeae1292d9',
