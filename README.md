@@ -75,11 +75,8 @@ if (sdk.isWalletConnected()) {
 ### Signer
 
 ```typescript
-// Using a private key string (old way)
+// Using a private key string
 await sdk.rpcService.setSigner(privateKeyString);
-
-// Using a wallet's signer (new way)
-await sdk.rpcService.setSigner(wallet.getSigner());
 
 // Using any custom signer that implements SignerIface
 await sdk.rpcService.setSigner(customSigner);
